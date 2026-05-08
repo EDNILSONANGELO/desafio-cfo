@@ -6,20 +6,39 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js",
+    "setup": "node scripts/migrate.js && node scripts/seed.js"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.105.3",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "jose": "^6.2.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
+    "lucide-react": "^1.14.0",
     "next": "16.2.6",
+    "papaparse": "^5.5.3",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "recharts": "^3.8.1",
+    "tailwind-merge": "^3.5.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.19.39",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "pg": "^8.20.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
