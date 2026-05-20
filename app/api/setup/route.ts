@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS rounds (
   fixed_expenses DECIMAL,
   transport DECIMAL,
   maintenance DECIMAL,
+  avg_salary DECIMAL,
   class_id UUID REFERENCES classes(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   opened_at TIMESTAMPTZ,
@@ -133,7 +134,7 @@ const setupHtml = (migrationSql: string) => `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DESAFIO CFO – Setup do Banco de Dados</title>
+  <title>ARENA CONTÁBIL – Setup do Banco de Dados</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #020617; color: #e2e8f0; min-height: 100vh; padding: 2rem; }
@@ -171,7 +172,7 @@ const setupHtml = (migrationSql: string) => `<!DOCTYPE html>
 </head>
 <body>
   <div class="container">
-    <h1>🏭 DESAFIO CFO – Setup</h1>
+    <h1>🏭 ARENA CONTÁBIL – Setup</h1>
     <p class="subtitle">Configure o banco de dados Supabase em 2 etapas</p>
 
     <div class="card">
@@ -214,7 +215,7 @@ const setupHtml = (migrationSql: string) => `<!DOCTYPE html>
     <div class="card" id="credsCard" style="display:none">
       <h2>✅ Sistema pronto! Credenciais de acesso:</h2>
       <table class="creds-table">
-        <tr><td>👨‍🏫 Professor</td><td>professor@desafiocfo.com / admin123</td></tr>
+        <tr><td>👨‍🏫 Professor</td><td>professor@arenacontabil.com / admin123</td></tr>
         <tr><td>👩‍🎓 Aluno 1</td><td>RA: 1001 / Senha: 123456 (Grupo 1 – Região 1)</td></tr>
         <tr><td>👩‍🎓 Aluno 2</td><td>RA: 1002 / Senha: 123456 (Grupo 1 – Região 1)</td></tr>
         <tr><td>👩‍🎓 Aluno 3</td><td>RA: 2001 / Senha: 123456 (Grupo 2 – Região 2)</td></tr>

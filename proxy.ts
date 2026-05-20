@@ -1,44 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionFromRequest } from "@/lib/auth/session";
 
+// Paths that never need auth checks
+const ALWAYS_PUBLIC = [
+  "/api/auth",
+  "/api/seed",
+  "/api/setup",
+  "/_next",
+  "/favicon",
+];
+
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Public paths
-  if (
-    pathname.startsWith("/login") ||
-    pathname.startsWith("/api/auth") ||
-    pathname.startsWith("/api/seed") ||
-    pathname.startsWith("/api/setup") ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/favicon") ||
-    pathname === "/"
-  ) {
+  // Static assets and API auth routes — skip everything
+  if (ALWAYS_PUBLIC.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
+  }
+
+  // Root → /login
+  if (pathname === "/") {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   const session = await getSessionFromRequest(req);
 
-  // Not logged in → redirect to login
+  // /login: if already logged in → go to dashboard; otherwise let through
+  if (pathname.startsWith("/login")) {
+    if (session) {
+      const dest = session.role === "teacher" ? "/professor" : "/aluno";
+      return NextResponse.redirect(new URL(dest, req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // All other routes require a valid session
   if (!session) {
-    const loginUrl = new URL("/login", req.url);
-    loginUrl.searchParams.set("redirect", pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
   // Role-based protection
   if (pathname.startsWith("/professor") && session.role !== "teacher") {
     return NextResponse.redirect(new URL("/aluno", req.url));
   }
-
   if (pathname.startsWith("/aluno") && session.role !== "student") {
     return NextResponse.redirect(new URL("/professor", req.url));
-  }
-
-  // Logged in user hitting /login → redirect to dashboard
-  if (pathname === "/login") {
-    if (session.role === "teacher") return NextResponse.redirect(new URL("/professor", req.url));
-    return NextResponse.redirect(new URL("/aluno", req.url));
   }
 
   return NextResponse.next();

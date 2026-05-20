@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * DESAFIO CFO – Script de Seed
+ * ARENA CONTÁBIL – Script de Seed
  * Cria dados iniciais: professor, turma, 4 grupos, 5 alunos, 1 rodada aberta
  */
 

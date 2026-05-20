@@ -4,10 +4,13 @@ import { motion } from "framer-motion";
 import { Trophy, TrendingUp } from "lucide-react";
 import type { RankedResult } from "@/types";
 import { currency, percent, number } from "@/lib/utils/format";
-import { getScoreGrade } from "@/lib/simulation/scoring";
+import { getScoreGrade, DEFAULT_GRADE_SCALE } from "@/lib/simulation/scoring";
+import type { GradeLevel } from "@/lib/simulation/scoring";
 
 interface Props {
   results: RankedResult[];
+  gradeScale?: GradeLevel[];
+  hideGrade?: boolean;
 }
 
 const positionColors = [
@@ -18,7 +21,7 @@ const positionColors = [
 
 const medals = ["🥇", "🥈", "🥉"];
 
-export function RankingTable({ results }: Props) {
+export function RankingTable({ results, gradeScale = DEFAULT_GRADE_SCALE, hideGrade = false }: Props) {
   if (!results.length) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-slate-400">
@@ -41,12 +44,13 @@ export function RankingTable({ results }: Props) {
             <th className="hidden px-4 py-3 text-right text-xs font-semibold text-slate-400 lg:table-cell">Liquidez</th>
             <th className="hidden px-4 py-3 text-right text-xs font-semibold text-slate-400 lg:table-cell">ROA</th>
             <th className="hidden px-4 py-3 text-right text-xs font-semibold text-slate-400 xl:table-cell">Market Share</th>
-            <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400">Grade</th>
+            {!hideGrade && <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400">Grau</th>}
+            {!hideGrade && <th className="hidden px-4 py-3 text-center text-xs font-semibold text-slate-400 sm:table-cell">Nota</th>}
           </tr>
         </thead>
         <tbody>
           {results.map((r, idx) => {
-            const grade = getScoreGrade(r.score);
+            const grade = getScoreGrade(r.score, gradeScale);
             return (
               <motion.tr
                 key={r.companyId}
@@ -92,9 +96,19 @@ export function RankingTable({ results }: Props) {
                     <span className="text-white">{number(r.marketShare, 1)}%</span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-center">
-                  <span className={`font-black ${grade.color}`}>{grade.grade}</span>
-                </td>
+                {!hideGrade && (
+                  <td className="px-4 py-3 text-center">
+                    <div className="flex flex-col items-center leading-tight">
+                      <span className={`font-black ${grade.color}`}>{grade.grade}</span>
+                      <span className="text-[10px] text-slate-500">{grade.label}</span>
+                    </div>
+                  </td>
+                )}
+                {!hideGrade && (
+                  <td className="hidden px-4 py-3 text-center sm:table-cell">
+                    <span className={`text-sm font-black ${grade.color}`}>{grade.nota.toFixed(1)}</span>
+                  </td>
+                )}
               </motion.tr>
             );
           })}

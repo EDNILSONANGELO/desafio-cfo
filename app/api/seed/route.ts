@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createAdminClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth/session";
 
 // POST /api/seed — creates default professor, class, groups, and test students
+// Restrito ao usuário Master.
 export async function POST() {
+  const session = await getSession();
+  if (!session || session.role !== "teacher" || !session.isMaster) {
+    return NextResponse.json(
+      { error: "Acesso restrito ao administrador master." },
+      { status: 403 }
+    );
+  }
+
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Seed não disponível em produção" }, { status: 403 });
   }
@@ -24,7 +34,7 @@ export async function POST() {
     }
 
     // 1. Create professor
-    const profEmail = process.env.PROFESSOR_DEFAULT_EMAIL || "professor@desafiocfo.com";
+    const profEmail = process.env.PROFESSOR_DEFAULT_EMAIL || "professor@arenacontabil.com";
     const profPassword = process.env.PROFESSOR_DEFAULT_PASSWORD || "admin123";
     const profHash = await bcrypt.hash(profPassword, 10);
 

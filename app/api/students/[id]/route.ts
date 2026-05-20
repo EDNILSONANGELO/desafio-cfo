@@ -70,7 +70,7 @@ export async function PUT(
 
   const { id } = await params;
   const body = await req.json();
-  const { name, group_name, email, password } = body;
+  const { name, group_name, email, password, semestre, polo } = body;
 
   const supabase = createAdminClient();
 
@@ -93,9 +93,27 @@ export async function PUT(
     }
   }
 
+  // RA update with duplicate check
+  let newRa: string | undefined = undefined;
+  if (body.ra?.trim()) {
+    newRa = body.ra.trim();
+    const { data: existing } = await supabase
+      .from("students")
+      .select("id")
+      .eq("ra", newRa)
+      .neq("id", id)
+      .maybeSingle();
+    if (existing) {
+      return NextResponse.json({ error: "Este RA já está cadastrado para outro aluno." }, { status: 409 });
+    }
+  }
+
   const updates: Record<string, unknown> = { name, email: email || null };
+  if (newRa) updates.ra = newRa;
   if (group_id !== undefined) updates.group_id = group_id;
   if (password) updates.password_hash = await bcrypt.hash(password, 10);
+  if (semestre !== undefined) updates.semestre = semestre ? Number(semestre) : null;
+  if (polo !== undefined) updates.polo = polo?.trim() || null;
 
   const { data, error } = await supabase
     .from("students")
@@ -104,7 +122,22 @@ export async function PUT(
     .select("*, group:groups(id, name, company_name, region_name)")
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    // Fallback: coluna polo ainda não existe no banco — remove e tenta de novo
+    if (error.message.includes("polo") && updates.polo !== undefined) {
+      const { polo: _polo, ...updatesSemPolo } = updates;
+      void _polo;
+      const { data: d2, error: e2 } = await supabase
+        .from("students")
+        .update(updatesSemPolo)
+        .eq("id", id)
+        .select("*, group:groups(id, name, company_name, region_name)")
+        .single();
+      if (e2) return NextResponse.json({ error: e2.message }, { status: 500 });
+      return NextResponse.json({ student: d2 });
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json({ student: data });
 }

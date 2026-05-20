@@ -87,7 +87,7 @@ export function CashFlowPanel({ result }: Props) {
         FCO — Atividades Operacionais
       </SectionHeader>
 
-      <Row label="(+) Recebimentos de clientes" value={r.cfReceipts} indent color="emerald" />
+      <Row label="(+) Recebimentos de Duplicatas a Receber" value={r.cfReceipts} indent color="emerald" />
       <Row label="(−) Pagamentos a fornecedores" value={-r.cfSupplierPayments} indent color="rose" />
       <Row label="(−) Mão de obra (produção)" value={-r.cfLaborPayments} indent color="rose" />
       <Row label="(−) Despesas operacionais" value={-r.cfOperationalPayments} indent color="rose" />

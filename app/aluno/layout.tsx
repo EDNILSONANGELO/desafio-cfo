@@ -11,6 +11,9 @@ export default async function StudentLayout({
   const session = await getSession();
   if (!session || session.role !== "student") redirect("/login");
 
+  // Primeiro acesso: força troca de senha antes de qualquer outra página
+  if (session.firstAccess) redirect("/trocar-senha");
+
   return (
     <div className="flex h-screen overflow-hidden bg-cfo-bg">
       <StudentSidebar />

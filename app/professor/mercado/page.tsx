@@ -9,11 +9,11 @@ import {
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, RadarChart, Radar, PolarGrid,
-  PolarAngleAxis, PolarRadiusAxis, Legend,
+  ResponsiveContainer, Legend,
 } from "recharts";
 import { currency, percent, number } from "@/lib/utils/format";
 import type { RankedResult, Group } from "@/types";
+import { usePoloContext } from "@/contexts/PoloContext";
 
 /* ─── Types ─── */
 interface RoundInfo { id: number; name: string; event_type: string; processed_at: string; }
@@ -127,10 +127,10 @@ function RegionProfileTable({ results }: { results: ResultRow[] }) {
   const sorted = sortRows(results, sortKey, sortDir);
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
+    <div className="overflow-x-auto rounded-xl border border-white/10">
+      <table className="min-w-full text-xs">
         <thead>
-          <tr className="border-b border-white/10 bg-white/5">
+          <tr className="border-b border-white/10 bg-slate-900/80 sticky top-0 z-10">
             {cols.map(c => (
               <SortTh key={c.key} colKey={c.key} label={c.label} title={c.title} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
             ))}
@@ -163,15 +163,15 @@ function RegionProfileTable({ results }: { results: ResultRow[] }) {
             }
 
             return (
-              <tr key={r.group_id} className={`border-b border-white/5 transition-colors ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
-                <td className="px-3 py-2.5 text-base">{MEDAL_ICONS[originalRank - 1] || `${originalRank}º`}</td>
-                <td className="px-3 py-2.5">
+              <tr key={r.group_id} className={`border-b border-white/5 transition-colors hover:bg-white/[0.04] ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                <td className="px-3 py-2.5 text-base font-bold text-slate-300">{MEDAL_ICONS[originalRank - 1] || `${originalRank}º`}</td>
+                <td className="px-3 py-2.5 min-w-[140px]">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: hex }} />
                     <p className="font-semibold whitespace-nowrap text-white">{r.group?.company_name || `Grupo ${r.group_id}`}</p>
                   </div>
                 </td>
-                <td className="px-3 py-2.5">
+                <td className="px-3 py-2.5 min-w-[100px]">
                   <span className="rounded-lg px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap" style={{ background: `${hex}22`, color: hex }}>
                     {r.group?.region_name}
                   </span>
@@ -182,7 +182,7 @@ function RegionProfileTable({ results }: { results: ResultRow[] }) {
           })}
         </tbody>
       </table>
-      <p className="mt-2 text-right text-[10px] text-slate-600">
+      <p className="border-t border-white/5 px-3 py-2 text-right text-[10px] text-slate-600">
         ★ melhor da rodada &nbsp;·&nbsp; Ordenado por{" "}
         <span className="text-cyan-500">{cols.find(c => c.key === sortKey)?.title}</span>{" "}
         {sortDir === "asc" ? "↑" : "↓"}
@@ -281,6 +281,8 @@ function InsightCard({ icon: Icon, title, value, sub, color }: {
 
 /* ─── Main Page ─── */
 export default function MercadoProfessorPage() {
+  const { poloParam, selectedPolo } = usePoloContext();
+
   const [data, setData] = useState<ApiResponse | null>(null);
   const [selectedRound, setSelectedRound] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -288,19 +290,22 @@ export default function MercadoProfessorPage() {
 
   const load = useCallback(async (roundId?: number) => {
     setLoading(true);
+    setError("");
     try {
-      const url = roundId ? `/api/reports/regional?round_id=${roundId}` : "/api/reports/regional";
-      const res = await fetch(url);
+      const base = roundId
+        ? `/api/reports/regional?round_id=${roundId}${poloParam}`
+        : `/api/reports/regional?v=1${poloParam}`;
+      const res = await fetch(base);
       const json = await res.json();
       if (!res.ok) throw new Error(json.error || "Erro ao carregar");
       setData(json);
-      setSelectedRound(json.targetRoundId);
+      setSelectedRound(json.targetRoundId ?? null);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Erro");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [poloParam]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -309,7 +314,7 @@ export default function MercadoProfessorPage() {
 
   if (!data?.results?.length) return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-black text-white"><Globe className="mr-2 inline h-6 w-6 text-cyan-400" />Mercado & Relatório Regional</h1>
+      <h1 className="text-xl font-black text-white sm:text-2xl"><Globe className="mr-2 inline h-6 w-6 text-cyan-400" />Mercado & Relatório Regional</h1>
       <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-24 text-slate-400">
         <Globe className="mb-4 h-12 w-12 opacity-30" />
         <p className="text-lg font-semibold">Nenhuma rodada processada ainda</p>
@@ -329,8 +334,12 @@ export default function MercadoProfessorPage() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-white"><Globe className="mr-2 inline h-6 w-6 text-cyan-400" />Mercado & Relatório Regional</h1>
-          <p className="mt-1 text-sm text-slate-400">Visão completa do desempenho de todas as empresas · {results.length} grupos</p>
+          <h1 className="text-xl font-black text-white sm:text-2xl"><Globe className="mr-2 inline h-6 w-6 text-cyan-400" />Mercado & Relatório Regional</h1>
+          <p className="mt-1 text-sm text-slate-400">
+            {selectedPolo
+              ? <><span className="text-cyan-400 font-semibold">{selectedPolo}</span> · {results.length} grupo{results.length !== 1 ? "s" : ""}</>
+              : <>Visão completa do desempenho de todas as empresas · {results.length} grupos</>}
+          </p>
         </div>
         {rounds.length > 1 && (
           <div className="flex flex-wrap gap-2">
@@ -341,6 +350,11 @@ export default function MercadoProfessorPage() {
               </button>
             ))}
           </div>
+        )}
+        {selectedPolo && (
+          <span className="rounded-xl border border-cyan-400/30 bg-cyan-500/10 px-3 py-1.5 text-xs font-bold text-cyan-400">
+            📍 {selectedPolo}
+          </span>
         )}
       </div>
 
@@ -386,31 +400,6 @@ export default function MercadoProfessorPage() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
-
-      {/* Radar */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <SectionTitle>Radar Comparativo — Indicadores Financeiros</SectionTitle>
-        <ResponsiveContainer width="100%" height={280}>
-          <RadarChart data={[
-            { metric: "Liquidez", ...Object.fromEntries(results.map(r => [r.group?.company_name||`G${r.group_id}`, Math.min(r.data.currentRatio*25,100)])) },
-            { metric: "ROA",      ...Object.fromEntries(results.map(r => [r.group?.company_name||`G${r.group_id}`, Math.min(r.data.roa*6,100)])) },
-            { metric: "Margem",   ...Object.fromEntries(results.map(r => [r.group?.company_name||`G${r.group_id}`, Math.min(r.data.netMargin*4,100)])) },
-            { metric: "Caixa",    ...Object.fromEntries(results.map(r => [r.group?.company_name||`G${r.group_id}`, Math.min(r.data.immediateRatio*35,100)])) },
-            { metric: "ROE",      ...Object.fromEntries(results.map(r => [r.group?.company_name||`G${r.group_id}`, Math.min(r.data.roe*4,100)])) },
-          ]} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-            <PolarGrid stroke="rgba(255,255,255,0.08)" />
-            <PolarAngleAxis dataKey="metric" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-            <PolarRadiusAxis angle={90} domain={[0,100]} tick={{ fill: "#475569", fontSize: 9 }} tickCount={4} />
-            {results.map(r => {
-              const hex = colorFromTailwind(r.group?.color || "");
-              const name = r.group?.company_name || `G${r.group_id}`;
-              return <Radar key={r.group_id} name={name} dataKey={name} stroke={hex} fill={hex} fillOpacity={0.15} strokeWidth={2} />;
-            })}
-            <Legend formatter={v => <span className="text-xs text-slate-300">{v}</span>} />
-            <Tooltip formatter={v => [`${Number(v).toFixed(0)}%`, ""]} contentStyle={TOOLTIP_STYLE} />
-          </RadarChart>
-        </ResponsiveContainer>
       </div>
 
       {/* Evolution */}

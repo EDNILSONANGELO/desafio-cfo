@@ -12,13 +12,13 @@ export function assignMedals(results: RankedResult[]): MedalData[] {
 
   const medals: MedalData[] = [];
 
-  // 1st place – Melhor CFO
+  // 1st place – Melhor Gestor
   const first = results.find((r) => r.position === 1);
   if (first) {
     medals.push({
       group_id: first.companyId,
-      type: "melhor_cfo",
-      description: `🏆 Melhor CFO – ${first.company} venceu a rodada com score ${first.score.toFixed(1)}`,
+      type: "melhor_gestor",
+      description: `🏆 Melhor Gestor – ${first.company} venceu a rodada com score ${first.score.toFixed(1)}`,
       icon: "🏆",
     });
   }

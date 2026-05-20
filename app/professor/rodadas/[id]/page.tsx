@@ -12,10 +12,11 @@ import {
   AlertTriangle,
   Trophy,
   BarChart3,
+  Settings2,
 } from "lucide-react";
+import Link from "next/link";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
-import { Input, Select } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/Badge";
 import { KpiCard } from "@/components/ui/KpiCard";
 import { SubmissionTracker } from "@/components/dashboard/SubmissionTracker";
@@ -26,132 +27,182 @@ import { RankingBarChart } from "@/components/charts/RankingBarChart";
 import { MarketSharePie } from "@/components/charts/MarketSharePie";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { formatDate } from "@/lib/utils/format";
+import { getScoreGrade, DEFAULT_GRADE_SCALE, buildGradeScale } from "@/lib/simulation/scoring";
+import type { GradeLevel } from "@/lib/simulation/scoring";
 import type { Round, Group, Submission, RankedResult, Medal, StoredResult } from "@/types";
 
-// ── Fixed Expenses Panel ──────────────────────────────────────────────────────
-function FixedExpensesPanel({
-  round,
-  onUpdate,
-}: {
-  round: Round;
-  onUpdate: (u: Partial<Round>) => void;
-}) {
-  const [feVal, setFeVal] = React.useState(round.fixed_expenses?.toString() ?? "");
-  const [trVal, setTrVal] = React.useState(round.transport?.toString() ?? "");
-  const [maVal, setMaVal] = React.useState(round.maintenance?.toString() ?? "");
-  const [saving, setSaving] = React.useState(false);
-  const [saved, setSaved] = React.useState(false);
-
-  const hasAnyLock = feVal !== "" || trVal !== "" || maVal !== "";
-
-  async function save() {
-    setSaving(true);
-    const body = {
-      fixed_expenses: feVal !== "" ? Number(feVal) : null,
-      transport:      trVal !== "" ? Number(trVal) : null,
-      maintenance:    maVal !== "" ? Number(maVal) : null,
-    };
-    await fetch(`/api/rounds/${round.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+// ── Professor Comments Panel ──────────────────────────────────────────────────
+function ProfessorCommentsPanel({ roundId, results }: { roundId: number; results: RankedResult[] }) {
+  const [comments, setComments] = React.useState<Record<number, string>>(() => {
+    const init: Record<number, string> = {};
+    results.forEach((r) => {
+      const comment = (r as unknown as { professor_comment?: string }).professor_comment;
+      if (comment) init[r.companyId] = comment;
     });
-    onUpdate(body);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
-    setSaving(false);
+    return init;
+  });
+  const [saving, setSaving] = React.useState<number | null>(null);
+  const [saved, setSaved] = React.useState<number | null>(null);
+  const [bulkComment, setBulkComment] = React.useState("");
+  const [bulkSaving, setBulkSaving] = React.useState(false);
+  const [bulkSaved, setBulkSaved] = React.useState(false);
+
+  async function saveComment(groupId: number) {
+    setSaving(groupId);
+    try {
+      await fetch("/api/results", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ round_id: roundId, group_id: groupId, professor_comment: comments[groupId] ?? "" }),
+      });
+      setSaved(groupId);
+      setTimeout(() => setSaved(null), 2000);
+    } finally {
+      setSaving(null);
+    }
   }
 
-  function clearAll() {
-    setFeVal(""); setTrVal(""); setMaVal("");
-    setSaved(false);
+  async function saveBulkComment() {
+    setBulkSaving(true);
+    try {
+      await Promise.all(
+        results.map((r) =>
+          fetch("/api/results", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ round_id: roundId, group_id: r.companyId, professor_comment: bulkComment }),
+          })
+        )
+      );
+      setComments((prev) => {
+        const next = { ...prev };
+        results.forEach((r) => { next[r.companyId] = bulkComment; });
+        return next;
+      });
+      setBulkSaved(true);
+      setTimeout(() => setBulkSaved(false), 3000);
+    } finally {
+      setBulkSaving(false);
+    }
   }
-
-  const fields = [
-    { label: "Despesas Fixas R$",  placeholder: "Ex.: 26000", val: feVal, setVal: setFeVal, savedVal: round.fixed_expenses },
-    { label: "Transporte R$",      placeholder: "Ex.: 6000",  val: trVal, setVal: setTrVal, savedVal: round.transport },
-    { label: "Manutenção R$",      placeholder: "Ex.: 3000",  val: maVal, setVal: setMaVal, savedVal: round.maintenance },
-  ];
 
   return (
-    <Panel title="Despesas Operacionais Travadas" icon={Lock}>
-      {/* Instruções */}
-      <div className="mb-5 rounded-xl border border-amber-400/20 bg-amber-500/10 p-4 text-sm">
-        <p className="mb-1 font-bold text-amber-300">Como funciona</p>
-        <ul className="space-y-1 text-slate-300">
-          <li>• Preencha um valor para <strong className="text-white">travar</strong> aquela despesa nesta rodada — o aluno verá o número mas não poderá alterar.</li>
-          <li>• Deixe em <strong className="text-white">branco</strong> para o aluno definir livremente.</li>
-          <li>• Clique em <strong className="text-white">Salvar</strong> para aplicar.</li>
-        </ul>
+    <Panel title="Comentários do Professor por Grupo" icon={BarChart3} subtitle="Visíveis para os alunos na tela de resultados">
+      <div className="mb-6 rounded-2xl border border-violet-400/20 bg-violet-500/5 p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-violet-300 font-bold text-sm">📢 Comentário Geral para Todos os Grupos</span>
+          <span className="text-xs text-slate-500">— aparece para todos os alunos</span>
+        </div>
+        <textarea
+          value={bulkComment}
+          onChange={(e) => setBulkComment(e.target.value)}
+          placeholder="Escreva uma mensagem geral para todos os grupos desta rodada..."
+          rows={3}
+          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-violet-400/40"
+        />
+        <div className="mt-2 flex items-center gap-3">
+          <button
+            onClick={saveBulkComment}
+            disabled={bulkSaving || !bulkComment.trim()}
+            className="flex items-center gap-1.5 rounded-lg bg-violet-500/20 border border-violet-500/30 px-4 py-2 text-xs font-bold text-violet-300 transition hover:bg-violet-500/30 disabled:opacity-40"
+          >
+            {bulkSaving ? <LoadingSpinner size="sm" /> : <span>📤</span>}
+            Enviar para todos os grupos ({results.length})
+          </button>
+          {bulkSaved && <span className="text-xs text-emerald-400 flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5" /> Enviado para todos!</span>}
+        </div>
       </div>
-
-      {/* Inputs */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {fields.map((f) => (
-          <div key={f.label}>
-            <Input
-              label={f.label}
-              type="number"
-              min={0}
-              step={100}
-              value={f.val}
-              placeholder={`Livre — ${f.placeholder}`}
-              onChange={(e) => { f.setVal(e.target.value); setSaved(false); }}
-              disabled={saving}
-            />
-            <p className="mt-1 text-[11px]">
-              {f.val !== "" ? (
-                <span className="text-amber-400">
-                  🔒 Travado em R$&nbsp;
-                  {Number(f.val).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {results.map((r) => (
+          <div key={r.companyId} className="rounded-xl border border-white/10 bg-white/5 p-4">
+            <div className="mb-2 flex items-center justify-between">
+              <div>
+                <p className="font-bold text-white text-sm">{r.company}</p>
+                <p className="text-[10px] text-slate-500">{r.group} · {r.position}º lugar · Score {r.score.toFixed(1)}</p>
+              </div>
+              {saved === r.companyId && (
+                <span className="text-xs text-emerald-400 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Salvo
                 </span>
-              ) : (
-                <span className="italic text-slate-600">Aluno define livremente</span>
               )}
-            </p>
+            </div>
+            <textarea
+              value={comments[r.companyId] ?? ""}
+              onChange={(e) => setComments((prev) => ({ ...prev, [r.companyId]: e.target.value }))}
+              placeholder="Escreva um comentário para este grupo (feedback, parabéns, pontos de melhoria...)"
+              rows={3}
+              className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-cyan-400/40"
+            />
+            <button
+              onClick={() => saveComment(r.companyId)}
+              disabled={saving === r.companyId}
+              className="mt-2 flex items-center gap-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 px-3 py-1.5 text-xs font-semibold text-cyan-400 transition hover:bg-cyan-500/20 disabled:opacity-40"
+            >
+              {saving === r.companyId ? <LoadingSpinner size="sm" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+              Salvar comentário
+            </button>
           </div>
         ))}
       </div>
+    </Panel>
+  );
+}
 
-      {/* Saved feedback */}
-      {saved && (
-        <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-sm text-emerald-300">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          Configurações salvas! Os alunos verão os campos travados ao abrir o formulário.
-        </div>
-      )}
-
-      {/* Buttons */}
-      <div className="mt-4 flex flex-wrap gap-3">
-        <Button onClick={save} loading={saving} size="sm">
-          <Lock className="h-4 w-4" />
-          Salvar travas
-        </Button>
-        {hasAnyLock && (
-          <Button variant="ghost" size="sm" onClick={clearAll} disabled={saving}>
-            Limpar travas (liberar tudo)
-          </Button>
-        )}
+// ── Academic Classification Panel ─────────────────────────────────────────────
+function AcademicClassificationPanel({ results, gradeScale }: { results: RankedResult[]; gradeScale: GradeLevel[] }) {
+  return (
+    <Panel title="Classificação Acadêmica" icon={Trophy} subtitle="Score convertido em grau e nota para cada empresa">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10 text-[11px] font-black uppercase tracking-widest text-slate-500">
+              <th className="py-2.5 text-left">Pos.</th>
+              <th className="py-2.5 text-left">Empresa</th>
+              <th className="py-2.5 text-center">Score</th>
+              <th className="py-2.5 text-center">Grau</th>
+              <th className="py-2.5 text-left">Conceito</th>
+              <th className="py-2.5 text-center">Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((r) => {
+              const g = getScoreGrade(r.score, gradeScale);
+              return (
+                <tr key={r.companyId} className="border-b border-white/5 hover:bg-white/[0.03]">
+                  <td className="py-3 pr-3 font-bold text-slate-400">{r.position}º</td>
+                  <td className="py-3 pr-4">
+                    <p className="font-bold text-white">{r.company}</p>
+                    <p className="text-xs text-slate-500">{r.group}</p>
+                  </td>
+                  <td className="py-3 text-center">
+                    <span className="font-bold text-white">{r.score.toFixed(1)}</span>
+                  </td>
+                  <td className="py-3 text-center">
+                    <span className={`text-base font-black ${g.color}`}>{g.grade}</span>
+                  </td>
+                  <td className="py-3">
+                    <span className={`text-sm font-semibold ${g.color}`}>{g.label}</span>
+                  </td>
+                  <td className="py-3 text-center">
+                    <span className={`text-lg font-black ${g.color}`}>{g.nota.toFixed(1)}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      {/* Status salvo no banco */}
-      <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4">
-        <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-500">
-          Status atual desta rodada
-        </p>
-        <div className="space-y-2">
-          {fields.map((f) => (
-            <div key={f.label} className="flex items-center justify-between border-b border-white/5 pb-2 text-sm">
-              <span className="text-slate-400">{f.label.replace(" R$", "")}</span>
-              {f.savedVal != null ? (
-                <span className="flex items-center gap-1.5 font-semibold text-amber-300">
-                  <Lock className="h-3 w-3" />
-                  R$&nbsp;{f.savedVal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}&nbsp;
-                  <span className="rounded bg-amber-700/30 px-1.5 py-0.5 text-[9px] uppercase tracking-wider">fixo</span>
-                </span>
-              ) : (
-                <span className="italic text-slate-500">Livre — aluno define</span>
-              )}
+      {/* Legenda */}
+      <div className="mt-4">
+        <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Legenda da escala</p>
+        <div className="flex flex-wrap gap-2">
+          {gradeScale.map((level, i) => (
+            <div key={i} className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-center">
+              <p className={`text-sm font-black ${level.color}`}>{level.grade}</p>
+              <p className="text-[10px] text-slate-400">{level.label}</p>
+              <p className={`text-xs font-bold ${level.color}`}>{level.nota.toFixed(1)}</p>
+              <p className="text-[9px] text-slate-600">≥ {level.minScore}</p>
             </div>
           ))}
         </div>
@@ -160,83 +211,6 @@ function FixedExpensesPanel({
   );
 }
 
-// ── Price Limits Panel ────────────────────────────────────────────────────────
-function PriceLimitsPanel({
-  round,
-  onUpdate,
-}: {
-  round: Round;
-  onUpdate: (u: { price_min?: number | null; price_max?: number | null }) => void;
-}) {
-  const [min, setMin] = React.useState(round.price_min?.toString() ?? "");
-  const [max, setMax] = React.useState(round.price_max?.toString() ?? "");
-  const [saved, setSaved] = React.useState(false);
-
-  const save = () => {
-    onUpdate({
-      price_min: min !== "" ? Number(min) : null,
-      price_max: max !== "" ? Number(max) : null,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  return (
-    <Panel title="Faixa de preço de venda" icon={Zap}>
-      <p className="mb-4 text-sm text-slate-400">
-        Defina o preço mínimo e/ou máximo que os alunos podem praticar na rodada.
-        Deixe em branco para não restringir.
-      </p>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <div className="w-40">
-          <Input
-            label="Preço mínimo R$"
-            type="number"
-            min={0}
-            step={0.5}
-            value={min}
-            onChange={(e) => { setMin(e.target.value); setSaved(false); }}
-            placeholder="sem limite"
-          />
-        </div>
-        <div className="w-40">
-          <Input
-            label="Preço máximo R$"
-            type="number"
-            min={0}
-            step={0.5}
-            value={max}
-            onChange={(e) => { setMax(e.target.value); setSaved(false); }}
-            placeholder="sem limite"
-          />
-        </div>
-        <Button variant="secondary" onClick={save} size="sm">
-          {saved ? "✓ Salvo" : "Salvar limites"}
-        </Button>
-      </div>
-      {(round.price_min != null || round.price_max != null) && (
-        <p className="mt-3 text-xs text-amber-400">
-          ⚠ Limites ativos:{" "}
-          {round.price_min != null && `mín. R$ ${round.price_min.toFixed(2)}`}
-          {round.price_min != null && round.price_max != null && " · "}
-          {round.price_max != null && `máx. R$ ${round.price_max.toFixed(2)}`}
-          {" — visíveis no formulário do aluno."}
-        </p>
-      )}
-    </Panel>
-  );
-}
-
-const EVENT_OPTIONS = [
-  { value: "Mercado normal", label: "📊 Mercado normal" },
-  { value: "Inflação alta", label: "📈 Inflação alta" },
-  { value: "Incentivo fiscal", label: "💰 Incentivo fiscal" },
-  { value: "Crise econômica", label: "📉 Crise econômica" },
-  { value: "Crescimento econômico", label: "🚀 Crescimento econômico" },
-  { value: "Escassez de matéria-prima", label: "⚠️ Escassez de matéria-prima" },
-  { value: "Alta do dólar", label: "💵 Alta do dólar" },
-];
-
 export default function RoundDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [round, setRound] = useState<Round | null>(null);
@@ -244,6 +218,7 @@ export default function RoundDetailPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [results, setResults] = useState<RankedResult[]>([]);
   const [medals, setMedals] = useState<Medal[]>([]);
+  const [gradeScale, setGradeScale] = useState<GradeLevel[]>(DEFAULT_GRADE_SCALE);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -273,6 +248,19 @@ export default function RoundDetailPage() {
     }
   }, [id]);
 
+  // Carrega escala de classificação da turma (apenas uma vez)
+  useEffect(() => {
+    fetch("/api/classes")
+      .then((r) => r.json())
+      .then((d) => {
+        const gs = d.class?.grade_scale;
+        if (Array.isArray(gs) && gs.length) {
+          setGradeScale(buildGradeScale(gs));
+        }
+      })
+      .catch(() => {/* usa padrão */});
+  }, []);
+
   useEffect(() => {
     load();
     const interval = setInterval(load, 10000);
@@ -288,15 +276,6 @@ export default function RoundDetailPage() {
     });
     load();
     setUpdating(false);
-  }
-
-  async function updateEvent(event_type: string) {
-    await fetch(`/api/rounds/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event_type }),
-    });
-    setRound((r) => r ? { ...r, event_type } : r);
   }
 
   async function processRound() {
@@ -342,7 +321,7 @@ export default function RoundDetailPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">{round.name}</h1>
+          <h1 className="text-xl font-black text-white sm:text-2xl">{round.name}</h1>
           <div className="mt-1 flex items-center gap-2">
             <StatusBadge status={round.status} />
             <span className="text-sm text-slate-400">{round.event_type}</span>
@@ -397,44 +376,17 @@ export default function RoundDetailPage() {
         <KpiCard icon={Trophy} title="Processados" value={results.length ? `${results.length} grupos` : "Aguardando"} accent="violet" />
       </div>
 
-      {/* Event selector */}
-      <Panel title="Configurar evento econômico" icon={Zap}>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex-1">
-            <Select
-              label="Evento desta rodada"
-              value={round.event_type}
-              onChange={(e) => updateEvent(e.target.value)}
-              options={EVENT_OPTIONS}
-            />
-          </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-300">
-            {round.event_type === "Inflação alta" && "Demanda -6%, Custos +10%"}
-            {round.event_type === "Incentivo fiscal" && "Demanda +6%, Custos -4%"}
-            {round.event_type === "Crise econômica" && "Demanda -15%, Custos +5%"}
-            {round.event_type === "Crescimento econômico" && "Demanda +10%, Custos +2%"}
-            {round.event_type === "Escassez de matéria-prima" && "Custos +20%"}
-            {round.event_type === "Alta do dólar" && "Custos +8%"}
-            {round.event_type === "Mercado normal" && "Sem impactos adicionais"}
-          </div>
-        </div>
-      </Panel>
-
-      {/* Fixed Expenses panel */}
-      <FixedExpensesPanel
-        round={round}
-        onUpdate={(updates) => setRound((r) => r ? { ...r, ...updates } : r)}
-      />
-
-      {/* Price limits */}
-      <PriceLimitsPanel round={round} onUpdate={(updates) => {
-        setRound((r) => r ? { ...r, ...updates } : r);
-        fetch(`/api/rounds/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updates),
-        });
-      }} />
+      {/* Atalho para Configurações */}
+      <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+        <Settings2 className="h-4 w-4 shrink-0 text-slate-400" />
+        <p className="text-sm text-slate-400">
+          Evento econômico, despesas travadas, preços de materiais e faixa de preço de venda
+          estão em{" "}
+          <Link href="/professor/configuracoes" className="font-semibold text-cyan-400 hover:text-cyan-300 underline underline-offset-2">
+            Configurações → Configurações por Rodada
+          </Link>.
+        </p>
+      </div>
 
       {/* Submission tracker */}
       <Panel title="Status de Envio por Grupo" icon={CheckCircle2} subtitle="Atualizado a cada 10 segundos">
@@ -482,8 +434,11 @@ export default function RoundDetailPage() {
           )}
 
           <Panel title="Ranking Final" icon={Trophy}>
-            <RankingTable results={results} />
+            <RankingTable results={results} gradeScale={gradeScale} />
           </Panel>
+
+          {/* Classificação Acadêmica */}
+          <AcademicClassificationPanel results={results} gradeScale={gradeScale} />
 
           <div className="grid gap-6 lg:grid-cols-2">
             <Panel title="Score por Empresa" icon={BarChart3}>
@@ -497,6 +452,76 @@ export default function RoundDetailPage() {
               </div>
             </Panel>
           </div>
+
+          {/* Painel de Colaboradores & Marketing (se rodada usou novos campos) */}
+          {results.some((r) => r.netEmployees !== undefined || r.marketingInsertionCost !== undefined) && (
+            <Panel title="Colaboradores & Marketing por Empresa" icon={BarChart3} subtitle="Resumo dos novos indicadores desta rodada">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-white/10 text-[10px] uppercase tracking-widest text-slate-500">
+                      <th className="px-3 py-2 text-left">Empresa</th>
+                      <th className="px-3 py-2 text-right">Colab. Ativos</th>
+                      <th className="px-3 py-2 text-right">Necessários</th>
+                      <th className="px-3 py-2 text-right">Ociosos</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2 text-right">Custo RH</th>
+                      <th className="px-3 py-2 text-right">Marketing Inserções</th>
+                      <th className="px-3 py-2 text-right">Frete Regional</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[...results].sort((a, b) => a.position - b.position).map((r) => (
+                      <tr key={r.companyId} className="border-b border-white/5 hover:bg-white/5">
+                        <td className="px-3 py-2.5">
+                          <p className="font-semibold text-white">{r.company}</p>
+                          <p className="text-[10px] text-slate-500">{r.group}</p>
+                        </td>
+                        <td className="px-3 py-2.5 text-right font-semibold text-white">
+                          {r.netEmployees ?? "—"}
+                        </td>
+                        <td className="px-3 py-2.5 text-right text-slate-300">
+                          {r.minEmployeesNeeded ?? "—"}
+                        </td>
+                        <td className={`px-3 py-2.5 text-right font-semibold ${(r.idleEmployees ?? 0) > 0 ? "text-amber-400" : "text-slate-500"}`}>
+                          {r.idleEmployees ?? 0}
+                        </td>
+                        <td className="px-3 py-2.5 text-center">
+                          {r.employeeStatus ? (
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                              r.employeeStatus === "good"  ? "bg-emerald-500/20 text-emerald-300" :
+                              r.employeeStatus === "alert" ? "bg-amber-500/20 text-amber-300"    :
+                                                             "bg-rose-500/20 text-rose-300"
+                            }`}>
+                              {r.employeeStatusLabel ?? r.employeeStatus}
+                            </span>
+                          ) : <span className="text-slate-600">—</span>}
+                        </td>
+                        <td className={`px-3 py-2.5 text-right font-semibold ${((r.hiringCost ?? 0) + (r.firingCost ?? 0)) > 0 ? "text-rose-400" : "text-slate-500"}`}>
+                          {((r.hiringCost ?? 0) + (r.firingCost ?? 0)) > 0
+                            ? `(${((r.hiringCost ?? 0) + (r.firingCost ?? 0)).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})`
+                            : "—"}
+                        </td>
+                        <td className={`px-3 py-2.5 text-right font-semibold ${(r.marketingInsertionCost ?? 0) > 0 ? "text-cyan-400" : "text-slate-500"}`}>
+                          {(r.marketingInsertionCost ?? 0) > 0
+                            ? (r.marketingInsertionCost ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                            : "—"}
+                        </td>
+                        <td className={`px-3 py-2.5 text-right font-semibold ${(r.regionalTransportCost ?? 0) > 0 ? "text-violet-400" : "text-slate-500"}`}>
+                          {(r.regionalTransportCost ?? 0) > 0
+                            ? (r.regionalTransportCost ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+          )}
+
+          {/* Comentários do professor por grupo */}
+          <ProfessorCommentsPanel roundId={Number(id)} results={results} />
         </>
       )}
     </div>

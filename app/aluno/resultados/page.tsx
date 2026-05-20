@@ -36,12 +36,27 @@ export default async function ResultadosPage() {
     .eq("group_id", session.groupId || 0)
     .order("created_at", { ascending: false });
 
+  // Fetch custom grade scale from class
+  let gradeScaleRaw: unknown[] = [];
+  const classId = session.classId;
+  if (classId) {
+    const { data: cls } = await supabase
+      .from("classes")
+      .select("grade_scale")
+      .eq("id", classId)
+      .maybeSingle();
+    if (Array.isArray(cls?.grade_scale) && cls.grade_scale.length > 0) {
+      gradeScaleRaw = cls.grade_scale;
+    }
+  }
+
   return (
     <ResultadosClient
       groupResults={groupResults || []}
       fullRanking={fullRanking}
       medals={medals || []}
       session={session}
+      gradeScaleRaw={gradeScaleRaw}
     />
   );
 }

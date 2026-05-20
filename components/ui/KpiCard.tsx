@@ -37,14 +37,14 @@ export function KpiCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={cn(
-        "rounded-2xl border border-white/10 bg-white/5 p-5 shadow-xl backdrop-blur-sm",
+        "rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl backdrop-blur-sm",
         className
       )}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <p className="text-xs font-medium text-slate-400 truncate">{title}</p>
-          <h3 className="mt-1 text-2xl font-black text-white leading-tight">
+          <h3 className="mt-1 text-xl sm:text-2xl font-black text-white leading-tight break-words">
             {value}
           </h3>
           {subtitle && (
@@ -62,7 +62,7 @@ export function KpiCard({
             </p>
           )}
         </div>
-        <div className="ml-3 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+        <div className="ml-3 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/10">
           <Icon className={cn("h-5 w-5", accents[accent])} />
         </div>
       </div>

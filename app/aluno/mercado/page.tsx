@@ -5,14 +5,15 @@ import { motion } from "framer-motion";
 import {
   Trophy, TrendingUp, BarChart3, Globe,
   Zap, Shield, Target, DollarSign, Activity, Star,
-  ChevronUp, ChevronDown, ChevronsUpDown,
+  ChevronUp, ChevronDown, ChevronsUpDown, Download,
 } from "lucide-react";
+import { exportToExcel } from "@/lib/utils/exportExcel";
+import { currency, percent, number } from "@/lib/utils/format";
+import { Panel } from "@/components/ui/Panel";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, RadarChart, Radar, PolarGrid,
-  PolarAngleAxis, PolarRadiusAxis, Legend,
+  ResponsiveContainer, Legend,
 } from "recharts";
-import { currency, percent, number } from "@/lib/utils/format";
 import type { RankedResult, Group } from "@/types";
 
 /* ─── Types ─── */
@@ -93,6 +94,29 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
   const [sortKey, setSortKey] = useState("position");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
+  async function handleExport() {
+    const rows = [...results]
+      .sort((a, b) => a.position - b.position)
+      .map(r => ({
+        "#": r.position,
+        "Empresa":        r.group?.company_name ?? "",
+        "Região":         r.group?.region_name ?? "",
+        "Receita Líquida (R$)":    r.data.netRevenue,
+        "Lucro Líquido (R$)":      r.data.netProfit,
+        "Margem Bruta (%)":        Number(percent(r.data.grossMargin).replace("%","").replace(",",".")),
+        "Margem Líquida (%)":      Number(percent(r.data.netMargin).replace("%","").replace(",",".")),
+        "Liquidez Corrente":       r.data.currentRatio,
+        "Liquidez Seca":           r.data.quickRatio,
+        "Liquidez Imediata":       r.data.immediateRatio,
+        "ROA (%)":                 Number(percent(r.data.roa).replace("%","").replace(",",".")),
+        "ROE (%)":                 Number(percent(r.data.roe).replace("%","").replace(",",".")),
+        "Ciclo Financeiro (dias)": r.data.cashCycle,
+        "Market Share (%)":        r.data.marketShare,
+        "Score":                   r.data.score,
+      }));
+    await exportToExcel(rows, "perfil-por-regiao", "Comparativo por Região");
+  }
+
   function handleSort(key: string) {
     if (key === sortKey) setSortDir(d => d === "asc" ? "desc" : "asc");
     else { setSortKey(key); setSortDir("asc"); }
@@ -130,10 +154,20 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
   const sorted = sortRows(results, sortKey, sortDir);
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs">
+    <div>
+      <div className="mb-3 flex justify-end">
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Exportar Excel
+        </button>
+      </div>
+    <div className="overflow-x-auto rounded-xl border border-white/10">
+      <table className="min-w-full text-xs">
         <thead>
-          <tr className="border-b border-white/10 bg-white/5">
+          <tr className="border-b border-white/10 bg-slate-900/80 sticky top-0 z-10">
             {cols.map(c => (
               <SortTh key={c.key} colKey={c.key} label={c.label} title={c.title} sortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
             ))}
@@ -169,11 +203,11 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
             }
 
             return (
-              <tr key={r.group_id} className={`border-b border-white/5 transition-colors ${isMe ? "bg-cyan-400/5" : i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+              <tr key={r.group_id} className={`border-b border-white/5 transition-colors hover:bg-white/[0.04] ${isMe ? "bg-cyan-400/5" : i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
                 {/* # */}
-                <td className="px-3 py-2.5 text-base">{MEDAL_ICONS[originalRank - 1] || `${originalRank}º`}</td>
+                <td className="px-3 py-2.5 text-base font-bold text-slate-300">{MEDAL_ICONS[originalRank - 1] || `${originalRank}º`}</td>
                 {/* Empresa */}
-                <td className="px-3 py-2.5">
+                <td className="px-3 py-2.5 min-w-[140px]">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: hex }} />
                     <div>
@@ -185,7 +219,7 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
                   </div>
                 </td>
                 {/* Região */}
-                <td className="px-3 py-2.5">
+                <td className="px-3 py-2.5 min-w-[100px]">
                   <span className="rounded-lg px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap" style={{ background: `${hex}22`, color: hex }}>
                     {r.group?.region_name}
                   </span>
@@ -197,11 +231,12 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
           })}
         </tbody>
       </table>
-      <p className="mt-2 text-right text-[10px] text-slate-600">
+      <p className="border-t border-white/5 px-3 py-2 text-right text-[10px] text-slate-600">
         ★ melhor da rodada &nbsp;·&nbsp; Ordenado por{" "}
         <span className="text-cyan-500">{cols.find(c => c.key === sortKey)?.title}</span>{" "}
         {sortDir === "asc" ? "↑" : "↓"}
       </p>
+    </div>
     </div>
   );
 }
@@ -323,44 +358,6 @@ function RevenueBarChart({ results, myGroupId }: { results: ResultRow[]; myGroup
   );
 }
 
-/* ─── Radar ─── */
-function RadarComparison({ results, myGroupId }: { results: ResultRow[]; myGroupId?: number }) {
-  if (results.length < 2) return null;
-  const metrics = [
-    { key: "currentRatio", label: "Liquidez", scale: 25 },
-    { key: "roa",          label: "ROA",       scale: 6  },
-    { key: "netMargin",    label: "Margem",    scale: 4  },
-    { key: "immediateRatio", label: "Caixa",   scale: 35 },
-    { key: "roe",          label: "ROE",       scale: 4  },
-  ];
-  const displayed = results.slice(0, 4);
-  const data = metrics.map(({ key, label, scale }) => {
-    const point: Record<string, string | number> = { metric: label };
-    for (const r of displayed) {
-      const val = (r.data as unknown as Record<string, number>)[key] ?? 0;
-      point[r.group?.company_name || `G${r.group_id}`] = Math.min(Math.max(val * scale, 0), 100);
-    }
-    return point;
-  });
-  return (
-    <ResponsiveContainer width="100%" height={280}>
-      <RadarChart data={data} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-        <PolarGrid stroke="rgba(255,255,255,0.08)" />
-        <PolarAngleAxis dataKey="metric" tick={{ fill: "#94a3b8", fontSize: 11 }} />
-        <PolarRadiusAxis angle={90} domain={[0,100]} tick={{ fill: "#475569", fontSize: 9 }} tickCount={4} />
-        {displayed.map(r => {
-          const hex = colorFromTailwind(r.group?.color || "");
-          const name = r.group?.company_name || `G${r.group_id}`;
-          const isMe = r.group_id === myGroupId;
-          return <Radar key={r.group_id} name={name} dataKey={name} stroke={hex} fill={hex} fillOpacity={isMe ? 0.3 : 0.1} strokeWidth={isMe ? 2.5 : 1.5} />;
-        })}
-        <Legend formatter={v => <span className="text-xs text-slate-300">{v}</span>} />
-        <Tooltip formatter={v => [`${Number(v).toFixed(0)}%`, ""]} contentStyle={TOOLTIP_STYLE} />
-      </RadarChart>
-    </ResponsiveContainer>
-  );
-}
-
 /* ─── Insight card ─── */
 function InsightCard({ icon: Icon, title, value, sub, color }: {
   icon: React.ComponentType<{ className?: string }>; title: string; value: string; sub: string; color: string;
@@ -381,7 +378,8 @@ function InsightCard({ icon: Icon, title, value, sub, color }: {
 export default function MercadoPage() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [selectedRound, setSelectedRound] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async (roundId?: number) => {
@@ -397,12 +395,13 @@ export default function MercadoPage() {
       setError(e instanceof Error ? e.message : "Erro");
     } finally {
       setLoading(false);
+      setInitialLoading(false);
     }
   }, []);
 
   useEffect(() => { load(); }, [load]);
 
-  if (loading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" /></div>;
+  if (initialLoading) return <div className="flex h-64 items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" /></div>;
 
   if (error) return (
     <div className="flex h-64 flex-col items-center justify-center text-rose-400">
@@ -414,7 +413,7 @@ export default function MercadoPage() {
   if (!data?.results?.length) return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-black text-white">Inteligência de Mercado</h1>
+        <h1 className="text-xl font-black text-white sm:text-2xl">Inteligência de Mercado</h1>
         <p className="text-sm text-slate-400">Dados dos competidores por região</p>
       </div>
       <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-white/5 py-24 text-slate-400">
@@ -433,38 +432,86 @@ export default function MercadoPage() {
   const bestLiquidity = [...results].sort((a,b) => b.data.currentRatio - a.data.currentRatio)[0];
   const bestCycle = [...results].sort((a,b) => a.data.cashCycle - b.data.cashCycle)[0];
 
+  const selectedRoundInfo = rounds.find(r => r.id === selectedRound);
+
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-white">
-            <Globe className="mr-2 inline h-6 w-6 text-cyan-400" />
-            Inteligência de Mercado
-          </h1>
-          <p className="mt-1 text-sm text-slate-400">Compare o desempenho de todas as empresas concorrentes</p>
+      <div>
+        <h1 className="text-xl font-black text-white sm:text-2xl">
+          <Globe className="mr-2 inline h-6 w-6 text-cyan-400" />
+          Inteligência de Mercado
+        </h1>
+        <p className="mt-1 text-sm text-slate-400">Compare o desempenho de todas as empresas concorrentes</p>
+      </div>
+
+      {/* ── Filtro de rodada ── */}
+      <Panel title="Selecionar Rodada" icon={ChevronDown}>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          {/* Dropdown */}
+          <div className="relative flex-1 max-w-xs">
+            <select
+              value={selectedRound ?? ""}
+              onChange={(e) => load(Number(e.target.value))}
+              className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 pr-10 text-sm font-semibold text-white focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+            >
+              {rounds.map(r => (
+                <option key={r.id} value={r.id} className="bg-slate-900 text-white">
+                  {r.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          </div>
+
+          {/* Info da rodada selecionada */}
+          {selectedRoundInfo && (
+            <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm">
+              <span className="font-semibold text-white">{selectedRoundInfo.name}</span>
+              {selectedRoundInfo.event_type && selectedRoundInfo.event_type !== "Mercado normal" && (
+                <>
+                  <span className="text-slate-600">·</span>
+                  <span className="flex items-center gap-1 text-amber-300">
+                    <Zap className="h-3.5 w-3.5" />
+                    {selectedRoundInfo.event_type}
+                  </span>
+                </>
+              )}
+              {selectedRoundInfo.processed_at && (
+                <>
+                  <span className="text-slate-600">·</span>
+                  <span className="text-xs text-slate-500">
+                    processada em {new Date(selectedRoundInfo.processed_at).toLocaleDateString("pt-BR")}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+
+          {loading && (
+            <span className="text-xs text-slate-500 animate-pulse">Carregando...</span>
+          )}
         </div>
+
+        {/* Chips de navegação rápida */}
         {rounds.length > 1 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap gap-2">
             {rounds.map(r => (
-              <button key={r.id} onClick={() => load(r.id)}
-                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-all ${selectedRound === r.id ? "bg-cyan-400 text-slate-950" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}>
+              <button
+                key={r.id}
+                onClick={() => load(r.id)}
+                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  selectedRound === r.id
+                    ? "bg-cyan-500/20 border border-cyan-400/40 text-cyan-300"
+                    : "bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
+                }`}
+              >
                 {r.name}
               </button>
             ))}
           </div>
         )}
-      </div>
-
-      {/* Event badge */}
-      {rounds.find(r => r.id === selectedRound)?.event_type && (
-        <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-          <Zap className="h-4 w-4 text-amber-400" />
-          <span className="text-sm text-amber-300 font-semibold">
-            Evento da Rodada: {rounds.find(r => r.id === selectedRound)?.event_type}
-          </span>
-        </div>
-      )}
+      </Panel>
 
       {/* My position */}
       {myResult && (
@@ -511,13 +558,6 @@ export default function MercadoPage() {
           <SectionTitle>Receita vs. Lucro Líquido</SectionTitle>
           <RevenueBarChart results={results} myGroupId={myGroupId} />
         </div>
-      </div>
-
-      {/* Radar */}
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-        <SectionTitle>Radar Comparativo — Indicadores Financeiros</SectionTitle>
-        <p className="mb-4 text-xs text-slate-500">Compare liquidez, rentabilidade e eficiência. Seu grupo aparece em destaque.</p>
-        <RadarComparison results={results} myGroupId={myGroupId} />
       </div>
 
       {/* Evolution */}

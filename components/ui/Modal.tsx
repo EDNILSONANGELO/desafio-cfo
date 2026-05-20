@@ -15,10 +15,10 @@ interface ModalProps {
 }
 
 const sizes = {
-  sm: "max-w-sm",
-  md: "max-w-lg",
-  lg: "max-w-2xl",
-  xl: "max-w-4xl",
+  sm: "sm:max-w-sm",
+  md: "sm:max-w-lg",
+  lg: "sm:max-w-2xl",
+  xl: "sm:max-w-4xl",
 };
 
 export function Modal({ open, onClose, title, children, footer, size = "md" }: ModalProps) {
@@ -33,7 +33,9 @@ export function Modal({ open, onClose, title, children, footer, size = "md" }: M
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        /* Em mobile: alinha embaixo (items-end). Em sm+: centraliza */
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -41,22 +43,35 @@ export function Modal({ open, onClose, title, children, footer, size = "md" }: M
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
+
+          {/* Modal — bottom sheet em mobile, card centralizado em sm+ */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`relative w-full ${sizes[size]} rounded-3xl border border-white/10 bg-slate-900 shadow-2xl`}
+            initial={{ opacity: 0, y: 60 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 60 }}
+            transition={{ type: "spring", damping: 28, stiffness: 320 }}
+            className={`relative flex w-full flex-col
+              max-h-[92vh]
+              rounded-t-3xl sm:rounded-3xl
+              border border-white/10 bg-slate-900 shadow-2xl
+              ${sizes[size]}`}
           >
-            <div className="flex items-center justify-between border-b border-white/10 p-6">
-              <h2 className="text-lg font-black text-white">{title}</h2>
+            {/* Cabeçalho fixo */}
+            <div className="flex shrink-0 items-center justify-between border-b border-white/10 p-4 sm:p-6">
+              {/* Drag handle (visual — mobile) */}
+              <div className="absolute left-1/2 top-2.5 h-1 w-10 -translate-x-1/2 rounded-full bg-white/20 sm:hidden" />
+              <h2 className="text-base font-black text-white sm:text-lg">{title}</h2>
               <Button variant="ghost" size="sm" onClick={onClose}>
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="p-6">{children}</div>
+
+            {/* Conteúdo rolável */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">{children}</div>
+
+            {/* Rodapé fixo */}
             {footer && (
-              <div className="flex items-center justify-end gap-3 border-t border-white/10 p-6">
+              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-white/10 p-4 sm:gap-3 sm:p-6">
                 {footer}
               </div>
             )}

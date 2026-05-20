@@ -1,8 +1,13 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
-  title: "Desafio CFO – Simulador Empresarial Contábil",
+  title: "Arena Contábil – Business Accounting Simulator",
   description:
     "Simulador empresarial gamificado para Ciências Contábeis. Grupos competem como empresas, tomando decisões financeiras em rodadas.",
 };

@@ -8,6 +8,43 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { role, email, password, ra } = body;
 
+    // ── Master login — autentica direto pelas variáveis de ambiente ─────────────
+    // Não precisa de migration nem de coluna is_master no banco.
+    if (role === "master") {
+      const masterEmail    = process.env.MASTER_EMAIL;
+      const masterPassword = process.env.MASTER_PASSWORD;
+      const masterName     = process.env.MASTER_NAME || "Administrador Master";
+
+      if (!masterEmail || !masterPassword) {
+        return NextResponse.json(
+          { error: "Conta master não configurada. Defina MASTER_EMAIL e MASTER_PASSWORD no .env.local" },
+          { status: 500 }
+        );
+      }
+
+      const emailMatch    = email?.trim().toLowerCase() === masterEmail.trim().toLowerCase();
+      const passwordMatch = password === masterPassword;
+
+      if (!emailMatch || !passwordMatch) {
+        return NextResponse.json({ error: "E-mail ou senha inválidos" }, { status: 401 });
+      }
+
+      const token = await signJWT({
+        id: "master",
+        identifier: masterEmail,
+        name: masterName,
+        role: "teacher",
+        isMaster: true,
+      });
+
+      const response = NextResponse.json({
+        success: true,
+        user: { id: "master", name: masterName, role: "teacher", isMaster: true },
+      });
+
+      return setSessionCookie(response, token);
+    }
+
     const supabase = createAdminClient();
 
     if (role === "teacher") {
@@ -42,11 +79,20 @@ export async function POST(req: NextRequest) {
         name: professor.name,
         role: "teacher",
         classId: profClass?.id ?? undefined,
+        isMaster: false,
+        polo: professor.polo ?? undefined,
       });
 
       const response = NextResponse.json({
         success: true,
-        user: { id: professor.id, name: professor.name, role: "teacher", classId: profClass?.id ?? null },
+        user: {
+          id: professor.id,
+          name: professor.name,
+          role: "teacher",
+          classId: profClass?.id ?? null,
+          isMaster: false,
+          polo: professor.polo ?? null,
+        },
       });
 
       return setSessionCookie(response, token);
@@ -74,6 +120,7 @@ export async function POST(req: NextRequest) {
         role: "student",
         groupId: student.group_id,
         classId: student.class_id,
+        firstAccess: student.first_access === true,
       });
 
       const response = NextResponse.json({
@@ -87,6 +134,7 @@ export async function POST(req: NextRequest) {
           classId: student.class_id,
           group: student.group,
           class: student.class,
+          firstAccess: student.first_access === true,
         },
       });
 

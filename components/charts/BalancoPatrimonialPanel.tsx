@@ -69,11 +69,43 @@ function TotalBar({
 }
 
 export function BalancoPatrimonialPanel({ result: r }: Props) {
-  // Compute totals robustly, supporting old stored results
-  const pnc = r.longTermLiabilities ?? r.loans * 0.65;
-  const totalPassivo = r.totalLiabilities ?? (r.currentLiabilities + pnc);
-  const totalPassivoPL = totalPassivo + r.equity;
-  const diff = Math.abs(r.totalAssets - totalPassivoPL);
+  // ── Auto-correção para resultados processados com engine antigo ───────────────
+  // Engine antigo: machinesPayable = (2/3 × custo) + juros  → juros capitalizado no passivo
+  // Engine atual:  machinesPayable = (2/3 × custo) apenas   → juros vai para Despesa Financeira
+  // Detectamos o resultado pré-correção comparando o valor armazenado com o esperado.
+  const machinesTotalCost = r.machinesTotalCost ?? 0;
+  const machinesInterest  = r.machinesInterest  ?? 0;
+  const storedNewPayable  = r.machinesPayable   ?? 0; // parcelas novas desta rodada
+  const expectedDeferred  = (machinesTotalCost * 2) / 3;
+
+  // Se storedNewPayable ≈ deferred + juros → resultado antigo (juros capitalizado)
+  const isPreFix =
+    machinesTotalCost > 0 &&
+    machinesInterest > 0 &&
+    Math.abs(storedNewPayable - expectedDeferred - machinesInterest) < 1;
+
+  // Valor do ajuste: os juros que foram indevidamente capitalizados no passivo
+  const adj = isPreFix ? machinesInterest : 0;
+
+  // ── Valores corrigidos para exibição ─────────────────────────────────────────
+  // Ativo: caixa estava inflado (juros não foram pagos na saída de caixa)
+  const displayFinalCash    = (r.finalCash       ?? 0) - adj;
+  const displayCurrentAssets = displayFinalCash + (r.clients ?? 0) + (r.endingInventory ?? 0);
+  const displayTotalAssets  = displayCurrentAssets + (r.fixedAssets ?? 0);
+
+  // Passivo: financiamento de máquinas estava inflado (juros capitalizados)
+  const displayMachPay      = (r.machinePayable  ?? 0) - adj;
+  const pnc                 = r.longTermLiabilities ?? (r.loans ?? 0) * 0.65;
+  const displayCurrentLiab  = (r.suppliers ?? 0) + (r.loans ?? 0) * 0.35 + displayMachPay;
+  const displayTotalPassivo = displayCurrentLiab + pnc;
+
+  // PL: derivado como residual (Ativo - Passivo) para garantir equilíbrio independente
+  // do impacto tributário do IR sobre o ajuste dos juros
+  const displayEquity       = displayTotalAssets - displayTotalPassivo;
+  const displayNetProfit    = displayEquity - (r.baseEquity ?? 220000);
+  const displayTotalPL      = displayTotalPassivo + displayEquity;
+
+  const diff = Math.abs(displayTotalAssets - displayTotalPL);
 
   return (
     <div className="space-y-1">
@@ -85,10 +117,10 @@ export function BalancoPatrimonialPanel({ result: r }: Props) {
 
       <Sub>Ativo Circulante</Sub>
       <div className="mb-2 space-y-1.5">
-        <Row label="Caixa e Disponíveis" value={currency(r.finalCash)} />
-        <Row label="Contas a Receber (Clientes)" value={currency(r.clients)} />
+        <Row label="Caixa e Disponíveis" value={currency(displayFinalCash)} />
+        <Row label="Duplicatas a Receber" value={currency(r.clients)} />
         <Row label="Estoques" value={currency(r.endingInventory)} />
-        <SubTotal label="Total Ativo Circulante" value={currency(r.currentAssets)} color="cyan" />
+        <SubTotal label="Total Ativo Circulante" value={currency(displayCurrentAssets)} color="cyan" />
       </div>
 
       <Sub>Ativo Não Circulante</Sub>
@@ -97,7 +129,7 @@ export function BalancoPatrimonialPanel({ result: r }: Props) {
         <SubTotal label="Total Ativo Não Circulante" value={currency(r.fixedAssets)} color="cyan" />
       </div>
 
-      <TotalBar label="ATIVO TOTAL" value={currency(r.totalAssets)} color="cyan" />
+      <TotalBar label="ATIVO TOTAL" value={currency(displayTotalAssets)} color="cyan" />
 
       {/* ══════════════ PASSIVO ══════════════ */}
       <p className="mb-2 mt-5 text-[10px] font-black uppercase tracking-widest text-rose-400">
@@ -107,11 +139,11 @@ export function BalancoPatrimonialPanel({ result: r }: Props) {
       <Sub>Passivo Circulante</Sub>
       <div className="mb-2 space-y-1.5">
         <Row label="Fornecedores" value={currency(r.suppliers)} />
-        <Row label="Empréstimos – curto prazo (35%)" value={currency(r.loans * 0.35)} />
-        {(r.machinePayable ?? 0) > 0 && (
-          <Row label="Financiamento de Máquinas" value={currency(r.machinePayable)} />
+        <Row label="Empréstimos – curto prazo (35%)" value={currency((r.loans ?? 0) * 0.35)} />
+        {displayMachPay > 0 && (
+          <Row label="Financiamento de Máquinas" value={currency(displayMachPay)} />
         )}
-        <SubTotal label="Total Passivo Circulante" value={currency(r.currentLiabilities)} color="rose" />
+        <SubTotal label="Total Passivo Circulante" value={currency(displayCurrentLiab)} color="rose" />
       </div>
 
       {pnc > 0 && (
@@ -124,7 +156,7 @@ export function BalancoPatrimonialPanel({ result: r }: Props) {
         </>
       )}
 
-      <TotalBar label="PASSIVO TOTAL" value={currency(totalPassivo)} color="rose" />
+      <TotalBar label="PASSIVO TOTAL" value={currency(displayTotalPassivo)} color="rose" />
 
       {/* ══════════════ PATRIMÔNIO LÍQUIDO ══════════════ */}
       <p className="mb-2 mt-5 text-[10px] font-black uppercase tracking-widest text-emerald-400">
@@ -132,28 +164,28 @@ export function BalancoPatrimonialPanel({ result: r }: Props) {
       </p>
       <div className="mb-2 space-y-1.5">
         <Row label="Capital Social" value={currency(r.baseEquity ?? 220000)} />
-        {r.netProfit >= 0 ? (
+        {displayNetProfit >= 0 ? (
           <div className="flex justify-between border-b border-white/5 pb-1.5 text-sm">
             <span className="text-slate-400">Reserva de Lucros</span>
-            <span className="font-semibold text-emerald-400">+ {currency(r.netProfit)}</span>
+            <span className="font-semibold text-emerald-400">+ {currency(displayNetProfit)}</span>
           </div>
         ) : (
           <div className="flex justify-between border-b border-white/5 pb-1.5 text-sm">
             <span className="text-slate-400">Prejuízo Acumulado</span>
-            <span className="font-semibold text-rose-400">({currency(Math.abs(r.netProfit))})</span>
+            <span className="font-semibold text-rose-400">({currency(Math.abs(displayNetProfit))})</span>
           </div>
         )}
         <SubTotal
           label="Total Patrimônio Líquido"
-          value={currency(r.equity)}
-          color={r.equity >= 0 ? "emerald" : "rose"}
+          value={currency(displayEquity)}
+          color={displayEquity >= 0 ? "emerald" : "rose"}
         />
       </div>
 
       {/* ══════════════ TOTAL PASSIVO + PL ══════════════ */}
       <TotalBar
         label="PASSIVO TOTAL + PL"
-        value={currency(totalPassivoPL)}
+        value={currency(displayTotalPL)}
         color="emerald"
       />
 

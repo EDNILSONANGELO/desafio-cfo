@@ -47,6 +47,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Hide scrollbar utility (used in mobile horizontal navs) ── */
+.scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
 /* ── Custom scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); border-radius: 9999px; }
@@ -84,4 +88,90 @@ select option { background-color: #071220; color: #E8EDF5; }
   background: rgba(10, 22, 40, 0.7);
   border: 1px solid rgba(77, 142, 240, 0.12);
   border-radius: 1rem;
+}
+
+/* ══════════════════════════════════════════════
+   IMPRESSÃO — Formulário de Decisão da Rodada
+   ══════════════════════════════════════════════ */
+@media print {
+  /* 1. Liberar todos os containers que têm overflow/height fixo */
+  html, body,
+  #__next,
+  [data-nextjs-scroll-focus-boundary],
+  .flex.h-screen,
+  .flex-1.overflow-y-auto,
+  .flex-1.overflow-hidden,
+  main {
+    display: block !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  /* 2. Ocultar sidebar, topbar, nav e botões de ação */
+  aside,
+  header,
+  nav,
+  .no-print { display: none !important; }
+
+  /* 3. Fundo branco em toda a página */
+  html, body {
+    background: #ffffff !important;
+    color: #111827 !important;
+    font-size: 10.5pt;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 4. Área de conteúdo — largura total, margem mínima */
+  main > div {
+    max-width: 100% !important;
+    padding: 8pt 16pt !important;
+    margin: 0 !important;
+  }
+
+  /* 5. Cards e painéis — fundo branco, borda discreta */
+  * {
+    background-color: transparent !important;
+    border-color: #d1d5db !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* 6. Textos: converter cores claras em escuro legível */
+  *,
+  span, p, label, h1, h2, h3, h4, div {
+    color: #111827 !important;
+  }
+
+  /* 7. Inputs e selects legíveis */
+  input, select, textarea {
+    border: 1px solid #9ca3af !important;
+    background: #f9fafb !important;
+    color: #111827 !important;
+    -webkit-appearance: none;
+  }
+
+  /* 8. Permitir quebra de página automática entre seções */
+  .space-y-4 > *, .space-y-6 > * {
+    page-break-inside: avoid;
+  }
+
+  /* 9. Cabeçalho de impressão (hidden na tela, visível na impressão) */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    margin-bottom: 14pt;
+    padding-bottom: 8pt;
+    border-bottom: 2px solid #9ca3af !important;
+    font-size: 13pt;
+    font-weight: bold;
+    color: #111827 !important;
+  }
+
+  /* 10. Ocultar animações e gradientes decorativos */
+  [class*="animate-"], [class*="motion-"] { animation: none !important; }
 }

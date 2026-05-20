@@ -12,14 +12,15 @@ import {
   GraduationCap,
   Eye,
   EyeOff,
+  ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [mode, setMode] = useState<"professor" | "aluno">("professor");
-  const [email, setEmail] = useState("professor@desafiocfo.com");
+  const [mode, setMode] = useState<"professor" | "aluno" | "master">("professor");
+  const [email, setEmail] = useState("professor@arenacontabil.com");
   const [password, setPassword] = useState("admin123");
   const [ra, setRa] = useState("1001");
   const [studentPassword, setStudentPassword] = useState("123456");
@@ -32,10 +33,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const body =
-        mode === "professor"
-          ? { role: "teacher", email, password }
-          : { role: "student", ra, password: studentPassword };
+      let body: Record<string, string>;
+      if (mode === "professor") {
+        body = { role: "teacher", email, password };
+      } else if (mode === "master") {
+        body = { role: "master", email, password };
+      } else {
+        body = { role: "student", ra, password: studentPassword };
+      }
 
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -51,9 +56,10 @@ export default function LoginPage() {
       }
 
       if (data.user.role === "teacher") {
-        router.push("/professor");
+        router.push(data.user.isMaster ? "/professor/admin" : "/professor");
       } else {
-        router.push("/aluno");
+        // Primeiro acesso → obriga troca de senha antes de entrar
+        router.push(data.user.firstAccess ? "/trocar-senha" : "/aluno");
       }
       router.refresh();
     } catch {
@@ -86,8 +92,8 @@ export default function LoginPage() {
                 <Calculator className="h-6 w-6 text-slate-950" />
               </div>
               <div>
-                <h1 className="text-xl font-black text-white">Desafio CFO</h1>
-                <p className="text-xs text-slate-400">Simulador Empresarial Contábil</p>
+                <h1 className="text-xl font-black text-white">Arena Contábil</h1>
+                <p className="text-xs text-slate-400">Business Accounting Simulator</p>
               </div>
             </div>
 
@@ -122,7 +128,7 @@ export default function LoginPage() {
               </p>
               <div className="space-y-1 text-xs text-slate-300">
                 <p>
-                  <strong>Professor:</strong> professor@desafiocfo.com / admin123
+                  <strong>Professor:</strong> professor@arenacontabil.com / admin123
                 </p>
                 <p>
                   <strong>Aluno:</strong> RA 1001, 2001, 3001, 4001 | Senha: 123456
@@ -133,10 +139,10 @@ export default function LoginPage() {
 
           {/* Right: Login form */}
           <div className="border-l border-white/10 bg-slate-900/50 p-8 md:p-12">
-            {/* Toggle */}
-            <div className="mb-8 flex rounded-2xl bg-slate-950/70 p-1.5">
+            {/* Toggle — 3 modos */}
+            <div className="mb-8 flex rounded-2xl bg-slate-950/70 p-1.5 gap-1">
               <button
-                onClick={() => setMode("professor")}
+                onClick={() => { setMode("professor"); setError(""); }}
                 className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
                   mode === "professor"
                     ? "bg-cyan-400 text-slate-950 shadow-lg"
@@ -146,7 +152,7 @@ export default function LoginPage() {
                 Professor
               </button>
               <button
-                onClick={() => setMode("aluno")}
+                onClick={() => { setMode("aluno"); setError(""); }}
                 className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all ${
                   mode === "aluno"
                     ? "bg-cyan-400 text-slate-950 shadow-lg"
@@ -154,6 +160,17 @@ export default function LoginPage() {
                 }`}
               >
                 Aluno (RA)
+              </button>
+              <button
+                onClick={() => { setMode("master"); setError(""); }}
+                className={`flex-1 rounded-xl py-2.5 text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  mode === "master"
+                    ? "bg-violet-500 text-white shadow-lg shadow-violet-500/30"
+                    : "text-slate-500 hover:text-slate-300"
+                }`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Master
               </button>
             </div>
 
@@ -164,7 +181,8 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-4">
-              {mode === "professor" ? (
+              {/* ── Professor ── */}
+              {mode === "professor" && (
                 <>
                   <Input
                     label="E-mail"
@@ -182,21 +200,21 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••"
                       autoComplete="current-password"
+                      onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-8 text-slate-400 hover:text-white"
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </>
-              ) : (
+              )}
+
+              {/* ── Aluno ── */}
+              {mode === "aluno" && (
                 <>
                   <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4">
                     <GraduationCap className="mb-2 h-6 w-6 text-cyan-300" />
@@ -221,17 +239,62 @@ export default function LoginPage() {
                       onChange={(e) => setStudentPassword(e.target.value)}
                       placeholder="••••••••"
                       autoComplete="current-password"
+                      onKeyDown={(e) => e.key === "Enter" && handleLogin()}
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute right-3 top-8 text-slate-400 hover:text-white"
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  <div className="text-right">
+                    <a
+                      href="/recuperar-senha"
+                      className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors"
+                    >
+                      Esqueci minha senha
+                    </a>
+                  </div>
+                </>
+              )}
+
+              {/* ── Master ── */}
+              {mode === "master" && (
+                <>
+                  <div className="rounded-2xl border border-violet-500/30 bg-violet-500/10 p-4">
+                    <ShieldCheck className="mb-2 h-6 w-6 text-violet-300" />
+                    <p className="text-sm font-semibold text-white">Administrador Institucional</p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Acesso exclusivo para o administrador master da instituição.
+                      Gerencie professores e redefina senhas.
+                    </p>
+                  </div>
+                  <Input
+                    label="E-mail institucional"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="admin@instituicao.edu.br"
+                    autoComplete="email"
+                  />
+                  <div className="relative">
+                    <Input
+                      label="Senha"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-8 text-slate-400 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </>
@@ -240,10 +303,14 @@ export default function LoginPage() {
               <Button
                 onClick={handleLogin}
                 loading={loading}
-                className="w-full"
+                className={`w-full ${mode === "master" ? "bg-violet-500 hover:bg-violet-400 text-white shadow-violet-500/20" : ""}`}
                 size="lg"
               >
-                {loading ? "Entrando..." : "Entrar na plataforma"}
+                {loading
+                  ? "Entrando..."
+                  : mode === "master"
+                  ? "Entrar como Master"
+                  : "Entrar na plataforma"}
               </Button>
             </div>
 

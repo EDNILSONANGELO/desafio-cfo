@@ -12,5 +12,7 @@ export async function GET() {
     role: session.role,
     groupId: session.groupId,
     classId: session.classId,
+    polo: session.polo ?? null,
+    isMaster: session.isMaster ?? false,
   });
 }

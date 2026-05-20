@@ -10,7 +10,12 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helper, ...props }, ref) => {
+  ({ className, label, error, helper, value, ...props }, ref) => {
+    // Campos numéricos com valor 0 aparecem em branco —
+    // o usuário digita direto sem precisar apagar o zero primeiro.
+    const displayValue =
+      props.type === "number" && (value === 0 || value === "0") ? "" : value;
+
     return (
       <label className="block">
         {label && (
@@ -20,8 +25,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
+          value={displayValue}
           className={cn(
-            "w-full rounded-xl border bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition-colors",
+            // text-base (16px) evita zoom automático no iOS ao focar o campo
+            "w-full rounded-xl border bg-slate-950/60 px-3 py-2.5 text-base sm:text-sm text-white outline-none transition-colors",
             "placeholder:text-slate-500",
             error
               ? "border-rose-500 focus:border-rose-400"
@@ -58,7 +65,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         <select
           ref={ref}
           className={cn(
-            "w-full rounded-xl border bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition-colors",
+            // text-base (16px) evita zoom automático no iOS ao focar o campo
+            "w-full rounded-xl border bg-slate-950/60 px-3 py-2.5 text-base sm:text-sm text-white outline-none transition-colors",
             error
               ? "border-rose-500 focus:border-rose-400"
               : "border-white/10 focus:border-cyan-400",

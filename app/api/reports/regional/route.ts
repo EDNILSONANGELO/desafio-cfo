@@ -11,7 +11,8 @@ export async function GET(req: Request) {
     if (!session) return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
 
     const { searchParams } = new URL(req.url);
-    const roundId = searchParams.get("round_id");
+    const roundId    = searchParams.get("round_id");
+    const poloFilter = searchParams.get("polo")?.trim() || null;
 
     const supabase = createAdminClient();
 
@@ -43,6 +44,25 @@ export async function GET(req: Request) {
       return NextResponse.json({ rounds: [], results: [], groups: [], evolutionData: [], companies: [], myGroupId: session.groupId });
     }
 
+    // Group IDs do polo (quando filtrado)
+    let poloGroupIds: Set<number> | null = null;
+    if (poloFilter) {
+      const supabaseInner = createAdminClient();
+      const { data: poloStudents } = await supabaseInner
+        .from("students")
+        .select("group_id")
+        .ilike("polo", `%${poloFilter}%`)
+        .not("group_id", "is", null);
+      poloGroupIds = new Set(
+        (poloStudents ?? [])
+          .map((s: { group_id: number | null }) => s.group_id)
+          .filter((id): id is number => id !== null)
+      );
+      if (poloGroupIds.size === 0) {
+        return NextResponse.json({ rounds: [], results: [], evolutionData: [], companies: [], myGroupId: session.groupId });
+      }
+    }
+
     // Get all processed rounds for this class
     const { data: rounds, error: roundsErr } = await supabase
       .from("rounds")
@@ -59,21 +79,26 @@ export async function GET(req: Request) {
       ? parseInt(roundId)
       : rounds[rounds.length - 1].id;
 
-    // Get results for target round with group info
-    const { data: results, error: resultsErr } = await supabase
+    // Get results for target round with group info (filtered by polo if needed)
+    let resultsQuery = supabase
       .from("results")
       .select("*, group:groups(id, name, company_name, region_name, region_trait, region_demand, region_cost, color)")
       .eq("round_id", targetRoundId)
       .order("position", { ascending: true });
+    if (poloGroupIds && poloGroupIds.size > 0) resultsQuery = resultsQuery.in("group_id", [...poloGroupIds]);
 
+    const { data: results, error: resultsErr } = await resultsQuery;
     if (resultsErr) return NextResponse.json({ error: resultsErr.message }, { status: 500 });
 
-    // Get all results across all rounds for evolution charts
-    const { data: allResults } = await supabase
+    // Get all results across all rounds for evolution charts (filtered by polo if needed)
+    let allResultsQuery = supabase
       .from("results")
       .select("round_id, group_id, data, position, score, group:groups(id, company_name, color)")
       .in("round_id", rounds.map((r) => r.id))
       .order("round_id", { ascending: true });
+    if (poloGroupIds && poloGroupIds.size > 0) allResultsQuery = allResultsQuery.in("group_id", [...poloGroupIds]);
+
+    const { data: allResults } = await allResultsQuery;
 
     // Build evolution data: profit by company across rounds
     const evolutionMap: Record<string, Record<string, number>> = {};

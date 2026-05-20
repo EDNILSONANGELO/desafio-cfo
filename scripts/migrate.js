@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * DESAFIO CFO – Script de Migração do Banco de Dados
+ * ARENA CONTÁBIL – Script de Migração do Banco de Dados
  *
  * Este script cria todas as tabelas necessárias no Supabase.
  *
@@ -53,7 +53,7 @@ Depois execute novamente: node scripts/migrate.js
 
 const SQL = `
 -- ============================================================
--- DESAFIO CFO – Simulador Empresarial Contábil
+-- ARENA CONTÁBIL – Simulador Empresarial Contábil
 -- Migration: 001_initial_schema
 -- ============================================================
 

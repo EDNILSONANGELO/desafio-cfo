@@ -8,11 +8,13 @@ const secret = new TextEncoder().encode(
   process.env.JWT_SECRET || "fallback_secret_change_in_production_please"
 );
 
+const SESSION_DAYS = 30; // dias de sessão persistente
+
 export async function signJWT(payload: SessionPayload): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("24h")
+    .setExpirationTime(`${SESSION_DAYS}d`)
     .sign(secret);
 }
 
@@ -41,11 +43,13 @@ export async function getSessionFromRequest(
 }
 
 export function setSessionCookie(response: NextResponse, token: string) {
+  const maxAge = SESSION_DAYS * 24 * 60 * 60; // em segundos
   response.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: 60 * 60 * 24, // 24h
+    sameSite: "lax",            // "lax" permite navegação normal entre abas/links
+    maxAge,                     // garante cookie persistente (não apaga ao fechar browser)
+    expires: new Date(Date.now() + maxAge * 1000), // data absoluta — compatibilidade máxima
     path: "/",
   });
   return response;

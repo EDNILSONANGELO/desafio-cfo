@@ -30,15 +30,18 @@ export function Panel({
       transition={{ duration: 0.3 }}
       className={cn(
         "rounded-3xl border border-white/10 bg-white/5 shadow-xl backdrop-blur-sm",
-        !noPadding && "p-6",
+        !noPadding && "p-4 sm:p-6",
         className
       )}
     >
       {(title || actions) && (
-        <div className={cn("flex items-center justify-between gap-3", !noPadding && "mb-5")}>
+        <div className={cn(
+          "flex flex-wrap items-center justify-between gap-2",
+          !noPadding && "mb-4 sm:mb-5"
+        )}>
           <div className="flex items-center gap-3">
             {Icon && (
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/10">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/10">
                 <Icon className="h-5 w-5 text-cyan-300" />
               </div>
             )}
@@ -51,7 +54,7 @@ export function Panel({
               </div>
             )}
           </div>
-          {actions && <div className="flex items-center gap-2">{actions}</div>}
+          {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
       )}
       {children}

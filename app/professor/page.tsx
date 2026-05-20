@@ -12,6 +12,7 @@ import {
   BarChart3,
   ArrowRight,
   Zap,
+  GraduationCap,
 } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
 import { KpiCard } from "@/components/ui/KpiCard";
@@ -22,56 +23,100 @@ import { MarketSharePie } from "@/components/charts/MarketSharePie";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+import {
+  DEFAULT_GRADE_SCALE,
+  buildGradeScale,
+} from "@/lib/simulation/scoring";
+import type { GradeLevel } from "@/lib/simulation/scoring";
 import type { Group, Round, Submission, StoredResult, RankedResult } from "@/types";
+import { usePoloContext } from "@/contexts/PoloContext";
 
+// ── Dashboard Principal ────────────────────────────────────────────────────────
 export default function ProfessorDashboard() {
+  const { poloParam, selectedPolo } = usePoloContext();
+
   const [groups, setGroups] = useState<Group[]>([]);
+  const [studentCount, setStudentCount] = useState<number>(0);
   const [rounds, setRounds] = useState<Round[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [results, setResults] = useState<RankedResult[]>([]);
+  const [gradeScale, setGradeScale] = useState<GradeLevel[]>(DEFAULT_GRADE_SCALE);
   const [loading, setLoading] = useState(true);
 
   const latestRound = rounds[0];
   const latestProcessedRound = rounds.find((r) => r.status === "Processada");
 
   const load = useCallback(async () => {
+    setLoading(true);
     try {
-      const [groupsRes, roundsRes] = await Promise.all([
-        fetch("/api/groups"),
-        fetch("/api/rounds"),
+      // Todos os fetches usam poloParam diretamente (polo filtra pelo campo polo do aluno)
+      const [groupsRes, roundsRes, studentsRes] = await Promise.all([
+        fetch(`/api/groups?v=1${poloParam}`),
+        fetch(`/api/rounds?v=1${poloParam}`),
+        fetch(`/api/students?v=1${poloParam}`),
       ]);
-      const groupsData = await groupsRes.json();
-      const roundsData = await roundsRes.json();
+      const groupsData  = await groupsRes.json();
+      const roundsData  = await roundsRes.json();
+      const studentsData = await studentsRes.json();
 
-      setGroups(groupsData.groups || []);
+      const groupsList: Group[] = groupsData.groups || [];
+      // IDs dos grupos do polo selecionado (usado para filtrar subs/resultados)
+      const poloGroupIdSet = new Set(groupsList.map((g) => g.id));
+
+      setGroups(groupsList);
+      setStudentCount((studentsData.students || []).length);
       const roundsList: Round[] = roundsData.rounds || [];
       setRounds(roundsList);
 
-      // Load submissions for latest open round
-      const openRound = roundsList.find((r) => r.status === "Aberta");
-      if (openRound) {
-        const subRes = await fetch(`/api/rounds/${openRound.id}/submissions`);
+      // Submissões da rodada mais recente — filtra pelo polo quando ativo
+      const latestRound = roundsList[0];
+      if (latestRound) {
+        const subRes = await fetch(`/api/rounds/${latestRound.id}/submissions`);
         const subData = await subRes.json();
-        setSubmissions(subData.submissions || []);
+        const allSubs: Submission[] = subData.submissions || [];
+        setSubmissions(
+          poloParam
+            ? allSubs.filter((s) => poloGroupIdSet.has(s.group_id))
+            : allSubs
+        );
+      } else {
+        setSubmissions([]);
       }
 
-      // Load results for latest processed round
+      // Resultados da última rodada processada — filtra pelo polo quando ativo
       const processed = roundsList.find((r) => r.status === "Processada");
       if (processed) {
         const resRes = await fetch(`/api/results?round_id=${processed.id}`);
         const resData = await resRes.json();
+        const allResults = (resData.results || []).map((r: StoredResult) => r.data) as RankedResult[];
         setResults(
-          (resData.results || []).map((r: StoredResult) => r.data) as RankedResult[]
+          poloParam
+            ? allResults.filter((r) => poloGroupIdSet.has(r.companyId))
+            : allResults
         );
+      } else {
+        setResults([]);
       }
     } finally {
       setLoading(false);
     }
+  }, [poloParam]);
+
+  // Carrega escala de classificação acadêmica da turma
+  useEffect(() => {
+    fetch("/api/classes")
+      .then((r) => r.json())
+      .then((d) => {
+        const gs = d.class?.grade_scale;
+        if (Array.isArray(gs) && gs.length) {
+          setGradeScale(buildGradeScale(gs));
+        }
+      })
+      .catch(() => {/* usa padrão */});
   }, []);
 
   useEffect(() => {
     load();
-    // Poll every 15s for real-time updates
     const interval = setInterval(load, 15000);
     return () => clearInterval(interval);
   }, [load]);
@@ -86,14 +131,18 @@ export default function ProfessorDashboard() {
     );
   }
 
+  const processedRounds = rounds.filter((r) => r.status === "Processada");
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white">Dashboard do Professor</h1>
+          <h1 className="text-xl font-black text-white sm:text-2xl">Dashboard do Professor</h1>
           <p className="text-sm text-slate-400">
-            Visão geral do Desafio CFO em tempo real
+            {selectedPolo
+              ? <>Filtrando por <strong className="text-cyan-400">{selectedPolo}</strong> — {groups.length} grupo{groups.length !== 1 ? "s" : ""} · {studentCount} aluno{studentCount !== 1 ? "s" : ""}</>
+              : "Visão geral do Arena Contábil em tempo real"}
           </p>
         </div>
         {!groups.length && (
@@ -102,6 +151,7 @@ export default function ProfessorDashboard() {
               await fetch("/api/seed", { method: "POST" });
               load();
             }}
+            className="self-start"
           >
             <Zap className="h-4 w-4" />
             Inicializar dados demo
@@ -114,7 +164,7 @@ export default function ProfessorDashboard() {
         <KpiCard
           icon={Users}
           title="Alunos"
-          value={groups.reduce(() => 0, 0) || "—"}
+          value={studentCount || "—"}
           subtitle="Cadastrados"
           accent="cyan"
         />
@@ -141,34 +191,34 @@ export default function ProfessorDashboard() {
         />
       </div>
 
-      {/* Active round quick action */}
+      {/* Rodada ativa — acesso rápido */}
       {latestRound && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-5"
+          className="flex flex-col gap-3 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5"
         >
           <div className="flex items-center gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-400/20">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-400/20">
               <PlayCircle className="h-5 w-5 text-cyan-400" />
             </div>
             <div>
               <p className="font-bold text-white">{latestRound.name}</p>
-              <div className="mt-0.5 flex items-center gap-2">
+              <div className="mt-0.5 flex flex-wrap items-center gap-2">
                 <StatusBadge status={latestRound.status} />
                 <span className="text-xs text-slate-400">{latestRound.event_type}</span>
               </div>
             </div>
           </div>
           <Link href={`/professor/rodadas/${latestRound.id}`}>
-            <Button size="sm">
+            <Button size="sm" className="w-full sm:w-auto">
               Gerenciar <ArrowRight className="h-4 w-4" />
             </Button>
           </Link>
         </motion.div>
       )}
 
-      {/* Submission tracker */}
+      {/* Acompanhamento de envios */}
       {groups.length > 0 && (
         <Panel
           title="Acompanhamento de Envios"
@@ -188,7 +238,7 @@ export default function ProfessorDashboard() {
         </Panel>
       )}
 
-      {/* Results */}
+      {/* Gráficos + ranking (última rodada processada) */}
       {results.length > 0 && (
         <>
           <div className="grid gap-6 lg:grid-cols-2">
@@ -207,19 +257,45 @@ export default function ProfessorDashboard() {
               </div>
             </Panel>
           </div>
+
           <Panel title="Ranking Geral" icon={Trophy}>
-            <RankingTable results={results} />
+            <RankingTable results={results} gradeScale={gradeScale} />
           </Panel>
         </>
       )}
+
+      {/* ── Atalho para Notas ── */}
+      <Link href="/professor/notas">
+        <motion.div
+          whileHover={{ scale: 1.01 }}
+          className="flex items-center justify-between rounded-2xl border border-violet-400/20 bg-violet-400/5 p-5 transition-colors hover:bg-violet-400/10 cursor-pointer"
+        >
+          <div className="flex items-center gap-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-violet-400/20">
+              <GraduationCap className="h-5 w-5 text-violet-400" />
+            </div>
+            <div>
+              <p className="font-bold text-white">Notas & Classificação Acadêmica</p>
+              <p className="text-xs text-slate-400">
+                Escala de notas, classificação por rodada e notas individuais dos alunos
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="h-5 w-5 text-violet-400" />
+        </motion.div>
+      </Link>
+
 
       {/* Empty state */}
       {!groups.length && (
         <Panel title="Começando do zero?" icon={Building2}>
           <div className="space-y-3 text-sm text-slate-300">
-            <p>Para iniciar o Desafio CFO:</p>
+            <p>Para iniciar o Arena Contábil:</p>
             <ol className="list-decimal pl-5 space-y-2">
-              <li>Clique em <strong>Inicializar dados demo</strong> acima para criar grupos e alunos de teste</li>
+              <li>
+                Clique em <strong>Inicializar dados demo</strong> acima para criar grupos e
+                alunos de teste
+              </li>
               <li>Acesse <strong>Grupos</strong> para configurar as empresas</li>
               <li>Acesse <strong>Alunos</strong> para cadastrar sua turma</li>
               <li>Acesse <strong>Rodadas</strong> para criar e abrir uma rodada</li>

@@ -7,6 +7,24 @@ interface Props {
   medals: Medal[];
 }
 
+const MEDAL_LABELS: Record<string, string> = {
+  melhor_cfo:        "Melhor Gestor",
+  melhor_gestor:     "Melhor Gestor",
+  melhor_liquidez:   "Melhor Liquidez",
+  melhor_roi:        "Melhor ROI",
+  melhor_margem:     "Melhor Margem",
+  melhor_receita:    "Maior Receita",
+  melhor_market_share: "Maior Market Share",
+  menor_ciclo:       "Menor Ciclo Financeiro",
+};
+
+function medalLabel(type: string): string {
+  return (
+    MEDAL_LABELS[type] ??
+    type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())
+  );
+}
+
 export function MedalsPanel({ medals }: Props) {
   if (!medals.length) return null;
 
@@ -22,7 +40,7 @@ export function MedalsPanel({ medals }: Props) {
         >
           <span className="text-3xl">{medal.icon}</span>
           <div>
-            <p className="text-sm font-bold text-white">{medal.type.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}</p>
+            <p className="text-sm font-bold text-white">{medalLabel(medal.type)}</p>
             <p className="mt-0.5 text-xs text-slate-400">{medal.description}</p>
           </div>
         </motion.div>
