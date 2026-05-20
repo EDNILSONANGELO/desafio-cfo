@@ -20,10 +20,10 @@ import { Input } from "@/components/ui/Input";
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<"professor" | "aluno" | "master">("professor");
-  const [email, setEmail] = useState("professor@arenacontabil.com");
-  const [password, setPassword] = useState("admin123");
-  const [ra, setRa] = useState("1001");
-  const [studentPassword, setStudentPassword] = useState("123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [ra, setRa] = useState("");
+  const [studentPassword, setStudentPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -122,19 +122,6 @@ export default function LoginPage() {
               ))}
             </div>
 
-            <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <p className="mb-2 text-xs font-semibold text-slate-400">
-                🧪 Credenciais de teste
-              </p>
-              <div className="space-y-1 text-xs text-slate-300">
-                <p>
-                  <strong>Professor:</strong> professor@arenacontabil.com / admin123
-                </p>
-                <p>
-                  <strong>Aluno:</strong> RA 1001, 2001, 3001, 4001 | Senha: 123456
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Right: Login form */}
