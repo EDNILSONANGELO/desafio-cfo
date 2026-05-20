@@ -3,6 +3,16 @@ import bcrypt from "bcryptjs";
 import { createAdminClient } from "@/lib/supabase/server";
 import { getSession } from "@/lib/auth/session";
 
+// GET /api/seed?secret=arena2024 — cria dados iniciais (professor, turma, grupos, alunos)
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const secret = searchParams.get("secret");
+  if (secret !== "arena2024") {
+    return NextResponse.json({ error: "Chave secreta inválida." }, { status: 403 });
+  }
+  return runSeed();
+}
+
 // POST /api/seed — creates default professor, class, groups, and test students
 // Restrito ao usuário Master.
 export async function POST() {
@@ -13,10 +23,10 @@ export async function POST() {
       { status: 403 }
     );
   }
+  return runSeed();
+}
 
-  if (process.env.NODE_ENV === "production") {
-    return NextResponse.json({ error: "Seed não disponível em produção" }, { status: 403 });
-  }
+async function runSeed() {
 
   try {
     const supabase = createAdminClient();
