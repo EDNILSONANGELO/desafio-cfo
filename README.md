@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🏆 Arena Contábil — Manual do Sistema
 
 Simulador empresarial gamificado para Ciências Contábeis. Grupos de alunos atuam como empresas concorrentes (EcoBottle), tomando decisões financeiras por rodadas. O professor administra e avalia o jogo.
@@ -364,3 +365,6 @@ supabase/migrations/001_initial_schema.sql
 ---
 
 *Arena Contábil — Simulador Empresarial para Ciências Contábeis*
+=======
+ARENA CONTÁBIL
+>>>>>>> d6d738a3fa1c99ee3b93faf4f5673a4b41622ba7
