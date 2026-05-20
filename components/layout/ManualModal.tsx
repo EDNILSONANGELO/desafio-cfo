@@ -470,8 +470,7 @@ const STUDENT_SECTIONS: Section[] = [
           <Li>A tabela de vendas mostra as <strong className="text-white">regiões como colunas</strong> e os campos (Vender?, Quantidade, Preço) como linhas — marque apenas as regiões onde deseja vender.</Li>
           <Li>Defina quantidade e preço de venda para cada região ativa.</Li>
           <Li>Se o professor definiu faixa de preço, campos fora da faixa ficam destacados em vermelho.</Li>
-          <Li><strong className="text-white">Marketing R$</strong> — investimento para ampliar a demanda.</Li>
-          <Li><strong className="text-white">Desconto %</strong> — reduz a receita bruta; use com moderação.</Li>
+          <Li><strong className="text-white">Marketing R$</strong> — investimento para ampliar a demanda da sua empresa.</Li>
           <Li><strong className="text-white">Prazo de recebimento</strong> — quanto maior, mais dinheiro vai para "Duplicatas a Receber" no ativo circulante (e menos no caixa).</Li>
         </Ul>
         <H3>5. Gestão Financeira</H3>
@@ -872,43 +871,19 @@ export function ManualButton({ role }: Props) {
               </div>
 
               {/* Footer */}
-              <div className="shrink-0 flex items-center justify-between border-t border-white/10 px-6 py-3 bg-white/[0.02]">
-                <div className="flex items-center gap-3">
-                  <p className="text-[11px] text-slate-500">
-                    Seção {sections.findIndex((s) => s.id === activeId) + 1} de {sections.length}
-                  </p>
-                  <button
-                    onClick={handleDownload}
-                    disabled={downloading}
-                    className="flex items-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-400 transition hover:bg-cyan-400/20 disabled:opacity-50"
-                    title="Baixar manual em PDF"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    {downloading ? "Gerando PDF…" : "Baixar PDF"}
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      const idx = sections.findIndex((s) => s.id === activeId);
-                      if (idx > 0) setActiveId(sections[idx - 1].id);
-                    }}
-                    disabled={sections.findIndex((s) => s.id === activeId) === 0}
-                    className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-400 transition hover:bg-white/10 hover:text-white disabled:opacity-30"
-                  >
-                    ← Anterior
-                  </button>
-                  <button
-                    onClick={() => {
-                      const idx = sections.findIndex((s) => s.id === activeId);
-                      if (idx < sections.length - 1) setActiveId(sections[idx + 1].id);
-                    }}
-                    disabled={sections.findIndex((s) => s.id === activeId) === sections.length - 1}
-                    className="rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-400 transition hover:bg-cyan-400/20 disabled:opacity-30"
-                  >
-                    Próximo →
-                  </button>
-                </div>
+              <div className="shrink-0 flex items-center gap-3 border-t border-white/10 px-6 py-3 bg-white/[0.02]">
+                <p className="text-[11px] text-slate-500">
+                  Seção {sections.findIndex((s) => s.id === activeId) + 1} de {sections.length}
+                </p>
+                <button
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className="flex items-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-400 transition hover:bg-cyan-400/20 disabled:opacity-50"
+                  title="Baixar manual em PDF"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {downloading ? "Gerando PDF…" : "Baixar PDF"}
+                </button>
               </div>
             </motion.div>
           </>

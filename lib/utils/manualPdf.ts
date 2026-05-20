@@ -235,7 +235,7 @@ export const STUDENT_PDF: PdfSection[] = [
       { type: "h3", text: "Seção 4: Vendas por Região" },
       { type: "bullet", text: "Tabela transposta: regiões como colunas, campos (Vender?, Quantidade, Preço) como linhas." },
       { type: "bullet", text: "Marque as regiões onde deseja vender e defina quantidade e preço para cada uma." },
-      { type: "bullet", text: "Marketing aumenta a demanda. Desconto reduz a receita líquida." },
+      { type: "bullet", text: "Marketing aumenta a demanda da sua empresa." },
       { type: "bullet", text: "Prazo de recebimento maior = mais dinheiro em Duplicatas a Receber (ativo circulante), menos em caixa." },
       { type: "h3", text: "Seção 5: Gestão Financeira" },
       { type: "bullet", text: "Empréstimo — entra no caixa mas gera despesa financeira." },
