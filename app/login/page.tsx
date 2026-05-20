@@ -102,7 +102,7 @@ export default function LoginPage() {
             </h2>
             <p className="mt-4 text-slate-300">
               Gerencie uma empresa de garrafas sustentáveis, tome decisões financeiras
-              e vença seus concorrentes no mercado.
+              e contábeis estratégicas e supere seus concorrentes no mercado.
             </p>
 
             <div className="mt-8 grid grid-cols-2 gap-3">
