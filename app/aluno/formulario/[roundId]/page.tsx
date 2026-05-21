@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Send, Save, AlertTriangle, CheckCircle2, Calculator, Printer } from "lucide-react";
+import { Send, Save, AlertTriangle, CheckCircle2, Calculator, Printer, Trash2 } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
@@ -41,6 +41,7 @@ export default function FormularioPage() {
   const [sending, setSending] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [openingBalance, setOpeningBalance] = useState<Partial<InitialBalance> | undefined>(undefined);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const load = useCallback(async () => {
     // Load round + groups + class settings in parallel
@@ -419,6 +420,47 @@ ${machines ? `
     setSending(false);
   }
 
+  function clearDecision() {
+    setDecision((prev) => ({
+      ...prev,
+      // Produção
+      productionQty: 0,
+      admittedEmployees: 0,
+      dismissedEmployees: 0,
+      // Materiais
+      plasticQty: 0,
+      capsQty: 0,
+      packageQty: 0,
+      labelQty: 0,
+      supplierTerm: 30,
+      // Vendas por região
+      regionalSales: (prev.regionalSales || []).map((rs) => ({
+        ...rs,
+        active: false,
+        qty: 0,
+        price: 0,
+        insertions: 0,
+      })),
+      salePrice: 0,
+      expectedSales: 0,
+      discount: 0,
+      receivableTerm: 30,
+      // Marketing
+      marketingInsertions: 0,
+      marketing: 0,
+      // Máquinas
+      machines: { small: 0, medium: 0, large: 0, paymentMethod: "cash" },
+      machineInvestment: 0,
+      // Financiamento
+      loan: 0,
+      // NÃO limpa: fixedExpenses, transport, maintenance, laborCost
+      // NÃO limpa: plasticUnit, capsUnit, packageUnit, labelUnit
+      // NÃO limpa: employees, productiveCapacity
+    }));
+    setShowClearConfirm(false);
+    setSavedAt(null);
+  }
+
   if (loading) return <div className="flex h-64 items-center justify-center"><LoadingSpinner size="lg" /></div>;
 
   const isSubmitted = submission?.status === "Enviada";
@@ -595,13 +637,51 @@ ${machines ? `
           />
 
           {canEdit && (
-            <div className="no-print mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 sm:flex-row">
-              <Button variant="secondary" onClick={saveDraft} loading={saving} className="w-full sm:w-auto">
-                <Save className="h-4 w-4" /> Salvar rascunho
-              </Button>
-              <Button variant="success" onClick={sendRound} loading={sending} size="lg" className="w-full sm:w-auto">
-                <Send className="h-4 w-4" /> ENVIAR RODADA
-              </Button>
+            <div className="no-print mt-6 border-t border-white/10 pt-6">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowClearConfirm(true)}
+                  className="w-full border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 sm:w-auto"
+                >
+                  <Trash2 className="h-4 w-4" /> Limpar tudo
+                </Button>
+                <Button variant="secondary" onClick={saveDraft} loading={saving} className="w-full sm:w-auto">
+                  <Save className="h-4 w-4" /> Salvar rascunho
+                </Button>
+                <Button variant="success" onClick={sendRound} loading={sending} size="lg" className="w-full sm:w-auto">
+                  <Send className="h-4 w-4" /> ENVIAR RODADA
+                </Button>
+              </div>
+
+              {/* Confirmação de limpeza */}
+              {showClearConfirm && (
+                <div className="mt-4 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4">
+                  <div className="mb-3 flex items-start gap-2">
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-rose-400" />
+                    <div>
+                      <p className="font-semibold text-rose-300">Limpar todos os campos?</p>
+                      <p className="mt-0.5 text-sm text-rose-200/80">
+                        Todos os valores preenchidos serão apagados. Campos configurados pelo professor (custos fixos, salários, preços de materiais) serão mantidos. Esta ação não pode ser desfeita.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={clearDecision}
+                      className="rounded-lg bg-rose-600 px-4 py-1.5 text-sm font-semibold text-white hover:bg-rose-500 transition-colors"
+                    >
+                      Sim, limpar tudo
+                    </button>
+                    <button
+                      onClick={() => setShowClearConfirm(false)}
+                      className="rounded-lg border border-white/20 px-4 py-1.5 text-sm text-slate-300 hover:bg-white/10 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </Panel>
