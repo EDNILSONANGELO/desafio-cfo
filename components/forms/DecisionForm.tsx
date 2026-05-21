@@ -304,7 +304,7 @@ export function DecisionForm({
         })()}
 
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-          <Input label="Qtd. a produzir (unid.)" type="number" value={d.productionQty} onChange={(e) => set("productionQty", e.target.value)} min={0} step={1} />
+          <Input label="Qtd. a produzir (unid.)" type="number" value={Number(d.productionQty) === 0 ? "" : d.productionQty} onChange={(e) => set("productionQty", e.target.value)} min={0} step={1} placeholder="Digite a quantidade a produzir" />
           {/* Colaboradores — agora exibido como campo somente-leitura */}
           <div className="rounded-xl border border-white/10 bg-white/[0.03] p-3 flex flex-col justify-center">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Colaboradores Ativos (resultado)</p>

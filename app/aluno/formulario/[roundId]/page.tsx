@@ -35,7 +35,7 @@ export default function FormularioPage() {
   const [allGroups, setAllGroups] = useState<Group[]>([]);
   const [classSettings, setClassSettings] = useState<ClassSettings | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
-  const [decision, setDecision] = useState<Decision>(DEFAULT_DECISION);
+  const [decision, setDecision] = useState<Decision>({ ...DEFAULT_DECISION, productionQty: 0, plasticQty: 0, capsQty: 0, packageQty: 0, labelQty: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
@@ -80,8 +80,10 @@ export default function FormularioPage() {
       );
       const subData = await subRes.json();
       const base = subData.submission
+        // Envio existente: restaura tudo o que o aluno digitou
         ? { ...DEFAULT_DECISION, ...subData.submission.decision }
-        : { ...DEFAULT_DECISION };
+        // Nova rodada sem envio: qtds de produção e materiais iniciam em 0 (campo em branco)
+        : { ...DEFAULT_DECISION, productionQty: 0, plasticQty: 0, capsQty: 0, packageQty: 0, labelQty: 0 };
 
       // Prioridade: valores travados na RODADA (round-level) sobrescrevem os da turma
       const cs = csData.class as ClassSettings | null;
