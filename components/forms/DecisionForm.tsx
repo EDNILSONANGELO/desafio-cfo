@@ -732,75 +732,120 @@ export function DecisionForm({
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          {/* Plástico */}
-          <div>
-            <Input label="Plástico — comprar (qtd.)" type="number" value={d.plasticQty} onChange={(e) => set("plasticQty", e.target.value)} min={0} />
-            {(materialStock?.plastic ?? 0) > 0 && (
-              <p className="mt-1 text-[10px] text-cyan-400">
-                + {materialStock!.plastic.toLocaleString("pt-BR")} do estoque anterior
-              </p>
-            )}
-          </div>
-          {lockedPlasticUnit != null ? (
-            <LockedField label="Plástico unit." value={lockedPlasticUnit} />
-          ) : (
-            <CurrencyInput label="Plástico unit." value={d.plasticUnit || null} onChange={(n) => set("plasticUnit", n ?? 0)} />
-          )}
+        {/* ── Campo único: quantidade de produtos completos ── */}
+        {(() => {
+          // Canonical qty: usa plasticQty como fonte (todos são iguais após simplificação)
+          const totalProductsQty = Number(d.plasticQty || 0);
 
-          {/* Tampas */}
-          <div>
-            <Input label="Tampas — comprar (qtd.)" type="number" value={d.capsQty} onChange={(e) => set("capsQty", e.target.value)} min={0} />
-            {(materialStock?.caps ?? 0) > 0 && (
-              <p className="mt-1 text-[10px] text-cyan-400">
-                + {materialStock!.caps.toLocaleString("pt-BR")} do estoque anterior
-              </p>
-            )}
-          </div>
-          {lockedCapsUnit != null ? (
-            <LockedField label="Tampas unit." value={lockedCapsUnit} />
-          ) : (
-            <CurrencyInput label="Tampas unit." value={d.capsUnit || null} onChange={(n) => set("capsUnit", n ?? 0)} />
-          )}
+          const setAllMaterials = (qty: number) => {
+            onChange({ ...d, plasticQty: qty, capsQty: qty, packageQty: qty, labelQty: qty });
+          };
 
-          {/* Embalagem */}
-          <div>
-            <Input label="Embalagem — comprar (qtd.)" type="number" value={d.packageQty} onChange={(e) => set("packageQty", e.target.value)} min={0} />
-            {(materialStock?.package ?? 0) > 0 && (
-              <p className="mt-1 text-[10px] text-cyan-400">
-                + {materialStock!.package.toLocaleString("pt-BR")} do estoque anterior
-              </p>
-            )}
-          </div>
-          {lockedPackageUnit != null ? (
-            <LockedField label="Embalagem unit." value={lockedPackageUnit} />
-          ) : (
-            <CurrencyInput label="Embalagem unit." value={d.packageUnit || null} onChange={(n) => set("packageUnit", n ?? 0)} />
-          )}
+          // Custo unitário efetivo de cada material
+          const uPlastic = lockedPlasticUnit ?? Number(d.plasticUnit || 0);
+          const uCaps    = lockedCapsUnit    ?? Number(d.capsUnit    || 0);
+          const uPkg     = lockedPackageUnit ?? Number(d.packageUnit || 0);
+          const uLabel   = lockedLabelUnit   ?? Number(d.labelUnit   || 0);
+          const costPerProduct = uPlastic + uCaps + uPkg + uLabel;
+          const totalMaterialCost = totalProductsQty * costPerProduct;
 
-          {/* Rótulo */}
-          <div>
-            <Input label="Rótulo — comprar (qtd.)" type="number" value={d.labelQty} onChange={(e) => set("labelQty", e.target.value)} min={0} />
-            {(materialStock?.label ?? 0) > 0 && (
-              <p className="mt-1 text-[10px] text-cyan-400">
-                + {materialStock!.label.toLocaleString("pt-BR")} do estoque anterior
-              </p>
-            )}
-          </div>
-          {lockedLabelUnit != null ? (
-            <LockedField label="Rótulo unit." value={lockedLabelUnit} />
-          ) : (
-            <CurrencyInput label="Rótulo unit." value={d.labelUnit || null} onChange={(n) => set("labelUnit", n ?? 0)} />
-          )}
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Select
-            label="Prazo fornecedor"
-            value={d.supplierTerm}
-            onChange={(e) => set("supplierTerm", e.target.value)}
-            options={SUPPLIER_OPTIONS}
-          />
-        </div>
+          // Estoque total de kits completos disponíveis
+          const minStock = Math.min(
+            materialStock?.plastic ?? 0,
+            materialStock?.caps    ?? 0,
+            materialStock?.package ?? 0,
+            materialStock?.label   ?? 0,
+          );
+
+          return (
+            <>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {/* Campo principal */}
+                <div>
+                  <Input
+                    label="Quantidade de produtos completos a comprar"
+                    type="number"
+                    value={totalProductsQty || ""}
+                    onChange={(e) => setAllMaterials(Math.max(0, Number(e.target.value) || 0))}
+                    min={0}
+                  />
+                  {minStock > 0 && (
+                    <p className="mt-1 text-[10px] text-cyan-400">
+                      + {minStock.toLocaleString("pt-BR")} kits completos do estoque anterior
+                    </p>
+                  )}
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    1 produto = 1 plástico + 1 tampa + 1 embalagem + 1 rótulo
+                  </p>
+                </div>
+
+                {/* Prazo do fornecedor */}
+                <Select
+                  label="Prazo fornecedor"
+                  value={d.supplierTerm}
+                  onChange={(e) => set("supplierTerm", e.target.value)}
+                  options={SUPPLIER_OPTIONS}
+                />
+              </div>
+
+              {/* Custos unitários de cada material */}
+              <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+                {lockedPlasticUnit != null ? (
+                  <LockedField label="Plástico unit." value={lockedPlasticUnit} />
+                ) : (
+                  <CurrencyInput label="Plástico unit." value={d.plasticUnit || null} onChange={(n) => set("plasticUnit", n ?? 0)} />
+                )}
+                {lockedCapsUnit != null ? (
+                  <LockedField label="Tampas unit." value={lockedCapsUnit} />
+                ) : (
+                  <CurrencyInput label="Tampas unit." value={d.capsUnit || null} onChange={(n) => set("capsUnit", n ?? 0)} />
+                )}
+                {lockedPackageUnit != null ? (
+                  <LockedField label="Embalagem unit." value={lockedPackageUnit} />
+                ) : (
+                  <CurrencyInput label="Embalagem unit." value={d.packageUnit || null} onChange={(n) => set("packageUnit", n ?? 0)} />
+                )}
+                {lockedLabelUnit != null ? (
+                  <LockedField label="Rótulo unit." value={lockedLabelUnit} />
+                ) : (
+                  <CurrencyInput label="Rótulo unit." value={d.labelUnit || null} onChange={(n) => set("labelUnit", n ?? 0)} />
+                )}
+              </div>
+
+              {/* Resumo automático do pedido */}
+              {totalProductsQty > 0 && (
+                <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3">
+                  <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-cyan-400">
+                    📋 Resumo do pedido
+                  </p>
+                  <div className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-4 text-xs mb-2">
+                    {[
+                      { label: "Plástico",  qty: totalProductsQty },
+                      { label: "Tampas",    qty: totalProductsQty },
+                      { label: "Embalagem", qty: totalProductsQty },
+                      { label: "Rótulo",    qty: totalProductsQty },
+                    ].map(({ label, qty }) => (
+                      <div key={label} className="flex items-center justify-between">
+                        <span className="text-slate-400">{label}</span>
+                        <span className="font-bold tabular-nums text-white">
+                          {qty.toLocaleString("pt-BR")} un.
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {costPerProduct > 0 && (
+                    <div className="border-t border-white/10 pt-2 flex items-center justify-between text-xs">
+                      <span className="text-slate-400">Custo total estimado</span>
+                      <span className="font-black text-white">
+                        R$ {totalMaterialCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* VENDAS POR REGIÃO */}
