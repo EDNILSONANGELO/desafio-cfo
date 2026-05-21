@@ -5,6 +5,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { PoloProvider } from "@/contexts/PoloContext";
 import { PoloSelector } from "@/components/layout/PoloSelector";
 import { NoClassBanner } from "@/components/layout/NoClassBanner";
+import { InactivityGuard } from "@/components/layout/InactivityGuard";
 
 export default async function ProfessorLayout({
   children,
@@ -29,6 +30,7 @@ export default async function ProfessorLayout({
             isMaster={isMaster}
             polo={polo ?? undefined}
           />
+          <InactivityGuard />
           <main className="flex-1 overflow-y-auto pb-20 lg:pb-6">
             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
               {/* Seletor global de polo — visível em todas as páginas do professor */}

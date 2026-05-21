@@ -36,6 +36,14 @@ function colorFromTailwind(color: string): string {
   return "#22d3ee";
 }
 
+/** Retorna o nome real da empresa ou "Equipe sem nome" se nenhum nome foi configurado */
+function companyLabel(r: ResultRow): string {
+  const cn = r.group?.company_name?.trim();
+  const gn = r.group?.name?.trim();
+  if (!cn || cn === gn) return "Equipe sem nome";
+  return cn;
+}
+
 function sortRows(rows: ResultRow[], key: string, dir: SortDir): ResultRow[] {
   return [...rows].sort((a, b) => {
     let av: unknown, bv: unknown;
@@ -212,7 +220,7 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
                     <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: hex }} />
                     <div>
                       <p className="font-semibold whitespace-nowrap" style={{ color: isMe ? "#22d3ee" : "#f1f5f9" }}>
-                        {r.group?.company_name || `Grupo ${r.group_id}`}
+                        {companyLabel(r)}
                       </p>
                       {isMe && <span className="text-[9px] font-black text-cyan-400">MEU GRUPO</span>}
                     </div>
@@ -301,7 +309,7 @@ function ScoreBars({ results, myGroupId }: { results: ResultRow[]; myGroupId?: n
                   <span className="text-base">{MEDAL_ICONS[originalRank - 1] || `${originalRank}º`}</span>
                   <div>
                     <p className="text-sm font-semibold text-white leading-tight">
-                      {r.group?.company_name || `Grupo ${r.group_id}`}
+                      {companyLabel(r)}
                       {isMe && <span className="ml-2 text-[10px] font-black text-cyan-400">MEU GRUPO</span>}
                     </p>
                     <p className="text-[11px] text-slate-500">{r.group?.region_name}</p>
@@ -337,7 +345,7 @@ function ScoreBars({ results, myGroupId }: { results: ResultRow[]; myGroupId?: n
 /* ─── Revenue bar chart ─── */
 function RevenueBarChart({ results, myGroupId }: { results: ResultRow[]; myGroupId?: number }) {
   const data = results.map(r => ({
-    name: (r.group?.company_name || `G${r.group_id}`).split(" ").slice(-1)[0],
+    name: companyLabel(r).split(" ").slice(-1)[0],
     receita: r.data.netRevenue,
     lucro: r.data.netProfit,
     fill: colorFromTailwind(r.group?.color || ""),
@@ -522,7 +530,7 @@ export default function MercadoPage() {
             </div>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-cyan-400">Sua Empresa</p>
-              <p className="text-xl font-black text-white">{myResult.group?.company_name}</p>
+              <p className="text-xl font-black text-white">{companyLabel(myResult)}</p>
               <p className="text-sm text-slate-400">
                 {myResult.group?.region_name} · {myPos}º lugar ·{" "}
                 Score: <span className="font-bold text-cyan-400">{number(myResult.data.score, 1)} pts</span>
@@ -541,10 +549,10 @@ export default function MercadoPage() {
       <div>
         <SectionTitle>Destaques da Rodada</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <InsightCard icon={Trophy} title="Líder Geral" value={leader.group?.company_name || ""} sub={`${leader.group?.region_name} · ${number(leader.data.score, 1)} pts`} color="border-amber-500/30 bg-amber-500/8 text-amber-300" />
-          <InsightCard icon={DollarSign} title="Maior Margem" value={percent(bestMargin.data.netMargin)} sub={bestMargin.group?.company_name || ""} color="border-emerald-500/30 bg-emerald-500/8 text-emerald-300" />
-          <InsightCard icon={Shield} title="Maior Liquidez" value={number(bestLiquidity.data.currentRatio, 2)} sub={bestLiquidity.group?.company_name || ""} color="border-sky-500/30 bg-sky-500/8 text-sky-300" />
-          <InsightCard icon={Activity} title="Melhor Ciclo Fin." value={`${number(bestCycle.data.cashCycle, 0)} dias`} sub={bestCycle.group?.company_name || ""} color="border-violet-500/30 bg-violet-500/8 text-violet-300" />
+          <InsightCard icon={Trophy} title="Líder Geral" value={companyLabel(leader)} sub={`${leader.group?.region_name} · ${number(leader.data.score, 1)} pts`} color="border-amber-500/30 bg-amber-500/8 text-amber-300" />
+          <InsightCard icon={DollarSign} title="Maior Margem" value={percent(bestMargin.data.netMargin)} sub={companyLabel(bestMargin)} color="border-emerald-500/30 bg-emerald-500/8 text-emerald-300" />
+          <InsightCard icon={Shield} title="Maior Liquidez" value={number(bestLiquidity.data.currentRatio, 2)} sub={companyLabel(bestLiquidity)} color="border-sky-500/30 bg-sky-500/8 text-sky-300" />
+          <InsightCard icon={Activity} title="Melhor Ciclo Fin." value={`${number(bestCycle.data.cashCycle, 0)} dias`} sub={companyLabel(bestCycle)} color="border-violet-500/30 bg-violet-500/8 text-violet-300" />
         </div>
       </div>
 

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { StudentSidebar, StudentMobileNav } from "@/components/layout/StudentSidebar";
 import { TopBar } from "@/components/layout/TopBar";
+import { InactivityGuard } from "@/components/layout/InactivityGuard";
 
 export default async function StudentLayout({
   children,
@@ -16,6 +17,7 @@ export default async function StudentLayout({
 
   return (
     <div className="flex h-screen overflow-hidden bg-cfo-bg">
+      <InactivityGuard />
       <StudentSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <TopBar name={session.name} role="student" subtitle={`RA ${session.identifier}`} />

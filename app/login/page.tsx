@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Calculator,
@@ -205,8 +205,10 @@ function ResetPasswordModal({ onClose }: { onClose: () => void }) {
 }
 
 // ── Página de login ────────────────────────────────────────────────────────────
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionExpired = searchParams.get("expired") === "1";
   const [mode, setMode] = useState<"professor" | "aluno" | "master">("professor");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -358,6 +360,13 @@ export default function LoginPage() {
                 </button>
               </div>
 
+              {sessionExpired && (
+                <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-300">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>Sua sessão expirou por inatividade. Faça login novamente.</span>
+                </div>
+              )}
+
               {error && (
                 <div className="mb-4 rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
                   {error}
@@ -508,5 +517,13 @@ export default function LoginPage() {
         </motion.div>
       </div>
     </>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageInner />
+    </Suspense>
   );
 }

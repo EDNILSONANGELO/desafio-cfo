@@ -443,7 +443,255 @@ export function DecisionForm({
           </div>
         </div>
       </div>
+    </fieldset>
 
+    {/* ── Compra de Máquinas — FORA do fieldset para os botões funcionarem ── */}
+    <div className={disabled ? "pointer-events-none select-none opacity-50" : ""}>
+      <SectionTitle>🔧 Compra de Máquinas</SectionTitle>
+        <p className="mb-4 text-xs text-slate-400 leading-relaxed">
+          Selecione quantas máquinas deseja adquirir nesta rodada. A capacidade é{" "}
+          <strong className="text-white">acumulativa</strong> — máquinas compradas agora
+          continuam produzindo nas rodadas seguintes. Você pode combinar tipos livremente.
+        </p>
+
+        {/* Aviso sobre colaboradores necessários para as máquinas */}
+        {totalMachineCapacity > 0 && (
+          <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3 text-xs">
+            <p className="font-semibold text-amber-300 mb-1">👷 Colaboradores para operar as novas máquinas</p>
+            <p className="text-slate-400">
+              Capacidade adicional:{" "}
+              <strong className="text-white">+{totalMachineCapacity.toLocaleString("pt-BR")} unid.</strong>{" "}
+              · Requer mais{" "}
+              <strong className="text-amber-300">
+                {Math.ceil(totalMachineCapacity / unitsPerEmployee)} colaborador(es)
+              </strong>{" "}
+              (base: {unitsPerEmployee} unid./colab.)
+            </p>
+          </div>
+        )}
+
+        {/* Cards das máquinas */}
+        <div className="grid gap-3 md:grid-cols-3">
+          {MACHINE_CATALOG.map((machine) => {
+            const qty = Math.max(0, Number(currentMachines[machine.id] || 0));
+            const subtotal = qty * machine.price;
+            const employeesNeededForMachine = Math.ceil(machine.capacity / unitsPerEmployee);
+            return (
+              <div
+                key={machine.id}
+                className={`rounded-xl border p-4 transition-all ${
+                  qty > 0
+                    ? "border-cyan-400/30 bg-cyan-500/5"
+                    : "border-white/10 bg-white/[0.02]"
+                }`}
+              >
+                {/* Cabeçalho do card */}
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <p className="font-bold text-white text-sm">{machine.label}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+                      +{machine.capacity.toLocaleString("pt-BR")} unid./rodada
+                    </p>
+                    <p className="text-[11px] text-amber-400 mt-0.5">
+                      👷 +{employeesNeededForMachine} colab. necessários
+                    </p>
+                    <p className="text-sm font-black text-cyan-400 mt-1">
+                      R$ {machine.price.toLocaleString("pt-BR")}
+                    </p>
+                  </div>
+                  <span className="text-3xl leading-none">{machine.icon}</span>
+                </div>
+
+                {/* Seletor de quantidade */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMachineQty(machine.id, -1)}
+                    className={`h-9 w-9 rounded-lg border font-bold text-lg flex items-center justify-center transition-colors ${
+                      qty === 0
+                        ? "border-white/10 bg-white/5 text-slate-600 cursor-not-allowed"
+                        : "border-white/20 bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                  >
+                    −
+                  </button>
+                  <div className="flex-1 text-center">
+                    <span className="text-2xl font-black text-white">{qty}</span>
+                    <p className="text-[10px] text-slate-500 mt-0.5">unidade{qty !== 1 ? "s" : ""}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMachineQty(machine.id, 1)}
+                    className="h-9 w-9 rounded-lg border border-cyan-400/30 bg-cyan-400/10 text-cyan-400 font-bold text-lg hover:bg-cyan-400/20 flex items-center justify-center transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
+
+                {/* Subtotal do tipo */}
+                {qty > 0 && (
+                  <div className="mt-3 rounded-lg bg-white/5 px-2.5 py-1.5 text-center">
+                    <p className="text-xs text-slate-400">
+                      Subtotal:{" "}
+                      <strong className="text-emerald-400">
+                        R$ {subtotal.toLocaleString("pt-BR")}
+                      </strong>
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">
+                      +{(qty * machine.capacity).toLocaleString("pt-BR")} unid. de capacidade
+                    </p>
+                    <p className="text-[10px] text-amber-400 mt-0.5">
+                      👷 +{qty * employeesNeededForMachine} colab. necessários
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Painel de pagamento */}
+        {totalMachineCost > 0 && (
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
+            {/* Forma de pagamento */}
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                Forma de Pagamento
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {/* À vista */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("cash")}
+                  className={`rounded-xl border p-3 text-left transition-all ${
+                    currentMachines.paymentMethod === "cash"
+                      ? "border-emerald-400/40 bg-emerald-500/10 ring-1 ring-emerald-400/20"
+                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center ${
+                      currentMachines.paymentMethod === "cash"
+                        ? "border-emerald-400 bg-emerald-400"
+                        : "border-white/30"
+                    }`}>
+                      {currentMachines.paymentMethod === "cash" && (
+                        <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                      )}
+                    </div>
+                    <p className={`font-bold text-sm ${
+                      currentMachines.paymentMethod === "cash" ? "text-emerald-400" : "text-slate-300"
+                    }`}>
+                      À Vista
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-500">Pagamento em 15 dias</p>
+                  <p className="text-xs font-semibold text-white mt-1.5">
+                    R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-[10px] text-emerald-500 mt-0.5">Sem juros</p>
+                </button>
+
+                {/* 3× parcelado */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("installments")}
+                  className={`rounded-xl border p-3 text-left transition-all ${
+                    currentMachines.paymentMethod === "installments"
+                      ? "border-amber-400/40 bg-amber-500/10 ring-1 ring-amber-400/20"
+                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className={`h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center ${
+                      currentMachines.paymentMethod === "installments"
+                        ? "border-amber-400 bg-amber-400"
+                        : "border-white/30"
+                    }`}>
+                      {currentMachines.paymentMethod === "installments" && (
+                        <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                      )}
+                    </div>
+                    <p className={`font-bold text-sm ${
+                      currentMachines.paymentMethod === "installments" ? "text-amber-400" : "text-slate-300"
+                    }`}>
+                      3× Parcelado
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-500">
+                    Juros: {(MACHINE_INSTALLMENT_RATE * 100).toFixed(1)}% a.m.
+                  </p>
+                  <p className="text-xs font-semibold text-white mt-1.5">
+                    Entrada: R$ {(totalMachineCost / 3).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                  <p className="text-[10px] text-amber-500 mt-0.5">
+                    + 2× R$ {((totalMachineCost / 3) * (1 + MACHINE_INSTALLMENT_RATE)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Resumo da compra */}
+            <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 space-y-1.5 text-xs">
+              <p className="font-black uppercase tracking-widest text-slate-500 text-[10px] mb-2">
+                Resumo da Compra
+              </p>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Capacidade adicionada</span>
+                <span className="font-bold text-cyan-400">
+                  +{totalMachineCapacity.toLocaleString("pt-BR")} unid.
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">Custo total das máquinas</span>
+                <span className="font-bold text-white">
+                  R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-white/10 pt-1.5">
+                <span className="text-slate-400">
+                  {currentMachines.paymentMethod === "cash" ? "Pago agora (saída de caixa)" : "Entrada paga agora"}
+                </span>
+                <span className={`font-bold ${currentMachines.paymentMethod === "cash" ? "text-rose-400" : "text-amber-400"}`}>
+                  R$ {machineDownPayment.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              {currentMachines.paymentMethod === "installments" && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Parcelas restantes (passivo)</span>
+                    <span className="font-bold text-slate-300">
+                      R$ {machineDeferred.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">Total de juros</span>
+                    <span className="font-bold text-amber-300">
+                      R$ {machineInterestTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t border-white/10 pt-1.5">
+                    <span className="text-slate-400">Custo total com juros</span>
+                    <span className="font-black text-white">
+                      R$ {(totalMachineCost + machineInterestTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                </>
+              )}
+              <div className="flex justify-between pt-1">
+                <span className="text-slate-400">Adicionado ao Imobilizado (BP)</span>
+                <span className="font-bold text-emerald-400">
+                  +R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+    </div>
+    {/* ── Fim da seção de máquinas ── */}
+
+    {/* ── Materiais, Vendas, Marketing, Financeiro ── */}
+    <fieldset disabled={disabled} className="space-y-8 border-0 p-0 m-0">
       {/* MATERIAIS */}
       <div>
         <SectionTitle>📦 Compra de Materiais</SectionTitle>
@@ -887,251 +1135,6 @@ export function DecisionForm({
       </div>
 
     </fieldset>
-
-    {/* ── Compra de Máquinas — FORA do fieldset para os botões funcionarem ── */}
-    <div className={disabled ? "pointer-events-none select-none opacity-50" : ""}>
-      <SectionTitle>🔧 Compra de Máquinas</SectionTitle>
-        <p className="mb-4 text-xs text-slate-400 leading-relaxed">
-          Selecione quantas máquinas deseja adquirir nesta rodada. A capacidade é{" "}
-          <strong className="text-white">acumulativa</strong> — máquinas compradas agora
-          continuam produzindo nas rodadas seguintes. Você pode combinar tipos livremente.
-        </p>
-
-        {/* Aviso sobre colaboradores necessários para as máquinas */}
-        {totalMachineCapacity > 0 && (
-          <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-500/5 p-3 text-xs">
-            <p className="font-semibold text-amber-300 mb-1">👷 Colaboradores para operar as novas máquinas</p>
-            <p className="text-slate-400">
-              Capacidade adicional:{" "}
-              <strong className="text-white">+{totalMachineCapacity.toLocaleString("pt-BR")} unid.</strong>{" "}
-              · Requer mais{" "}
-              <strong className="text-amber-300">
-                {Math.ceil(totalMachineCapacity / unitsPerEmployee)} colaborador(es)
-              </strong>{" "}
-              (base: {unitsPerEmployee} unid./colab.)
-            </p>
-          </div>
-        )}
-
-        {/* Cards das máquinas */}
-        <div className="grid gap-3 md:grid-cols-3">
-          {MACHINE_CATALOG.map((machine) => {
-            const qty = Math.max(0, Number(currentMachines[machine.id] || 0));
-            const subtotal = qty * machine.price;
-            const employeesNeededForMachine = Math.ceil(machine.capacity / unitsPerEmployee);
-            return (
-              <div
-                key={machine.id}
-                className={`rounded-xl border p-4 transition-all ${
-                  qty > 0
-                    ? "border-cyan-400/30 bg-cyan-500/5"
-                    : "border-white/10 bg-white/[0.02]"
-                }`}
-              >
-                {/* Cabeçalho do card */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="font-bold text-white text-sm">{machine.label}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
-                      +{machine.capacity.toLocaleString("pt-BR")} unid./rodada
-                    </p>
-                    <p className="text-[11px] text-amber-400 mt-0.5">
-                      👷 +{employeesNeededForMachine} colab. necessários
-                    </p>
-                    <p className="text-sm font-black text-cyan-400 mt-1">
-                      R$ {machine.price.toLocaleString("pt-BR")}
-                    </p>
-                  </div>
-                  <span className="text-3xl leading-none">{machine.icon}</span>
-                </div>
-
-                {/* Seletor de quantidade */}
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setMachineQty(machine.id, -1)}
-                    className={`h-9 w-9 rounded-lg border font-bold text-lg flex items-center justify-center transition-colors ${
-                      qty === 0
-                        ? "border-white/10 bg-white/5 text-slate-600 cursor-not-allowed"
-                        : "border-white/20 bg-white/10 text-white hover:bg-white/20"
-                    }`}
-                  >
-                    −
-                  </button>
-                  <div className="flex-1 text-center">
-                    <span className="text-2xl font-black text-white">{qty}</span>
-                    <p className="text-[10px] text-slate-500 mt-0.5">unidade{qty !== 1 ? "s" : ""}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setMachineQty(machine.id, 1)}
-                    className="h-9 w-9 rounded-lg border border-cyan-400/30 bg-cyan-400/10 text-cyan-400 font-bold text-lg hover:bg-cyan-400/20 flex items-center justify-center transition-colors"
-                  >
-                    +
-                  </button>
-                </div>
-
-                {/* Subtotal do tipo */}
-                {qty > 0 && (
-                  <div className="mt-3 rounded-lg bg-white/5 px-2.5 py-1.5 text-center">
-                    <p className="text-xs text-slate-400">
-                      Subtotal:{" "}
-                      <strong className="text-emerald-400">
-                        R$ {subtotal.toLocaleString("pt-BR")}
-                      </strong>
-                    </p>
-                    <p className="text-[10px] text-slate-500 mt-0.5">
-                      +{(qty * machine.capacity).toLocaleString("pt-BR")} unid. de capacidade
-                    </p>
-                    <p className="text-[10px] text-amber-400 mt-0.5">
-                      👷 +{qty * employeesNeededForMachine} colab. necessários
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Painel de pagamento */}
-        {totalMachineCost > 0 && (
-          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.03] p-4 space-y-4">
-            {/* Forma de pagamento */}
-            <div>
-              <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
-                Forma de Pagamento
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {/* À vista */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("cash")}
-                  className={`rounded-xl border p-3 text-left transition-all ${
-                    currentMachines.paymentMethod === "cash"
-                      ? "border-emerald-400/40 bg-emerald-500/10 ring-1 ring-emerald-400/20"
-                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className={`h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center ${
-                      currentMachines.paymentMethod === "cash"
-                        ? "border-emerald-400 bg-emerald-400"
-                        : "border-white/30"
-                    }`}>
-                      {currentMachines.paymentMethod === "cash" && (
-                        <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
-                      )}
-                    </div>
-                    <p className={`font-bold text-sm ${
-                      currentMachines.paymentMethod === "cash" ? "text-emerald-400" : "text-slate-300"
-                    }`}>
-                      À Vista
-                    </p>
-                  </div>
-                  <p className="text-[11px] text-slate-500">Pagamento em 15 dias</p>
-                  <p className="text-xs font-semibold text-white mt-1.5">
-                    R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-[10px] text-emerald-500 mt-0.5">Sem juros</p>
-                </button>
-
-                {/* 3× parcelado */}
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("installments")}
-                  className={`rounded-xl border p-3 text-left transition-all ${
-                    currentMachines.paymentMethod === "installments"
-                      ? "border-amber-400/40 bg-amber-500/10 ring-1 ring-amber-400/20"
-                      : "border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className={`h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center ${
-                      currentMachines.paymentMethod === "installments"
-                        ? "border-amber-400 bg-amber-400"
-                        : "border-white/30"
-                    }`}>
-                      {currentMachines.paymentMethod === "installments" && (
-                        <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
-                      )}
-                    </div>
-                    <p className={`font-bold text-sm ${
-                      currentMachines.paymentMethod === "installments" ? "text-amber-400" : "text-slate-300"
-                    }`}>
-                      3× Parcelado
-                    </p>
-                  </div>
-                  <p className="text-[11px] text-slate-500">
-                    Juros: {(MACHINE_INSTALLMENT_RATE * 100).toFixed(1)}% a.m.
-                  </p>
-                  <p className="text-xs font-semibold text-white mt-1.5">
-                    Entrada: R$ {(totalMachineCost / 3).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-[10px] text-amber-500 mt-0.5">
-                    + 2× R$ {((totalMachineCost / 3) * (1 + MACHINE_INSTALLMENT_RATE)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                </button>
-              </div>
-            </div>
-
-            {/* Resumo da compra */}
-            <div className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 space-y-1.5 text-xs">
-              <p className="font-black uppercase tracking-widest text-slate-500 text-[10px] mb-2">
-                Resumo da Compra
-              </p>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Capacidade adicionada</span>
-                <span className="font-bold text-cyan-400">
-                  +{totalMachineCapacity.toLocaleString("pt-BR")} unid.
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Custo total das máquinas</span>
-                <span className="font-bold text-white">
-                  R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div className="flex justify-between border-t border-white/10 pt-1.5">
-                <span className="text-slate-400">
-                  {currentMachines.paymentMethod === "cash" ? "Pago agora (saída de caixa)" : "Entrada paga agora"}
-                </span>
-                <span className={`font-bold ${currentMachines.paymentMethod === "cash" ? "text-rose-400" : "text-amber-400"}`}>
-                  R$ {machineDownPayment.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              {currentMachines.paymentMethod === "installments" && (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Parcelas restantes (passivo)</span>
-                    <span className="font-bold text-slate-300">
-                      R$ {machineDeferred.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Total de juros</span>
-                    <span className="font-bold text-amber-300">
-                      R$ {machineInterestTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t border-white/10 pt-1.5">
-                    <span className="text-slate-400">Custo total com juros</span>
-                    <span className="font-black text-white">
-                      R$ {(totalMachineCost + machineInterestTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </>
-              )}
-              <div className="flex justify-between pt-1">
-                <span className="text-slate-400">Adicionado ao Imobilizado (BP)</span>
-                <span className="font-bold text-emerald-400">
-                  +R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-    </div>
-    {/* ── Fim da seção de máquinas ── */}
 
     {/* ── Despesas — volta para o fieldset ── */}
     <fieldset disabled={disabled} className="space-y-8 border-0 p-0 m-0">
