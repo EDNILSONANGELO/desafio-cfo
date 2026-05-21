@@ -5,6 +5,7 @@ import {
   Users, PlusCircle, Trash2, Edit3, RefreshCw, Upload,
   Building2, FileDown, FileUp, CheckCircle2, AlertTriangle,
   XCircle, KeyRound, Eye, ShieldAlert,
+  ChevronUp, ChevronDown, ChevronsUpDown,
 } from "lucide-react";
 import { Panel } from "@/components/ui/Panel";
 import { Button } from "@/components/ui/Button";
@@ -229,6 +230,21 @@ export default function AlunosPage() {
   const [raUpdated, setRaUpdated]       = useState(false);
   const [searchTerm, setSearchTerm]     = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // ── Ordenação da tabela ───────────────────────────────────────────────────────
+  type SortKey = "ra" | "name" | "polo" | "semestre" | "group";
+  type SortDir = "asc" | "desc";
+  const [sortKey, setSortKey] = useState<SortKey>("name");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  function handleSort(key: SortKey) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
 
   // ── Seleção em lote ───────────────────────────────────────────────────────────
   const [selectedIds, setSelectedIds]         = useState<Set<string>>(new Set());
@@ -630,9 +646,31 @@ export default function AlunosPage() {
   }
 
   // ── Derived values ────────────────────────────────────────────────────────────
-  const filtered = students.filter(
-    (s) => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.ra.includes(searchTerm)
-  );
+  const filtered = students
+    .filter(
+      (s) => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.ra.includes(searchTerm)
+    )
+    .sort((a, b) => {
+      let av = "";
+      let bv = "";
+      if (sortKey === "ra") {
+        av = a.ra; bv = b.ra;
+      } else if (sortKey === "name") {
+        av = a.name; bv = b.name;
+      } else if (sortKey === "polo") {
+        av = (a as unknown as { polo?: string }).polo ?? "";
+        bv = (b as unknown as { polo?: string }).polo ?? "";
+      } else if (sortKey === "semestre") {
+        const an = a.semestre ?? 0;
+        const bn = b.semestre ?? 0;
+        return sortDir === "asc" ? an - bn : bn - an;
+      } else if (sortKey === "group") {
+        av = a.group?.name ?? "";
+        bv = b.group?.name ?? "";
+      }
+      const cmp = av.localeCompare(bv, "pt-BR", { sensitivity: "base" });
+      return sortDir === "asc" ? cmp : -cmp;
+    });
   const suggestions = form.group_name
     ? groups.filter((g) => g.name.toLowerCase().includes(form.group_name.toLowerCase()))
     : groups;
@@ -811,11 +849,34 @@ export default function AlunosPage() {
                     title={selectedIds.size === filtered.length ? "Desmarcar todos" : "Selecionar todos"}
                   />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">RA</th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-slate-400">Nome</th>
-                <th className="hidden px-4 py-3 text-left text-xs font-semibold text-slate-400 md:table-cell">Polo/Unidade</th>
-                <th className="hidden px-4 py-3 text-center text-xs font-semibold text-slate-400 lg:table-cell">Semestre</th>
-                <th className="hidden px-4 py-3 text-left text-xs font-semibold text-slate-400 lg:table-cell">Grupo / Região</th>
+                {/* Cabeçalhos ordenáveis */}
+                {(
+                  [
+                    { key: "ra"       as SortKey, label: "RA",           cls: "px-4 py-3 text-left"   },
+                    { key: "name"     as SortKey, label: "Nome",         cls: "px-4 py-3 text-left"   },
+                    { key: "polo"     as SortKey, label: "Polo/Unidade", cls: "hidden px-4 py-3 text-left md:table-cell"   },
+                    { key: "semestre" as SortKey, label: "Semestre",     cls: "hidden px-4 py-3 text-center lg:table-cell" },
+                    { key: "group"    as SortKey, label: "Grupo / Região", cls: "hidden px-4 py-3 text-left lg:table-cell" },
+                  ] as { key: SortKey; label: string; cls: string }[]
+                ).map(({ key, label, cls }) => {
+                  const active = sortKey === key;
+                  const Icon = active
+                    ? sortDir === "asc" ? ChevronUp : ChevronDown
+                    : ChevronsUpDown;
+                  return (
+                    <th
+                      key={key}
+                      onClick={() => handleSort(key)}
+                      className={`${cls} cursor-pointer select-none text-xs font-semibold transition-colors ${active ? "text-cyan-400" : "text-slate-400 hover:text-white"}`}
+                      title={`Ordenar por ${label}`}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {label}
+                        <Icon className={`h-3 w-3 shrink-0 ${active ? "opacity-100" : "opacity-40"}`} />
+                      </span>
+                    </th>
+                  );
+                })}
                 <th className="hidden px-4 py-3 text-left text-xs font-semibold text-slate-400 xl:table-cell">E-mail</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-slate-400">Ações</th>
               </tr>
