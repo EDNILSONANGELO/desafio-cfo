@@ -40,6 +40,7 @@ export async function PATCH(
     fixed_expenses, transport, maintenance, avg_salary,
     plastic_unit, caps_unit, package_unit, label_unit,
     marketing_insertion_cost, machine_min_employees,
+    payroll_charges_pct,
   } = body;
 
   const supabase = createAdminClient();
@@ -71,6 +72,9 @@ export async function PATCH(
     updates.marketing_insertion_cost = marketing_insertion_cost === "" || marketing_insertion_cost === null ? null : Number(marketing_insertion_cost);
   if (machine_min_employees !== undefined)
     updates.machine_min_employees = machine_min_employees === "" || machine_min_employees === null ? null : Number(machine_min_employees);
+  // Migration 009: Encargos sobre folha
+  if (payroll_charges_pct !== undefined)
+    updates.payroll_charges_pct = payroll_charges_pct === "" || payroll_charges_pct === null ? null : Number(payroll_charges_pct);
 
   const { data, error } = await supabase
     .from("rounds")

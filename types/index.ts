@@ -66,6 +66,8 @@ export interface Round {
   // ── Novos campos (Migration 008) ──────────────────────────────────────────────
   marketing_insertion_cost: number | null;  // Custo por inserção de marketing (null = padrão R$1.500)
   machine_min_employees: number | null;     // Min. funcionários por 1.000 unidades (null = 3)
+  // ── Novos campos (Migration 009 — Encargos sobre folha) ───────────────────────
+  payroll_charges_pct: number | null;       // % de encargos sobre folha salarial (null = 0%)
   class_id: string;
   created_at: string;
   opened_at: string | null;
@@ -166,6 +168,7 @@ export interface SimulationResult {
   depreciationExpense?: number; // Depreciação linear 10% a.a. — componente do CMV (não-caixa)
   grossProfit: number;
   totalSalary: number;        // Qtde. funcionários × valor médio de salário
+  payrollCharges?: number;    // Encargos sobre folha salarial (totalSalary × payrollChargesPct)
   operationalExpenses: number;
   ebit: number;
   ebt: number;          // LAIR = EBIT - Despesa Financeira
@@ -358,4 +361,5 @@ export interface InitialBalance {
 export interface RoundConfig {
   marketing_insertion_cost?: number | null;
   machine_min_employees?: number | null;
+  payroll_charges_pct?: number | null;       // % de encargos sobre folha (null/0 = sem encargos)
 }

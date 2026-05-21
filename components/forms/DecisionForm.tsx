@@ -44,6 +44,8 @@ interface Props {
   marketingInsertionCost?: number | null;
   // Min funcionários por 1.000 unidades (null = padrão)
   machineMinEmployees?: number | null;
+  // Encargos sobre folha salarial em % (null/0 = sem encargos)
+  payrollChargesPct?: number | null;
 }
 
 const SUPPLIER_OPTIONS = [
@@ -121,6 +123,7 @@ export function DecisionForm({
   currentEmployees: currentEmployeesProp,
   marketingInsertionCost: marketingInsertionCostProp,
   machineMinEmployees,
+  payrollChargesPct,
 }: Props) {
   const d = { ...DEFAULT_DECISION, ...decision };
 
@@ -313,18 +316,36 @@ export function DecisionForm({
           {lockedAvgSalary != null ? (
             <div className="flex flex-col gap-1">
               <LockedField label="Valor Médio de Salário R$" value={lockedAvgSalary} />
-              <p className="text-[10px] text-slate-500">
-                Total folha: R$ {(netEmployees * lockedAvgSalary).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-              </p>
+              {(() => {
+                const folha = netEmployees * lockedAvgSalary;
+                const pct = payrollChargesPct ?? 0;
+                const encargos = folha * (pct / 100);
+                return (
+                  <p className="text-[10px] text-slate-500">
+                    Folha: R$ {folha.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    {pct > 0 && <> · Encargos {pct}%: <span className="text-rose-400">R$ {encargos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span> · Custo total: <span className="text-white font-semibold">R$ {(folha + encargos).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></>}
+                  </p>
+                );
+              })()}
             </div>
           ) : (
             <div>
               <CurrencyInput label="Valor Médio de Salário" value={d.laborCost || null} onChange={(n) => set("laborCost", n ?? 0)} />
-              <p className="mt-1 text-[10px] text-slate-500">
-                {d.laborCost > 0 && netEmployees > 0
-                  ? `Total folha: R$ ${(netEmployees * d.laborCost).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-                  : "Informe o salário"}
-              </p>
+              {(() => {
+                const folha = netEmployees * (d.laborCost || 0);
+                const pct = payrollChargesPct ?? 0;
+                const encargos = folha * (pct / 100);
+                return (
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    {d.laborCost > 0 && netEmployees > 0 ? (
+                      <>
+                        Folha: R$ {folha.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                        {pct > 0 && <> · Encargos {pct}%: <span className="text-rose-400">R$ {encargos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span> · Custo total: <span className="text-white font-semibold">R$ {(folha + encargos).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span></>}
+                      </>
+                    ) : "Informe o salário"}
+                  </p>
+                );
+              })()}
             </div>
           )}
         </div>

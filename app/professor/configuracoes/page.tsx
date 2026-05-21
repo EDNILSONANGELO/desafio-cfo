@@ -947,8 +947,9 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
   const DEFAULT_MIN_EMPLOYEES  = 3;
   const MAX_MIN_EMPLOYEES      = 20;
 
-  const [insertionCost, setInsertionCost] = React.useState<number | null>(round.marketing_insertion_cost ?? null);
-  const [minEmployees,  setMinEmployees]  = React.useState<number | null>(round.machine_min_employees ?? null);
+  const [insertionCost,    setInsertionCost]    = React.useState<number | null>(round.marketing_insertion_cost ?? null);
+  const [minEmployees,     setMinEmployees]     = React.useState<number | null>(round.machine_min_employees ?? null);
+  const [payrollChargesPct, setPayrollChargesPct] = React.useState<number | null>(round.payroll_charges_pct ?? null);
   const [saving,  setSaving]  = React.useState(false);
   const [saved,   setSaved]   = React.useState(false);
   const [saveErr, setSaveErr] = React.useState<string | null>(null);
@@ -958,6 +959,7 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
   React.useEffect(() => {
     setInsertionCost(round.marketing_insertion_cost ?? null);
     setMinEmployees(round.machine_min_employees ?? null);
+    setPayrollChargesPct(round.payroll_charges_pct ?? null);
     setSaved(false);
     setSaveErr(null);
   }, [round.id]);
@@ -971,15 +973,16 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
       body: JSON.stringify({
         marketing_insertion_cost: insertionCost,
         machine_min_employees:    minEmployees,
+        payroll_charges_pct:      payrollChargesPct,
       }),
     });
     const json = await res.json();
     if (!res.ok) {
       const msg = json.error || "Erro ao salvar.";
-      if (msg.includes("marketing_insertion_cost") || msg.includes("column")) setNeedsMigration(true);
+      if (msg.includes("marketing_insertion_cost") || msg.includes("payroll_charges_pct") || msg.includes("column")) setNeedsMigration(true);
       setSaveErr(msg);
     } else {
-      onUpdate({ marketing_insertion_cost: insertionCost, machine_min_employees: minEmployees });
+      onUpdate({ marketing_insertion_cost: insertionCost, machine_min_employees: minEmployees, payroll_charges_pct: payrollChargesPct });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     }
@@ -1005,7 +1008,8 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
           <p className="mb-2 text-slate-300">Execute no Supabase SQL Editor:</p>
           <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 text-xs text-emerald-300">
 {`ALTER TABLE rounds ADD COLUMN IF NOT EXISTS marketing_insertion_cost DECIMAL DEFAULT NULL;
-ALTER TABLE rounds ADD COLUMN IF NOT EXISTS machine_min_employees INTEGER DEFAULT NULL;`}
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS machine_min_employees INTEGER DEFAULT NULL;
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS payroll_charges_pct DECIMAL DEFAULT NULL;`}
           </pre>
         </div>
       )}
@@ -1124,6 +1128,77 @@ ALTER TABLE rounds ADD COLUMN IF NOT EXISTS machine_min_employees INTEGER DEFAUL
         </div>
       </div>
 
+      {/* ── Encargos sobre folha salarial (Migration 009) ── */}
+      <div className="mt-6 border-t border-white/10 pt-6">
+        <p className="mb-1 text-xs font-black uppercase tracking-widest text-slate-400">
+          💼 Encargos sobre Folha Salarial (%)
+        </p>
+        <p className="mb-3 text-xs text-slate-500">
+          Percentual de encargos trabalhistas sobre o total da folha (ex.: FGTS, INSS patronal etc.).
+          Aplicado sobre <strong className="text-slate-300">Funcionários × Salário médio</strong>.
+          Padrão: 0% (sem encargos).
+        </p>
+        <div className="flex items-start gap-3">
+          <div className="w-48">
+            <label className="mb-1 block text-xs font-semibold text-slate-400">
+              Encargos (%)
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                inputMode="decimal"
+                autoComplete="off"
+                min={0}
+                max={100}
+                step={1}
+                value={payrollChargesPct ?? ""}
+                onChange={(e) => {
+                  if (e.target.value === "") { setPayrollChargesPct(null); setSaved(false); return; }
+                  const parsed = parseFloat(e.target.value);
+                  if (!isNaN(parsed)) {
+                    setPayrollChargesPct(Math.min(100, Math.max(0, parsed)));
+                    setSaved(false);
+                  }
+                }}
+                placeholder="0 (padrão)"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan-400/50 focus:outline-none"
+              />
+              {payrollChargesPct !== null && (
+                <button
+                  type="button"
+                  onClick={() => { setPayrollChargesPct(null); setSaved(false); }}
+                  className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-xs text-slate-400 hover:text-white"
+                  title="Remover (usar 0%)"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+          <div className="flex-1 rounded-xl border border-rose-400/10 bg-rose-500/5 px-3 py-2.5 text-xs mt-5">
+            {payrollChargesPct != null && payrollChargesPct > 0 ? (
+              <>
+                <p className="text-slate-400">
+                  Percentual configurado:{" "}
+                  <strong className="text-rose-300">{payrollChargesPct.toLocaleString("pt-BR")}%</strong>
+                </p>
+                <p className="mt-1 text-slate-500">
+                  Exemplo — Folha de <strong className="text-white">R$ 16.800</strong>:
+                  encargos = <strong className="text-rose-300">
+                    R$ {(16800 * payrollChargesPct / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </strong>{" "}
+                  → custo total = <strong className="text-white">
+                    R$ {(16800 * (1 + payrollChargesPct / 100)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </strong>
+                </p>
+              </>
+            ) : (
+              <p className="text-slate-500">Nenhum encargo configurado — custo da folha = somente salários.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Regras de status */}
       <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-4 text-xs">
         <p className="font-black uppercase tracking-widest text-slate-500 mb-2">
@@ -1164,7 +1239,7 @@ ALTER TABLE rounds ADD COLUMN IF NOT EXISTS machine_min_employees INTEGER DEFAUL
         <Button onClick={save} loading={saving}>
           <CheckCircle2 className="h-4 w-4" /> Salvar Configurações
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => { setInsertionCost(null); setMinEmployees(null); setSaved(false); }}>
+        <Button variant="ghost" size="sm" onClick={() => { setInsertionCost(null); setMinEmployees(null); setPayrollChargesPct(null); setSaved(false); }}>
           <RefreshCw className="h-4 w-4" /> Restaurar Padrão
         </Button>
       </div>

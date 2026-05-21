@@ -152,7 +152,8 @@ export default function ResultadosClient({ groupResults, fullRanking, medals, se
       { "Demonstração": "= Total CMV",                          "Valor (R$)": -result.cmv },
       { "Demonstração": "= Lucro Bruto",                        "Valor (R$)": result.grossProfit },
       { "Demonstração": "(-) Salários",                         "Valor (R$)": -(result.totalSalary ?? 0) },
-      { "Demonstração": "(-) Demais Desp. Operacionais",        "Valor (R$)": -(result.operationalExpenses - (result.totalSalary ?? 0) - (result.storageExpense ?? 0)) },
+      ...(result.payrollCharges ?? 0) > 0 ? [{ "Demonstração": "(-) Encargos sobre Folha", "Valor (R$)": -(result.payrollCharges ?? 0) }] : [],
+      { "Demonstração": "(-) Demais Desp. Operacionais",        "Valor (R$)": -(result.operationalExpenses - (result.totalSalary ?? 0) - (result.payrollCharges ?? 0) - (result.storageExpense ?? 0)) },
       { "Demonstração": "= EBIT",                               "Valor (R$)": result.ebit },
       { "Demonstração": "(-) Despesa Financeira",           "Valor (R$)": -(result.ebit - lair) },
       { "Demonstração": "= LAIR",                           "Valor (R$)": lair },
@@ -707,6 +708,12 @@ export default function ResultadosClient({ groupResults, fullRanking, medals, se
                   <span className="text-slate-400">(-) Salários (Colaboradores)</span>
                   <span className="font-semibold text-rose-400">({currency(result.totalSalary ?? 0)})</span>
                 </div>
+                {(result.payrollCharges ?? 0) > 0 && (
+                  <div className="flex justify-between border-b border-white/5 pb-1.5">
+                    <span className="text-slate-400 flex items-center gap-1">(-) Encargos sobre Folha <span className="text-[10px] text-rose-400 bg-rose-400/10 rounded px-1">FGTS/INSS</span></span>
+                    <span className="font-semibold text-rose-400">({currency(result.payrollCharges ?? 0)})</span>
+                  </div>
+                )}
                 {(result.storageExpense ?? 0) > 0 && (
                   <div className="flex justify-between border-b border-white/5 pb-1.5">
                     <span className="text-slate-400 flex items-center gap-1">(-) Custo de Armazenagem (5%) <span className="text-[10px] text-amber-400 bg-amber-400/10 rounded px-1">estoque parado</span></span>
@@ -745,6 +752,7 @@ export default function ResultadosClient({ groupResults, fullRanking, medals, se
                   <span className="font-semibold text-rose-400">({currency(
                     result.operationalExpenses
                     - (result.totalSalary ?? 0)
+                    - (result.payrollCharges ?? 0)
                     - (result.storageExpense ?? 0)
                     - (result.marketingInsertionCost ?? 0)
                     - (result.hiringCost ?? 0)

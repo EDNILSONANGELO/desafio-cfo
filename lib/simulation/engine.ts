@@ -325,6 +325,12 @@ export function simulateCompany(
   // Salários: Funcionários ATIVOS (netEmployees) × Valor médio de salário
   const totalSalary = netEmployees * Number(d.laborCost);
 
+  // ── ENCARGOS SOBRE FOLHA (Migration 009) ────────────────────────────────────
+  // Professor configura o percentual (ex: 28% FGTS+INSS+etc).
+  // Null ou 0 = sem encargos (compatibilidade retroativa).
+  const payrollChargesPct = roundConfig?.payroll_charges_pct ?? 0;
+  const payrollCharges = totalSalary * (payrollChargesPct / 100);
+
   // ── CUSTO DE ARMAZENAGEM (Phase 1) ──────────────────────────────────────────
   // Unidades não vendidas geram custo de estoque (5% do valor de custo do estoque
   // acumulado no período). Incentiva o aluno a planejar melhor a produção.
@@ -332,12 +338,13 @@ export function simulateCompany(
   const periodEndingInventoryValue = ib.inventory + unsoldUnits * unitProductionCost;
   const storageExpense = periodEndingInventoryValue * 0.05; // 5% a.p. sobre saldo de estoque
 
-  // Despesas Operacionais (inclui salários + armazenagem + novas despesas Migration 008)
+  // Despesas Operacionais (inclui salários + encargos + armazenagem + demais Migration 008/009)
   // Despesa financeira = juros do empréstimo + juros das parcelas de máquinas (accrual)
   const financialExpense = Number(d.loan || 0) * (Number(d.loanRate || 0) / 100) + machinesInterest;
   const operationalExpenses =
     Number(d.fixedExpenses) +
     totalSalary +
+    payrollCharges +             // ← encargos sobre folha salarial (Migration 009)
     Number(d.marketing) +
     marketingInsertionCost +    // ← custo das inserções de marketing
     Number(d.transport) +
@@ -377,14 +384,14 @@ export function simulateCompany(
   // Entradas: recebimento de clientes + empréstimo captado
   const cashIn = netRevenue * cashCollectionRate + Number(d.loan || 0);
 
-  // Salários pagos no período (saída de caixa)
-  const laborCashOut = totalSalary;
+  // Salários + encargos pagos no período (saída de caixa)
+  const laborCashOut = totalSalary + payrollCharges;
 
   // Saídas de caixa
   const cashOut =
     purchases * supplierPaymentRate +
     laborCashOut +
-    (operationalExpenses - totalSalary) + // demais desp. operac. (incl. armazenagem)
+    (operationalExpenses - totalSalary - payrollCharges) + // demais desp. operac. (incl. armazenagem)
     financialExpense +
     Number(d.machineInvestment || 0) * 0.3 + // legado: 30% do investimento livre
     machinesDownPayment +                      // entrada das novas máquinas (à vista ou 1ª parcela)
@@ -494,8 +501,8 @@ export function simulateCompany(
   const cfOpeningBalance = ib.cash + ib.banks + ib.applications;
   const cfReceipts = netRevenue * cashCollectionRate;
   const cfSupplierPayments = purchases * supplierPaymentRate;
-  const cfLaborPayments = totalSalary;
-  const cfOperationalPayments = operationalExpenses - totalSalary;
+  const cfLaborPayments = totalSalary + payrollCharges; // salários + encargos sobre folha
+  const cfOperationalPayments = operationalExpenses - totalSalary - payrollCharges;
   const cfFinancialPayments = financialExpense;
   const cfTaxPaid = ir + csll;
   const cfOperating =
@@ -527,6 +534,7 @@ export function simulateCompany(
     cmv,
     grossProfit,
     totalSalary,
+    payrollCharges,    // ← encargos sobre folha salarial (Migration 009)
     operationalExpenses,
     ebit,
     ebt,

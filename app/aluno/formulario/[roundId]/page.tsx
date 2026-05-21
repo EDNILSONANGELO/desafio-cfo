@@ -146,11 +146,12 @@ export default function FormularioPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // Configuração da rodada para o engine (Migration 008)
+  // Configuração da rodada para o engine (Migration 008 + 009)
   const roundConfig: RoundConfig | undefined = round
     ? {
         marketing_insertion_cost: round.marketing_insertion_cost ?? null,
         machine_min_employees:    round.machine_min_employees    ?? null,
+        payroll_charges_pct:      round.payroll_charges_pct      ?? null,
       }
     : undefined;
 
@@ -588,6 +589,7 @@ ${machines ? `
             currentEmployees={openingBalance?.currentEmployees}
             marketingInsertionCost={round?.marketing_insertion_cost}
             machineMinEmployees={round?.machine_min_employees}
+            payrollChargesPct={round?.payroll_charges_pct}
           />
 
           {canEdit && (
@@ -646,6 +648,12 @@ ${machines ? `
                 <span className="text-slate-400">(-) Salários</span>
                 <span className="font-semibold text-rose-400">({currency(preview.totalSalary ?? 0)})</span>
               </div>
+              {(preview.payrollCharges ?? 0) > 0 && (
+                <div className="flex justify-between border-b border-white/5 pb-1.5">
+                  <span className="text-slate-400 flex items-center gap-1">(-) Encargos sobre Folha <span className="text-[10px] text-rose-400 bg-rose-400/10 rounded px-1">FGTS/INSS</span></span>
+                  <span className="font-semibold text-rose-400">({currency(preview.payrollCharges ?? 0)})</span>
+                </div>
+              )}
               {(preview.marketingInsertionCost ?? 0) > 0 && (
                 <div className="flex justify-between border-b border-white/5 pb-1.5">
                   <span className="text-slate-400">(-) Inserções de Marketing</span>

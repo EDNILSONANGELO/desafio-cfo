@@ -107,6 +107,9 @@ function DREPanel({ r }: { r: RankedResult }) {
       {(r.totalSalary ?? 0) > 0 && (
         <Row label="(-) Salários (Colaboradores)" value={`(${currency(r.totalSalary ?? 0)})`} color="text-rose-400" />
       )}
+      {(r.payrollCharges ?? 0) > 0 && (
+        <Row label="(-) Encargos sobre Folha" value={`(${currency(r.payrollCharges ?? 0)})`} color="text-rose-400" />
+      )}
       {(r.storageExpense ?? 0) > 0 && (
         <Row label="(-) Custo de Armazenagem (5%)" value={`(${currency(r.storageExpense ?? 0)})`} color="text-amber-400" />
       )}
@@ -122,7 +125,7 @@ function DREPanel({ r }: { r: RankedResult }) {
       {(r.regionalTransportCost ?? 0) > 0 && (
         <Row label="(-) Frete Inter-Regional" value={`(${currency(r.regionalTransportCost ?? 0)})`} color="text-violet-400" />
       )}
-      <Row label="(-) Demais Desp. Operacionais" value={`(${currency(r.operationalExpenses - (r.totalSalary ?? 0) - (r.storageExpense ?? 0) - (r.marketingInsertionCost ?? 0) - (r.hiringCost ?? 0) - (r.firingCost ?? 0) - (r.regionalTransportCost ?? 0))})`} color="text-rose-400" />
+      <Row label="(-) Demais Desp. Operacionais" value={`(${currency(r.operationalExpenses - (r.totalSalary ?? 0) - (r.payrollCharges ?? 0) - (r.storageExpense ?? 0) - (r.marketingInsertionCost ?? 0) - (r.hiringCost ?? 0) - (r.firingCost ?? 0) - (r.regionalTransportCost ?? 0))})`} color="text-rose-400" />
       <Row label="   Total Desp. Operacionais"   value={`(${currency(r.operationalExpenses)})`} color="text-rose-400/70" />
       <Row label="= EBIT (Luc. Operacional)" value={currency(r.ebit)}               color={r.ebit >= 0 ? "text-white" : "text-rose-400"} bold highlight />
       {financialExpense > 0 && (
@@ -684,7 +687,8 @@ export default function RelatoriosPage() {
                         { "Empresa": r.company, "Demonstração": "(-) CMV",                      "Valor (R$)": -r.cmv },
                         { "Empresa": r.company, "Demonstração": "= Lucro Bruto",                "Valor (R$)": r.grossProfit },
                         { "Empresa": r.company, "Demonstração": "(-) Salários",                 "Valor (R$)": -(r.totalSalary ?? 0) },
-                        { "Empresa": r.company, "Demonstração": "(-) Demais Desp. Operacionais","Valor (R$)": -(r.operationalExpenses - (r.totalSalary ?? 0) - (r.storageExpense ?? 0)) },
+                        ...((r.payrollCharges ?? 0) > 0 ? [{ "Empresa": r.company, "Demonstração": "(-) Encargos sobre Folha", "Valor (R$)": -(r.payrollCharges ?? 0) }] : []),
+                        { "Empresa": r.company, "Demonstração": "(-) Demais Desp. Operacionais","Valor (R$)": -(r.operationalExpenses - (r.totalSalary ?? 0) - (r.payrollCharges ?? 0) - (r.storageExpense ?? 0)) },
                         { "Empresa": r.company, "Demonstração": "= EBIT",                       "Valor (R$)": r.ebit },
                         { "Empresa": r.company, "Demonstração": "(-) Despesa Financeira",       "Valor (R$)": -(r.ebit - lair) },
                         { "Empresa": r.company, "Demonstração": "= LAIR",                       "Valor (R$)": lair },
