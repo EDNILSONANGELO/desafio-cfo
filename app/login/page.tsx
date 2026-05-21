@@ -298,6 +298,19 @@ function LoginPageInner() {
                   <h1 className="text-xl font-black text-white">Arena Contábil</h1>
                   <p className="text-xs text-slate-400">Business Accounting Simulator</p>
                 </div>
+
+                {/* Separador + logo da faculdade */}
+                <div className="flex items-center gap-3 ml-1">
+                  <div className="h-8 w-px bg-white/20" />
+                  <Image
+                    src="/logo-unifecaf.png"
+                    alt="UNIFECAF"
+                    width={100}
+                    height={42}
+                    className="opacity-75"
+                    style={{ objectFit: "contain" }}
+                  />
+                </div>
               </div>
 
               <h2 className="mt-10 text-4xl font-black leading-tight text-white">
