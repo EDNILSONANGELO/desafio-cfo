@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -303,12 +302,11 @@ function LoginPageInner() {
                 <div className="flex items-center gap-3 ml-1">
                   <div className="h-8 w-px bg-white/20" />
                   <div className="rounded-xl bg-white px-3 py-2 shadow-md shadow-black/20">
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src="/logo-unifecaf.png"
                       alt="UNIFECAF"
-                      width={100}
-                      height={41}
-                      style={{ objectFit: "contain", display: "block" }}
+                      style={{ display: "block", height: "41px", width: "auto" }}
                     />
                   </div>
                 </div>
@@ -537,12 +535,11 @@ function LoginPageInner() {
         {/* Assinatura institucional — no fluxo normal, sempre visível */}
         <div className="relative flex flex-col items-center gap-2 pb-5 pt-3 px-4 select-none">
           <div className="rounded-lg bg-white/90 px-2.5 py-1.5 shadow-sm shadow-black/20">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/logo-unifecaf.png"
               alt="UNIFECAF"
-              width={80}
-              height={33}
-              style={{ objectFit: "contain", display: "block" }}
+              style={{ display: "block", height: "33px", width: "auto" }}
             />
           </div>
           <p className="text-center text-[11px] text-slate-600/70">
