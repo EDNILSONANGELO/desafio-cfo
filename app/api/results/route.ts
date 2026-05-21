@@ -96,5 +96,12 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  return NextResponse.json({ results: data });
+  // Re-numera posições sequencialmente (evita lacunas quando grupos são deletados)
+  const resequenced = (data || []).map((r, idx) => ({
+    ...r,
+    position: idx + 1,
+    data: { ...(r.data as object), position: idx + 1 },
+  }));
+
+  return NextResponse.json({ results: resequenced });
 }

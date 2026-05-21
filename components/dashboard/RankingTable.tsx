@@ -68,7 +68,7 @@ export function RankingTable({ results, gradeScale = DEFAULT_GRADE_SCALE, hideGr
               >
                 <td className="px-4 py-3">
                   <span className={`text-xl ${positionColors[idx] || "text-slate-500"}`}>
-                    {medals[idx] || `${r.position}º`}
+                    {medals[idx] || `${idx + 1}º`}
                   </span>
                 </td>
                 <td className="px-4 py-3">
