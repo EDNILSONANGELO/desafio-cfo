@@ -21,6 +21,13 @@ const positionColors = [
 
 const medals = ["🥇", "🥈", "🥉"];
 
+/** Normaliza o nome de empresa — substitui "Grupo N" genérico por "Equipe sem nome" */
+function displayCompany(name: string | undefined | null): string {
+  const n = name?.trim();
+  if (!n || /^Grupo\s+\d+$/i.test(n)) return "Equipe sem nome";
+  return n;
+}
+
 export function RankingTable({ results, gradeScale = DEFAULT_GRADE_SCALE, hideGrade = false }: Props) {
   if (!results.length) {
     return (
@@ -65,8 +72,8 @@ export function RankingTable({ results, gradeScale = DEFAULT_GRADE_SCALE, hideGr
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <p className="font-bold text-white">{r.company}</p>
-                  <p className="text-xs text-slate-400">{r.group} • {r.region}</p>
+                  <p className="font-bold text-white">{displayCompany(r.company)}</p>
+                  <p className="text-xs text-slate-400">{displayCompany(r.group)} • {r.region}</p>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-2">

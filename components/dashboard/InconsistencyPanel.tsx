@@ -7,6 +7,12 @@ interface Props {
   results: SimulationResult[];
 }
 
+function displayCompany(name: string | undefined | null): string {
+  const n = name?.trim();
+  if (!n || /^Grupo\s+\d+$/i.test(n)) return "Equipe sem nome";
+  return n;
+}
+
 export function InconsistencyPanel({ results }: Props) {
   const withIssues = results.filter((r) => r.inconsistencies.length > 0);
 
@@ -28,8 +34,8 @@ export function InconsistencyPanel({ results }: Props) {
             className="rounded-xl border border-white/10 bg-white/5 p-4"
           >
             <p className="mb-2 font-semibold text-white">
-              {r.company}{" "}
-              <span className="text-xs text-slate-400">({r.group})</span>
+              {displayCompany(r.company)}{" "}
+              <span className="text-xs text-slate-400">({displayCompany(r.group)})</span>
             </p>
             <ul className="list-disc space-y-1 pl-4">
               {r.inconsistencies.map((issue, i) => (

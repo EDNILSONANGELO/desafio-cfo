@@ -39,8 +39,7 @@ function colorFromTailwind(color: string): string {
 /** Retorna o nome real da empresa ou "Equipe sem nome" se nenhum nome foi configurado */
 function companyLabel(r: ResultRow): string {
   const cn = r.group?.company_name?.trim();
-  const gn = r.group?.name?.trim();
-  if (!cn || cn === gn) return "Equipe sem nome";
+  if (!cn || /^Grupo\s+\d+$/i.test(cn)) return "Equipe sem nome";
   return cn;
 }
 
