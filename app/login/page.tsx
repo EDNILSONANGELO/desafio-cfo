@@ -515,6 +515,11 @@ function LoginPageInner() {
             </div>
           </div>
         </motion.div>
+
+        {/* Assinatura institucional */}
+        <p className="absolute bottom-4 left-0 right-0 text-center text-[11px] text-slate-600/70 select-none px-4">
+          Arena Contábil &mdash; Sistema idealizado e desenvolvido por Prof. Ednilson Angelo
+        </p>
       </div>
     </>
   );
