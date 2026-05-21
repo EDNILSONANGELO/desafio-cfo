@@ -270,14 +270,16 @@ function LoginPageInner() {
         )}
       </AnimatePresence>
 
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cfo-bg p-4">
-        {/* Background gradients */}
-        <div className="pointer-events-none absolute inset-0">
+      <div className="relative flex min-h-screen flex-col bg-cfo-bg">
+        {/* Background gradients — overflow-hidden apenas nesta camada */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute left-0 top-0 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-500/10 blur-3xl" />
           <div className="absolute bottom-0 right-0 h-[500px] w-[500px] translate-x-1/2 translate-y-1/2 rounded-full bg-violet-500/10 blur-3xl" />
           <div className="absolute left-1/2 top-1/2 h-[400px] w-[400px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/5 blur-3xl" />
         </div>
 
+        {/* Área central — flex-1 para empurrar o rodapé para baixo */}
+        <div className="relative flex flex-1 items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -515,9 +517,10 @@ function LoginPageInner() {
             </div>
           </div>
         </motion.div>
+        </div>{/* fim área central */}
 
-        {/* Assinatura institucional */}
-        <p className="absolute bottom-4 left-0 right-0 text-center text-[11px] text-slate-600/70 select-none px-4">
+        {/* Assinatura institucional — no fluxo normal, sempre visível */}
+        <p className="relative pb-5 pt-2 text-center text-[11px] text-slate-600/70 select-none px-4">
           Arena Contábil &mdash; Sistema idealizado e desenvolvido por Prof. Ednilson Angelo
         </p>
       </div>
