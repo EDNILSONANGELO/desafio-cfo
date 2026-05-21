@@ -696,52 +696,46 @@ export function DecisionForm({
       <div>
         <SectionTitle>📦 Compra de Materiais</SectionTitle>
 
+        {/* Banner preços travados — compacto */}
         {(lockedPlasticUnit != null || lockedCapsUnit != null || lockedPackageUnit != null || lockedLabelUnit != null) && (
-          <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-500/10 p-3 text-sm">
-            <span className="text-amber-400">🔒</span>
-            <p className="text-slate-300">
-              Um ou mais preços de materiais foram <strong className="text-amber-300">fixados pelo professor</strong> e não podem ser alterados.
-            </p>
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-amber-400/20 bg-amber-500/10 px-3 py-1.5 text-xs text-slate-300">
+            <span className="text-amber-400 shrink-0">🔒</span>
+            Um ou mais preços foram <strong className="text-amber-300 ml-1">fixados pelo professor</strong>.
           </div>
         )}
 
-        {/* Saldo da rodada anterior */}
+        {/* Saldo da rodada anterior — compacto */}
         {materialStock && (materialStock.plastic > 0 || materialStock.caps > 0 || materialStock.package > 0 || materialStock.label > 0) && (
-          <div className="mb-4 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3">
-            <p className="text-[10px] font-black uppercase tracking-widest text-cyan-400 mb-2">
-              📦 Saldo de materiais da rodada anterior
+          <div className="mb-2 rounded-lg border border-cyan-400/20 bg-cyan-500/5 px-3 py-2">
+            <p className="text-[9px] font-black uppercase tracking-widest text-cyan-400 mb-1.5">
+              📦 Estoque anterior disponível
             </p>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-4">
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5">
               {[
-                { label: "Plástico",   qty: materialStock.plastic },
-                { label: "Tampas",     qty: materialStock.caps },
-                { label: "Embalagem",  qty: materialStock.package },
-                { label: "Rótulo",     qty: materialStock.label },
+                { label: "Plástico",  qty: materialStock.plastic },
+                { label: "Tampas",    qty: materialStock.caps },
+                { label: "Embalagem", qty: materialStock.package },
+                { label: "Rótulo",    qty: materialStock.label },
               ].map(({ label, qty }) => (
-                <div key={label} className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400">{label}</span>
+                <div key={label} className="flex items-center gap-1.5 text-xs">
+                  <span className="text-slate-500">{label}:</span>
                   <span className={`font-bold tabular-nums ${qty > 0 ? "text-cyan-300" : "text-slate-600"}`}>
-                    {qty.toLocaleString("pt-BR")} un.
+                    {qty.toLocaleString("pt-BR")}
                   </span>
                 </div>
               ))}
             </div>
-            <p className="mt-2 text-[10px] text-slate-500 italic">
-              Estes materiais já estão disponíveis — compre apenas o que falta para atingir sua meta de produção.
-            </p>
           </div>
         )}
 
-        {/* ── Campo único: quantidade de produtos completos ── */}
+        {/* ── Campo único + preços unitários em grid unificado ── */}
         {(() => {
-          // Canonical qty: usa plasticQty como fonte (todos são iguais após simplificação)
           const totalProductsQty = Number(d.plasticQty || 0);
 
           const setAllMaterials = (qty: number) => {
             onChange({ ...d, plasticQty: qty, capsQty: qty, packageQty: qty, labelQty: qty });
           };
 
-          // Custo unitário efetivo de cada material
           const uPlastic = lockedPlasticUnit ?? Number(d.plasticUnit || 0);
           const uCaps    = lockedCapsUnit    ?? Number(d.capsUnit    || 0);
           const uPkg     = lockedPackageUnit ?? Number(d.packageUnit || 0);
@@ -749,7 +743,6 @@ export function DecisionForm({
           const costPerProduct = uPlastic + uCaps + uPkg + uLabel;
           const totalMaterialCost = totalProductsQty * costPerProduct;
 
-          // Estoque total de kits completos disponíveis
           const minStock = Math.min(
             materialStock?.plastic ?? 0,
             materialStock?.caps    ?? 0,
@@ -759,87 +752,81 @@ export function DecisionForm({
 
           return (
             <>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {/* Campo principal */}
-                <div>
+              {/* Linha 1: qty + prazo + 4 preços unitários em desktop */}
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                {/* Qty — ocupa 2 cols em sm, 2 em lg */}
+                <div className="col-span-2 sm:col-span-1 lg:col-span-2">
                   <Input
-                    label="Quantidade de produtos completos a comprar"
+                    label="Qtd. de produtos completos"
                     type="number"
                     value={totalProductsQty || ""}
                     onChange={(e) => setAllMaterials(Math.max(0, Number(e.target.value) || 0))}
                     min={0}
                   />
-                  {minStock > 0 && (
-                    <p className="mt-1 text-[10px] text-cyan-400">
-                      + {minStock.toLocaleString("pt-BR")} kits completos do estoque anterior
+                  {minStock > 0 ? (
+                    <p className="mt-0.5 text-[10px] text-cyan-400">
+                      +{minStock.toLocaleString("pt-BR")} kits do estoque anterior
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-[10px] text-slate-600">
+                      1 und = 1 plástico + 1 tampa + 1 embal. + 1 rótulo
                     </p>
                   )}
-                  <p className="mt-1 text-[10px] text-slate-500">
-                    1 produto = 1 plástico + 1 tampa + 1 embalagem + 1 rótulo
-                  </p>
                 </div>
 
-                {/* Prazo do fornecedor */}
-                <Select
-                  label="Prazo fornecedor"
-                  value={d.supplierTerm}
-                  onChange={(e) => set("supplierTerm", e.target.value)}
-                  options={SUPPLIER_OPTIONS}
-                />
-              </div>
+                {/* Prazo fornecedor */}
+                <div className="col-span-2 sm:col-span-1 lg:col-span-1">
+                  <Select
+                    label="Prazo fornecedor"
+                    value={d.supplierTerm}
+                    onChange={(e) => set("supplierTerm", e.target.value)}
+                    options={SUPPLIER_OPTIONS}
+                  />
+                </div>
 
-              {/* Custos unitários de cada material */}
-              <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-                {lockedPlasticUnit != null ? (
-                  <LockedField label="Plástico unit." value={lockedPlasticUnit} />
-                ) : (
-                  <CurrencyInput label="Plástico unit." value={d.plasticUnit || null} onChange={(n) => set("plasticUnit", n ?? 0)} />
-                )}
-                {lockedCapsUnit != null ? (
-                  <LockedField label="Tampas unit." value={lockedCapsUnit} />
-                ) : (
-                  <CurrencyInput label="Tampas unit." value={d.capsUnit || null} onChange={(n) => set("capsUnit", n ?? 0)} />
-                )}
-                {lockedPackageUnit != null ? (
-                  <LockedField label="Embalagem unit." value={lockedPackageUnit} />
-                ) : (
-                  <CurrencyInput label="Embalagem unit." value={d.packageUnit || null} onChange={(n) => set("packageUnit", n ?? 0)} />
-                )}
-                {lockedLabelUnit != null ? (
-                  <LockedField label="Rótulo unit." value={lockedLabelUnit} />
-                ) : (
-                  <CurrencyInput label="Rótulo unit." value={d.labelUnit || null} onChange={(n) => set("labelUnit", n ?? 0)} />
-                )}
-              </div>
-
-              {/* Resumo automático do pedido */}
-              {totalProductsQty > 0 && (
-                <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 p-3">
-                  <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-cyan-400">
-                    📋 Resumo do pedido
-                  </p>
-                  <div className="grid grid-cols-2 gap-x-6 gap-y-1 sm:grid-cols-4 text-xs mb-2">
-                    {[
-                      { label: "Plástico",  qty: totalProductsQty },
-                      { label: "Tampas",    qty: totalProductsQty },
-                      { label: "Embalagem", qty: totalProductsQty },
-                      { label: "Rótulo",    qty: totalProductsQty },
-                    ].map(({ label, qty }) => (
-                      <div key={label} className="flex items-center justify-between">
-                        <span className="text-slate-400">{label}</span>
-                        <span className="font-bold tabular-nums text-white">
-                          {qty.toLocaleString("pt-BR")} un.
-                        </span>
-                      </div>
-                    ))}
+                {/* 4 preços unitários — ficam em nova linha em sm, mesma linha em lg */}
+                <div className="col-span-2 sm:col-span-3 lg:col-span-3">
+                  <div className="grid grid-cols-4 gap-2">
+                    {lockedPlasticUnit != null ? (
+                      <LockedField label="Plástico" value={lockedPlasticUnit} />
+                    ) : (
+                      <CurrencyInput label="Plástico" value={d.plasticUnit || null} onChange={(n) => set("plasticUnit", n ?? 0)} />
+                    )}
+                    {lockedCapsUnit != null ? (
+                      <LockedField label="Tampas" value={lockedCapsUnit} />
+                    ) : (
+                      <CurrencyInput label="Tampas" value={d.capsUnit || null} onChange={(n) => set("capsUnit", n ?? 0)} />
+                    )}
+                    {lockedPackageUnit != null ? (
+                      <LockedField label="Embalagem" value={lockedPackageUnit} />
+                    ) : (
+                      <CurrencyInput label="Embalagem" value={d.packageUnit || null} onChange={(n) => set("packageUnit", n ?? 0)} />
+                    )}
+                    {lockedLabelUnit != null ? (
+                      <LockedField label="Rótulo" value={lockedLabelUnit} />
+                    ) : (
+                      <CurrencyInput label="Rótulo" value={d.labelUnit || null} onChange={(n) => set("labelUnit", n ?? 0)} />
+                    )}
                   </div>
+                </div>
+              </div>
+
+              {/* Resumo do pedido — linha compacta */}
+              {totalProductsQty > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-lg border border-cyan-400/15 bg-cyan-500/5 px-3 py-2">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-cyan-400 shrink-0">
+                    📋 Pedido:
+                  </span>
+                  {["Plástico", "Tampas", "Embalagem", "Rótulo"].map((label) => (
+                    <span key={label} className="text-xs text-slate-300">
+                      <span className="text-slate-500">{label} </span>
+                      <span className="font-bold tabular-nums text-white">{totalProductsQty.toLocaleString("pt-BR")}</span>
+                    </span>
+                  ))}
                   {costPerProduct > 0 && (
-                    <div className="border-t border-white/10 pt-2 flex items-center justify-between text-xs">
-                      <span className="text-slate-400">Custo total estimado</span>
-                      <span className="font-black text-white">
-                        R$ {totalMaterialCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                      </span>
-                    </div>
+                    <span className="ml-auto text-xs font-black text-white tabular-nums">
+                      Total: R$ {totalMaterialCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
                   )}
                 </div>
               )}
