@@ -921,7 +921,11 @@ export function DecisionForm({
                 <div key={rs.group_id} className="flex items-center justify-center">
                   <button
                     type="button"
-                    onClick={() => !disabled && updateRegional(idx, { active: !rs.active })}
+                    onClick={() => !disabled && updateRegional(idx,
+                      rs.active
+                        ? { active: false, qty: 0, price: 0, insertions: 0 } // desmarcar: limpa tudo
+                        : { active: true }                                    // marcar: só ativa
+                    )}
                     disabled={disabled}
                     title={rs.active ? "Desmarcar região" : "Marcar para vender"}
                     className={`h-7 w-7 rounded border-2 transition-colors flex items-center justify-center ${
