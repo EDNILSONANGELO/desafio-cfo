@@ -8,9 +8,17 @@ const INACTIVITY_MS = 15 * 60 * 1000; // 15 minutos
 /**
  * Detecta inatividade do usuário (sem cliques, teclas, mouse ou toque por 15 min)
  * e faz logout automático redirecionando para /login?expired=1.
+ *
+ * O hook roda apenas uma vez (sem dependências no useEffect) para evitar que
+ * navegações entre páginas recriem os event listeners e resetem o timer.
  */
 export function useInactivityLogout() {
   const router = useRouter();
+
+  // Ref estável para o router — atualizada a cada render sem recriar o effect
+  const routerRef = useRef(router);
+  routerRef.current = router;
+
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -22,7 +30,7 @@ export function useInactivityLogout() {
         } catch {
           // silencia erros de rede — ainda redireciona
         }
-        router.push("/login?expired=1");
+        routerRef.current.push("/login?expired=1");
       }, INACTIVITY_MS);
     }
 
@@ -42,5 +50,6 @@ export function useInactivityLogout() {
         window.removeEventListener(event, resetTimer);
       }
     };
-  }, [router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Dependências vazias: o effect roda uma única vez por montagem do layout
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
@@ -42,12 +42,14 @@ export default function ProfessorDashboard() {
   const [results, setResults] = useState<RankedResult[]>([]);
   const [gradeScale, setGradeScale] = useState<GradeLevel[]>(DEFAULT_GRADE_SCALE);
   const [loading, setLoading] = useState(true);
+  const initialLoadDone = useRef(false); // evita mostrar spinner nos polls seguintes
 
   const latestRound = rounds[0];
   const latestProcessedRound = rounds.find((r) => r.status === "Processada");
 
   const load = useCallback(async () => {
-    setLoading(true);
+    // Só exibe spinner na primeira carga; polls silenciosos não alteram o estado de loading
+    if (!initialLoadDone.current) setLoading(true);
     try {
       // Todos os fetches usam poloParam diretamente (polo filtra pelo campo polo do aluno)
       const [groupsRes, roundsRes, studentsRes] = await Promise.all([
@@ -99,6 +101,7 @@ export default function ProfessorDashboard() {
       }
     } finally {
       setLoading(false);
+      initialLoadDone.current = true;
     }
   }, [poloParam]);
 
@@ -116,6 +119,8 @@ export default function ProfessorDashboard() {
   }, []);
 
   useEffect(() => {
+    // Ao trocar de polo, mostra o spinner novamente
+    initialLoadDone.current = false;
     load();
     const interval = setInterval(load, 15000);
     return () => clearInterval(interval);
