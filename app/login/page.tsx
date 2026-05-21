@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -520,9 +521,19 @@ function LoginPageInner() {
         </div>{/* fim área central */}
 
         {/* Assinatura institucional — no fluxo normal, sempre visível */}
-        <p className="relative pb-5 pt-2 text-center text-[11px] text-slate-600/70 select-none px-4">
-          Arena Contábil &mdash; Sistema idealizado e desenvolvido por Prof. Ednilson Angelo
-        </p>
+        <div className="relative flex flex-col items-center gap-2 pb-5 pt-3 px-4 select-none">
+          <Image
+            src="/logo-unifecaf.png"
+            alt="UNIFECAF"
+            width={88}
+            height={36}
+            className="opacity-35 hover:opacity-55 transition-opacity duration-300"
+            style={{ objectFit: "contain" }}
+          />
+          <p className="text-center text-[11px] text-slate-600/70">
+            Arena Contábil &mdash; Sistema idealizado e desenvolvido por Prof. Ednilson Angelo
+          </p>
+        </div>
       </div>
     </>
   );

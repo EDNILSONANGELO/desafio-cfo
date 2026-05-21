@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LogOut, Calculator, ShieldCheck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -39,6 +40,19 @@ export function TopBar({ name, role, subtitle, isMaster = false, polo }: TopBarP
         <div>
           <span className="text-sm font-black text-white">Arena Contábil</span>
           <p className="hidden text-[10px] text-slate-400 leading-none mt-0.5 sm:block">Business Accounting Simulator</p>
+        </div>
+
+        {/* Separador + logo institucional — apenas desktop */}
+        <div className="hidden sm:flex items-center gap-2.5 ml-1">
+          <div className="h-6 w-px bg-white/15" />
+          <Image
+            src="/logo-unifecaf.png"
+            alt="UNIFECAF"
+            width={72}
+            height={30}
+            className="opacity-55 hover:opacity-80 transition-opacity duration-200"
+            style={{ objectFit: "contain" }}
+          />
         </div>
       </div>
 
