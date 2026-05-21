@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import { LOGO_UNIFECAF } from "@/lib/assets/logo-unifecaf";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -304,7 +305,7 @@ function LoginPageInner() {
                   <div className="rounded-xl bg-white px-3 py-2 shadow-md shadow-black/20">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/logo-unifecaf.png"
+                      src={LOGO_UNIFECAF}
                       alt="UNIFECAF"
                       style={{ display: "block", height: "41px", width: "auto" }}
                     />
@@ -533,19 +534,9 @@ function LoginPageInner() {
         </div>{/* fim área central */}
 
         {/* Assinatura institucional — no fluxo normal, sempre visível */}
-        <div className="relative flex flex-col items-center gap-2 pb-5 pt-3 px-4 select-none">
-          <div className="rounded-lg bg-white/90 px-2.5 py-1.5 shadow-sm shadow-black/20">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo-unifecaf.png"
-              alt="UNIFECAF"
-              style={{ display: "block", height: "33px", width: "auto" }}
-            />
-          </div>
-          <p className="text-center text-[11px] text-slate-600/70">
-            Arena Contábil &mdash; Sistema idealizado e desenvolvido por Prof. Ednilson Angelo
-          </p>
-        </div>
+        <p className="relative pb-5 pt-2 text-center text-[11px] text-slate-600/70 select-none px-4">
+          Arena Contábil &mdash; Sistema idealizado e desenvolvido por Prof. Ednilson Angelo
+        </p>
       </div>
     </>
   );

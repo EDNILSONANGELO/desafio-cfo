@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { LOGO_UNIFECAF } from "@/lib/assets/logo-unifecaf";
 import { LogOut, Calculator, ShieldCheck, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ManualButton } from "@/components/layout/ManualModal";
@@ -47,11 +48,9 @@ export function TopBar({ name, role, subtitle, isMaster = false, polo }: TopBarP
           <div className="rounded-lg bg-white px-2 py-1 shadow-sm shadow-black/20">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/logo-unifecaf.png"
+              src={LOGO_UNIFECAF}
               alt="UNIFECAF"
-              width={70}
-              height={29}
-              style={{ objectFit: "contain", display: "block", height: "29px", width: "70px" }}
+              style={{ display: "block", height: "29px", width: "auto" }}
             />
           </div>
         </div>
