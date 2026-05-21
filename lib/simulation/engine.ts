@@ -15,18 +15,18 @@ export const MACHINE_INSTALLMENT_RATE = 0.02; // 2% a.m.
  * Representa o parque fabril inicial refletido nos R$150.000 de imobilizado.
  * O aluno SÓ aumenta essa capacidade comprando máquinas.
  */
-export const BASE_PRODUCTION_CAPACITY = 2000; // unidades/rodada
+export const BASE_PRODUCTION_CAPACITY = 5000; // unidades/rodada
 
 /** Funcionários padrão na rodada 1 (sem carryover) */
 export const DEFAULT_EMPLOYEES = 6;
 
 /**
  * Unidades que 1 funcionário consegue produzir por rodada.
- * Base: 2000 capacidade / 6 funcionários = 333 unid./funcionário
+ * Base: 5000 capacidade / 6 funcionários = 833 unid./funcionário
  * Usado no cálculo de idle e status de funcionários.
  * O professor pode alterar via machine_min_employees na rodada.
  */
-export const UNITS_PER_EMPLOYEE_DEFAULT = Math.floor(BASE_PRODUCTION_CAPACITY / DEFAULT_EMPLOYEES); // 333
+export const UNITS_PER_EMPLOYEE_DEFAULT = Math.floor(BASE_PRODUCTION_CAPACITY / DEFAULT_EMPLOYEES); // 833
 
 /** Custo por inserção de marketing (padrão, professor pode customizar na rodada) */
 export const DEFAULT_MARKETING_INSERTION_COST = 1500; // R$ 1.500 por inserção

@@ -183,7 +183,7 @@ export default function StudentDashboardClient({ student, session, rounds, lates
 
               <div className="mt-3 rounded-xl border border-cyan-400/20 bg-cyan-500/5 px-3 py-2.5 text-xs">
                 <p className="font-bold text-cyan-300 mb-1">🏭 Capacidade Produtiva Inicial</p>
-                <p className="text-slate-400">Produção: <span className="font-semibold text-white">2.000 unidades/rodada</span></p>
+                <p className="text-slate-400">Produção: <span className="font-semibold text-white">5.000 unidades/rodada</span></p>
                 <p className="text-slate-400 mt-0.5">Colaboradores: <span className="font-semibold text-white">6 colaboradores</span></p>
                 <p className="text-slate-400 mt-0.5">Capital Social: <span className="font-semibold text-white">{currency(INITIAL_BALANCE.equity)}</span></p>
               </div>

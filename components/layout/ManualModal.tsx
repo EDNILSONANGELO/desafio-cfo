@@ -290,7 +290,7 @@ const PROFESSOR_SECTIONS: Section[] = [
         </P>
         <H3>O que o processamento calcula</H3>
         <Ul>
-          <Li><strong className="text-white">Capacidade efetiva</strong> — fábrica base (2.000 un.) + máquinas acumuladas de rodadas anteriores.</Li>
+          <Li><strong className="text-white">Capacidade efetiva</strong> — fábrica base (5.000 un.) + máquinas acumuladas de rodadas anteriores.</Li>
           <Li><strong className="text-white">Materiais disponíveis</strong> — compras da rodada + saldo de estoque de matérias-primas não consumidas na rodada anterior.</Li>
           <Li><strong className="text-white">Produção efetiva</strong> — mínimo entre: quantidade planejada, capacidade e materiais disponíveis.</Li>
           <Li><strong className="text-white">Demanda</strong> — afetada por preço vs. mercado, marketing, região e evento econômico.</Li>
@@ -440,7 +440,7 @@ const STUDENT_SECTIONS: Section[] = [
         <H3>1. Produção</H3>
         <Ul>
           <Li><strong className="text-white">Qtd. a produzir</strong> — quantas unidades a fábrica tentará produzir.</Li>
-          <Li><strong className="text-white">Capacidade produtiva</strong> — calculada automaticamente: 2.000 unidades base + capacidade acumulada das máquinas compradas.</Li>
+          <Li><strong className="text-white">Capacidade produtiva</strong> — calculada automaticamente: 5.000 unidades base + capacidade acumulada das máquinas compradas.</Li>
           <Li><strong className="text-white">Colaboradores</strong> — número de trabalhadores na produção.</Li>
           <Li><strong className="text-white">Salário médio R$/colab.</strong> — valor pago por colaborador por mês.</Li>
         </Ul>
@@ -497,7 +497,7 @@ const STUDENT_SECTIONS: Section[] = [
       <>
         <H2>Investindo em Capacidade Produtiva</H2>
         <P>
-          Comprar máquinas é a única forma de aumentar a capacidade da sua fábrica além das 2.000 unidades base. O investimento é registrado no <strong className="text-white">Ativo Imobilizado</strong> e depreciado ao longo de 60 meses.
+          Comprar máquinas é a única forma de aumentar a capacidade da sua fábrica além das 5.000 unidades base. O investimento é registrado no <strong className="text-white">Ativo Imobilizado</strong> e depreciado ao longo de 60 meses.
         </P>
         <H3>Catálogo de Máquinas</H3>
         <div className="space-y-2 mb-4">
@@ -513,7 +513,7 @@ const STUDENT_SECTIONS: Section[] = [
         <H3>Acumulação de capacidade</H3>
         <Ul>
           <Li>A capacidade das máquinas <strong className="text-white">acumula entre rodadas</strong> via carryover.</Li>
-          <Li>Capacidade efetiva = 2.000 (base) + total de capacidade acumulada de todas as máquinas compradas até agora.</Li>
+          <Li>Capacidade efetiva = 5.000 (base) + total de capacidade acumulada de todas as máquinas compradas até agora.</Li>
           <Li>O painel de capacidade no formulário mostra: Base / Máquinas acumuladas / Total.</Li>
         </Ul>
         <Tip>
