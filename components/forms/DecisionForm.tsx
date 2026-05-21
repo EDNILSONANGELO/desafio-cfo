@@ -262,7 +262,7 @@ export function DecisionForm({
   return (
     <div className="space-y-8">
     {/* ── Seções dentro do fieldset (inputs controlados pelo disabled) ── */}
-    <fieldset disabled={disabled} className="space-y-8 border-0 p-0 m-0">
+    <fieldset disabled={disabled} className="w-full min-w-0 space-y-8 border-0 p-0 m-0">
       {/* PRODUÇÃO */}
       <div>
         <SectionTitle>🏭 Produção</SectionTitle>
@@ -492,7 +492,7 @@ export function DecisionForm({
         )}
 
         {/* Cards das máquinas */}
-        <div className="grid gap-3 md:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {MACHINE_CATALOG.map((machine) => {
             const qty = Math.max(0, Number(currentMachines[machine.id] || 0));
             const subtotal = qty * machine.price;
@@ -579,7 +579,7 @@ export function DecisionForm({
               <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-2">
                 Forma de Pagamento
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {/* À vista */}
                 <button
                   type="button"
@@ -712,7 +712,7 @@ export function DecisionForm({
     {/* ── Fim da seção de máquinas ── */}
 
     {/* ── Materiais, Vendas, Marketing, Financeiro ── */}
-    <fieldset disabled={disabled} className="space-y-8 border-0 p-0 m-0">
+    <fieldset disabled={disabled} className="w-full min-w-0 space-y-8 border-0 p-0 m-0">
       {/* MATERIAIS */}
       <div>
         <SectionTitle>📦 Compra de Materiais</SectionTitle>
@@ -774,9 +774,9 @@ export function DecisionForm({
           return (
             <>
               {/* Linha 1: qty + prazo + 4 preços unitários em desktop */}
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-                {/* Qty — ocupa 2 cols em sm, 2 em lg */}
-                <div className="col-span-2 sm:col-span-1 lg:col-span-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-6">
+                {/* Qty */}
+                <div className="sm:col-span-1 lg:col-span-2">
                   <Input
                     label="Qtd. de produtos completos"
                     type="number"
@@ -796,7 +796,7 @@ export function DecisionForm({
                 </div>
 
                 {/* Prazo fornecedor */}
-                <div className="col-span-2 sm:col-span-1 lg:col-span-1">
+                <div className="sm:col-span-1 lg:col-span-1">
                   <Select
                     label="Prazo fornecedor"
                     value={d.supplierTerm}
@@ -805,9 +805,9 @@ export function DecisionForm({
                   />
                 </div>
 
-                {/* 4 preços unitários — ficam em nova linha em sm, mesma linha em lg */}
-                <div className="col-span-2 sm:col-span-3 lg:col-span-3">
-                  <div className="grid grid-cols-4 gap-2">
+                {/* 4 preços unitários */}
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <div className="grid grid-cols-2 gap-2 xs:grid-cols-4 sm:grid-cols-4">
                     {lockedPlasticUnit != null ? (
                       <LockedField label="Plástico" value={lockedPlasticUnit} />
                     ) : (
@@ -862,7 +862,7 @@ export function DecisionForm({
 
         {/* Professor price limits banner */}
         {(priceMin != null || priceMax != null) && (
-          <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-500/10 p-3 text-sm">
+          <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-400/20 bg-amber-500/10 p-3 text-sm min-w-0">
             <span className="text-amber-400 text-base">💰</span>
             <div>
               <p className="font-semibold text-amber-300">Faixa de preço permitida pelo professor</p>
@@ -887,11 +887,123 @@ export function DecisionForm({
         </div>
 
         {hasGroups ? (
-          <div className="overflow-x-auto">
-            <div
-              className="grid gap-2"
-              style={{ gridTemplateColumns: `160px repeat(${regionalSales.length}, minmax(140px, 1fr))` }}
-            >
+          <div className="w-full min-w-0">
+            {/* ── Layout mobile: um card por região (< sm) ── */}
+            <div className="flex flex-col gap-3 sm:hidden">
+              {regionalSales.map((rs, idx) => {
+                const isHome = homeRegion && rs.region_name === homeRegion;
+                return (
+                  <div
+                    key={rs.group_id}
+                    className={`rounded-xl border p-3 transition-all ${
+                      rs.active
+                        ? isHome
+                          ? "border-emerald-400/30 bg-emerald-500/10"
+                          : "border-cyan-400/30 bg-cyan-500/10"
+                        : "border-white/10 bg-white/[0.02] opacity-70"
+                    }`}
+                  >
+                    {/* Cabeçalho do card com toggle */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <span className="font-bold text-white text-sm">{rs.region_name}</span>
+                        {isHome && <span className="ml-2 text-[10px] text-emerald-400">🏠 origem</span>}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => !disabled && updateRegional(idx,
+                          rs.active
+                            ? { active: false, qty: 0, price: 0, insertions: 0 }
+                            : { active: true }
+                        )}
+                        disabled={disabled}
+                        className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-colors ${
+                          rs.active
+                            ? "border-cyan-400/40 bg-cyan-400/10 text-cyan-300"
+                            : "border-white/20 bg-white/5 text-slate-400"
+                        }`}
+                      >
+                        <span className={`h-3.5 w-3.5 rounded border-2 flex items-center justify-center shrink-0 ${
+                          rs.active ? "border-cyan-400 bg-cyan-400 text-slate-950" : "border-white/30"
+                        }`}>
+                          {rs.active && (
+                            <svg className="h-2.5 w-2.5" viewBox="0 0 12 12" fill="none">
+                              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                            </svg>
+                          )}
+                        </span>
+                        {rs.active ? "Vender aqui" : "Não vender"}
+                      </button>
+                    </div>
+
+                    {/* Campos — só editáveis quando ativa */}
+                    <div className={`grid grid-cols-2 gap-2 ${!rs.active ? "opacity-40 pointer-events-none" : ""}`}>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Qtd. (unid.)</label>
+                        <input
+                          type="number" min={0}
+                          value={rs.qty === 0 ? "" : rs.qty}
+                          disabled={disabled || !rs.active}
+                          onChange={(e) => updateRegional(idx, { qty: Number(e.target.value) })}
+                          placeholder="0"
+                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan-400/50 focus:outline-none disabled:opacity-40"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Inserções Mkt.</label>
+                        <input
+                          type="number" min={0} max={8}
+                          value={rs.active && (rs.insertions ?? 0) > 0 ? rs.insertions : ""}
+                          disabled={disabled || !rs.active}
+                          onChange={(e) => {
+                            const v = Math.min(8, Math.max(0, Number(e.target.value)));
+                            const updated = regionalSales.map((r, i) => i === idx ? { ...r, insertions: v } : r);
+                            const derived = deriveFromRegional(updated);
+                            const totalIns = updated.filter((r) => r.active).reduce((s, r) => s + (r.insertions ?? 0), 0);
+                            onChange({ ...d, regionalSales: updated, ...derived, marketingInsertions: Math.min(8, totalIns) });
+                          }}
+                          placeholder="0"
+                          className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-purple-400/50 focus:outline-none disabled:opacity-40"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-slate-500">Preço de venda (R$)</label>
+                        <CurrencyInput
+                          value={rs.active && rs.price > 0 ? rs.price : null}
+                          onChange={(n) => updateRegional(idx, { price: n ?? 0 })}
+                          disabled={disabled || !rs.active}
+                          placeholder="0,00"
+                          error={
+                            rs.active
+                              ? rs.price <= 0 ? "Informe o preço"
+                              : priceMin != null && rs.price < priceMin ? `Mín. R$ ${priceMin.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                              : priceMax != null && rs.price > priceMax ? `Máx. R$ ${priceMax.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                              : undefined
+                              : undefined
+                          }
+                          className={
+                            rs.active && ((priceMin != null && rs.price < priceMin) || (priceMax != null && rs.price > priceMax) || rs.price <= 0)
+                              ? "" : "border-white/10 focus:border-cyan-400/50"
+                          }
+                        />
+                      </div>
+                    </div>
+                    {rs.active && (rs.insertions ?? 0) > 0 && (
+                      <p className="mt-1 text-[10px] text-purple-400 text-right">
+                        Mkt: R$ {((rs.insertions ?? 0) * insertionUnitCost).toLocaleString("pt-BR")}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* ── Layout desktop: grade por coluna (≥ sm) ── */}
+            <div className="hidden sm:block w-full overflow-x-auto">
+              <div
+                className="grid gap-2"
+                style={{ gridTemplateColumns: `140px repeat(${regionalSales.length}, minmax(130px, 1fr))`, minWidth: `${140 + regionalSales.length * 130}px` }}
+              >
               {/* Row 0: empty corner + region column headers */}
               <div />
               {regionalSales.map((rs) => {
@@ -923,8 +1035,8 @@ export function DecisionForm({
                     type="button"
                     onClick={() => !disabled && updateRegional(idx,
                       rs.active
-                        ? { active: false, qty: 0, price: 0, insertions: 0 } // desmarcar: limpa tudo
-                        : { active: true }                                    // marcar: só ativa
+                        ? { active: false, qty: 0, price: 0, insertions: 0 }
+                        : { active: true }
                     )}
                     disabled={disabled}
                     title={rs.active ? "Desmarcar região" : "Marcar para vender"}
@@ -950,13 +1062,12 @@ export function DecisionForm({
               {regionalSales.map((rs, idx) => (
                 <div key={rs.group_id}>
                   <input
-                    type="number"
-                    min={0}
+                    type="number" min={0}
                     value={rs.qty === 0 ? "" : rs.qty}
                     disabled={disabled || !rs.active}
                     onChange={(e) => updateRegional(idx, { qty: Number(e.target.value) })}
                     placeholder="0"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan-400/50 focus:outline-none disabled:opacity-40"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan-400/50 focus:outline-none disabled:opacity-40"
                   />
                 </div>
               ))}
@@ -965,15 +1076,13 @@ export function DecisionForm({
               <div className="flex items-center text-xs font-semibold uppercase tracking-wider text-slate-400">
                 <span>
                   Inserções Mkt.
-                  <span className="block font-normal normal-case text-slate-500">(0–8 por região)</span>
+                  <span className="block font-normal normal-case text-slate-500">(0–8)</span>
                 </span>
               </div>
               {regionalSales.map((rs, idx) => (
                 <div key={rs.group_id} className="flex flex-col gap-0.5">
                   <input
-                    type="number"
-                    min={0}
-                    max={8}
+                    type="number" min={0} max={8}
                     value={rs.active && (rs.insertions ?? 0) > 0 ? rs.insertions : ""}
                     disabled={disabled || !rs.active}
                     onChange={(e) => {
@@ -982,13 +1091,12 @@ export function DecisionForm({
                         i === idx ? { ...r, insertions: v } : r
                       );
                       const derived = deriveFromRegional(updated);
-                      // Total inserções = soma de todas as regiões ativas
                       const totalIns = updated.filter((r) => r.active)
                         .reduce((s, r) => s + (r.insertions ?? 0), 0);
                       onChange({ ...d, regionalSales: updated, ...derived, marketingInsertions: Math.min(8, totalIns) });
                     }}
                     placeholder="0"
-                    className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-purple-400/50 focus:outline-none disabled:opacity-40"
+                    className="w-full rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-sm text-white placeholder-slate-600 focus:border-purple-400/50 focus:outline-none disabled:opacity-40"
                   />
                   {rs.active && (rs.insertions ?? 0) > 0 && (
                     <p className="text-[10px] text-purple-400 text-center">
@@ -998,7 +1106,7 @@ export function DecisionForm({
                 </div>
               ))}
 
-              {/* Row 4: Preço de Venda (começa BRANCO) */}
+              {/* Row 4: Preço de Venda */}
               <div className="flex items-start pt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Preço de Venda
               </div>
@@ -1011,24 +1119,21 @@ export function DecisionForm({
                     placeholder="0,00"
                     error={
                       rs.active
-                        ? rs.price <= 0
-                          ? "Informe o preço"
-                          : priceMin != null && rs.price < priceMin
-                          ? `Mín. R$ ${priceMin.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-                          : priceMax != null && rs.price > priceMax
-                          ? `Máx. R$ ${priceMax.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
-                          : undefined
+                        ? rs.price <= 0 ? "Informe o preço"
+                        : priceMin != null && rs.price < priceMin ? `Mín. R$ ${priceMin.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                        : priceMax != null && rs.price > priceMax ? `Máx. R$ ${priceMax.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                        : undefined
                         : undefined
                     }
                     className={
                       rs.active && ((priceMin != null && rs.price < priceMin) || (priceMax != null && rs.price > priceMax) || rs.price <= 0)
-                        ? ""
-                        : "border-white/10 focus:border-cyan-400/50"
+                        ? "" : "border-white/10 focus:border-cyan-400/50"
                     }
                   />
                 </div>
               ))}
             </div>{/* end grid */}
+            </div>{/* end desktop wrapper */}
 
             {/* Summary */}
             {regionalSales.some((rs) => rs.active) && (
@@ -1194,7 +1299,7 @@ export function DecisionForm({
     </fieldset>
 
     {/* ── Despesas — volta para o fieldset ── */}
-    <fieldset disabled={disabled} className="space-y-8 border-0 p-0 m-0">
+    <fieldset disabled={disabled} className="w-full min-w-0 space-y-8 border-0 p-0 m-0">
       <div>
         <SectionTitle>📋 Despesas Operacionais</SectionTitle>
 
