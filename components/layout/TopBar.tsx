@@ -45,14 +45,15 @@ export function TopBar({ name, role, subtitle, isMaster = false, polo }: TopBarP
         {/* Separador + logo institucional — apenas desktop */}
         <div className="hidden sm:flex items-center gap-2.5 ml-1">
           <div className="h-6 w-px bg-white/15" />
-          <Image
-            src="/logo-unifecaf.png"
-            alt="UNIFECAF"
-            width={72}
-            height={30}
-            className="opacity-55 hover:opacity-80 transition-opacity duration-200"
-            style={{ objectFit: "contain" }}
-          />
+          <div className="rounded-lg bg-white px-2 py-1 shadow-sm shadow-black/20">
+            <Image
+              src="/logo-unifecaf.png"
+              alt="UNIFECAF"
+              width={70}
+              height={29}
+              style={{ objectFit: "contain", display: "block" }}
+            />
+          </div>
         </div>
       </div>
 

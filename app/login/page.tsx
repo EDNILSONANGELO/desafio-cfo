@@ -302,14 +302,15 @@ function LoginPageInner() {
                 {/* Separador + logo da faculdade */}
                 <div className="flex items-center gap-3 ml-1">
                   <div className="h-8 w-px bg-white/20" />
-                  <Image
-                    src="/logo-unifecaf.png"
-                    alt="UNIFECAF"
-                    width={100}
-                    height={42}
-                    className="opacity-75"
-                    style={{ objectFit: "contain" }}
-                  />
+                  <div className="rounded-xl bg-white px-3 py-2 shadow-md shadow-black/20">
+                    <Image
+                      src="/logo-unifecaf.png"
+                      alt="UNIFECAF"
+                      width={100}
+                      height={41}
+                      style={{ objectFit: "contain", display: "block" }}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -535,14 +536,15 @@ function LoginPageInner() {
 
         {/* Assinatura institucional — no fluxo normal, sempre visível */}
         <div className="relative flex flex-col items-center gap-2 pb-5 pt-3 px-4 select-none">
-          <Image
-            src="/logo-unifecaf.png"
-            alt="UNIFECAF"
-            width={88}
-            height={36}
-            className="opacity-35 hover:opacity-55 transition-opacity duration-300"
-            style={{ objectFit: "contain" }}
-          />
+          <div className="rounded-lg bg-white/90 px-2.5 py-1.5 shadow-sm shadow-black/20">
+            <Image
+              src="/logo-unifecaf.png"
+              alt="UNIFECAF"
+              width={80}
+              height={33}
+              style={{ objectFit: "contain", display: "block" }}
+            />
+          </div>
           <p className="text-center text-[11px] text-slate-600/70">
             Arena Contábil &mdash; Sistema idealizado e desenvolvido por Prof. Ednilson Angelo
           </p>
