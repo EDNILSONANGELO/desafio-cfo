@@ -42,49 +42,49 @@ interface Section {
 // Componentes de formatação do manual
 // ─────────────────────────────────────────────────────────────────────────────
 function H2({ children }: { children: React.ReactNode }) {
-  return <h2 className="mb-3 text-lg font-black text-white">{children}</h2>;
+  return <h2 className="mb-3 text-lg font-black text-slate-900">{children}</h2>;
 }
 function H3({ children }: { children: React.ReactNode }) {
-  return <h3 className="mb-2 mt-5 text-sm font-black text-cyan-400 uppercase tracking-wider">{children}</h3>;
+  return <h3 className="mb-2 mt-5 text-sm font-black text-blue-700 uppercase tracking-wider">{children}</h3>;
 }
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="mb-3 text-sm text-slate-300 leading-relaxed">{children}</p>;
+  return <p className="mb-3 text-sm text-slate-700 leading-relaxed">{children}</p>;
 }
 function Li({ children }: { children: React.ReactNode }) {
-  return <li className="mb-1.5 text-sm text-slate-300 leading-relaxed flex gap-2"><span className="mt-1 text-cyan-400 shrink-0">•</span><span>{children}</span></li>;
+  return <li className="mb-1.5 text-sm text-slate-700 leading-relaxed flex gap-2"><span className="mt-1 text-blue-600 shrink-0">•</span><span>{children}</span></li>;
 }
 function Ul({ children }: { children: React.ReactNode }) {
   return <ul className="mb-4 space-y-0.5">{children}</ul>;
 }
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 flex gap-3 rounded-xl border border-amber-400/20 bg-amber-500/10 p-3">
-      <Lightbulb className="h-4 w-4 shrink-0 text-amber-400 mt-0.5" />
-      <p className="text-xs text-amber-200 leading-relaxed">{children}</p>
+    <div className="my-4 flex gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
+      <Lightbulb className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+      <p className="text-xs text-amber-900 leading-relaxed">{children}</p>
     </div>
   );
 }
 function Note({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 flex gap-3 rounded-xl border border-cyan-400/20 bg-cyan-500/10 p-3">
-      <CheckCircle2 className="h-4 w-4 shrink-0 text-cyan-400 mt-0.5" />
-      <p className="text-xs text-cyan-200 leading-relaxed">{children}</p>
+    <div className="my-4 flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3">
+      <CheckCircle2 className="h-4 w-4 shrink-0 text-blue-600 mt-0.5" />
+      <p className="text-xs text-blue-900 leading-relaxed">{children}</p>
     </div>
   );
 }
 function Warn({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 flex gap-3 rounded-xl border border-rose-400/20 bg-rose-500/10 p-3">
-      <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
-      <p className="text-xs text-rose-200 leading-relaxed">{children}</p>
+    <div className="my-4 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-3">
+      <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
+      <p className="text-xs text-red-900 leading-relaxed">{children}</p>
     </div>
   );
 }
 function Kpi({ label, desc }: { label: string; desc: string }) {
   return (
-    <div className="mb-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-      <p className="text-xs font-bold text-white">{label}</p>
-      <p className="text-[11px] text-slate-400 mt-0.5">{desc}</p>
+    <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+      <p className="text-xs font-bold text-slate-900">{label}</p>
+      <p className="text-[11px] text-slate-600 mt-0.5">{desc}</p>
     </div>
   );
 }
@@ -101,31 +101,31 @@ const PROFESSOR_SECTIONS: Section[] = [
       <>
         <H2>Arena Contábil — Business Accounting Simulator</H2>
         <P>
-          O <strong className="text-white">Arena Contábil</strong> é um simulador de gestão empresarial
+          O <strong className="text-slate-900">Arena Contábil</strong> é um simulador de gestão empresarial
           gamificado voltado para Ciências Contábeis. Os alunos assumem o papel de Gestor Financeiro (Chief Financial
-          Officer) da empresa <strong className="text-white">EcoBottle</strong>, produtora de garrafas
+          Officer) da empresa <strong className="text-slate-900">EcoBottle</strong>, produtora de garrafas
           sustentáveis, tomando decisões financeiras e operacionais a cada rodada.
         </P>
         <H3>Como o jogo funciona</H3>
         <Ul>
-          <Li>Cada grupo representa uma empresa EcoBottle em uma <strong className="text-white">região diferente</strong> do mercado, com multiplicadores próprios de demanda e custo.</Li>
+          <Li>Cada grupo representa uma empresa EcoBottle em uma <strong className="text-slate-900">região diferente</strong> do mercado, com multiplicadores próprios de demanda e custo.</Li>
           <Li>A cada rodada os alunos preenchem decisões de produção, compra de materiais, vendas por região, máquinas, finanças e despesas.</Li>
-          <Li>O professor controla o ritmo: cria rodadas, define eventos econômicos, aplica <strong className="text-white">travas</strong> de valores e processa os resultados.</Li>
+          <Li>O professor controla o ritmo: cria rodadas, define eventos econômicos, aplica <strong className="text-slate-900">travas</strong> de valores e processa os resultados.</Li>
           <Li>Após o processamento, o sistema calcula automaticamente DRE, BP, Fluxo de Caixa e 13 indicadores financeiros para cada grupo.</Li>
           <Li>Os resultados geram ranking com score ponderado, medalhas e relatórios exportáveis.</Li>
         </Ul>
         <Note>
-          A partir da 2ª rodada, o Balanço Patrimonial final de cada rodada vira o <strong className="text-cyan-300">saldo de abertura</strong> da próxima — princípio contábil da continuidade aplicado ao jogo. Estoques de matérias-primas não consumidos também transitam entre rodadas.
+          A partir da 2ª rodada, o Balanço Patrimonial final de cada rodada vira o <strong className="text-blue-700">saldo de abertura</strong> da próxima — princípio contábil da continuidade aplicado ao jogo. Estoques de matérias-primas não consumidos também transitam entre rodadas.
         </Note>
         <H3>Fluxo típico de uma rodada</H3>
         <Ul>
-          <Li><strong className="text-white">1. Criar rodada</strong> — Menu Rodadas → Nova Rodada.</Li>
-          <Li><strong className="text-white">2. Configurar</strong> — evento econômico, travas de despesas/materiais e faixa de preço.</Li>
-          <Li><strong className="text-white">3. Abrir</strong> — libera o formulário para os alunos preencherem.</Li>
-          <Li><strong className="text-white">4. Acompanhar</strong> — painel de envios em tempo real, com polling automático.</Li>
-          <Li><strong className="text-white">5. Encerrar</strong> — bloqueia novos envios.</Li>
-          <Li><strong className="text-white">6. Processar</strong> — calcula tudo, gera ranking e medalhas.</Li>
-          <Li><strong className="text-white">7. Comentar</strong> — escreva feedback personalizado por grupo.</Li>
+          <Li><strong className="text-slate-900">1. Criar rodada</strong> — Menu Rodadas → Nova Rodada.</Li>
+          <Li><strong className="text-slate-900">2. Configurar</strong> — evento econômico, travas de despesas/materiais e faixa de preço.</Li>
+          <Li><strong className="text-slate-900">3. Abrir</strong> — libera o formulário para os alunos preencherem.</Li>
+          <Li><strong className="text-slate-900">4. Acompanhar</strong> — painel de envios em tempo real, com polling automático.</Li>
+          <Li><strong className="text-slate-900">5. Encerrar</strong> — bloqueia novos envios.</Li>
+          <Li><strong className="text-slate-900">6. Processar</strong> — calcula tudo, gera ranking e medalhas.</Li>
+          <Li><strong className="text-slate-900">7. Comentar</strong> — escreva feedback personalizado por grupo.</Li>
         </Ul>
       </>
     ),
@@ -138,11 +138,11 @@ const PROFESSOR_SECTIONS: Section[] = [
       <>
         <H2>Gerenciando Grupos e Empresas</H2>
         <P>
-          Acesse <strong className="text-white">Menu → Grupos e Empresas</strong>. Cada grupo é uma empresa EcoBottle operando em uma região com características próprias de mercado.
+          Acesse <strong className="text-slate-900">Menu → Grupos e Empresas</strong>. Cada grupo é uma empresa EcoBottle operando em uma região com características próprias de mercado.
         </P>
         <H3>Criar um grupo</H3>
         <Ul>
-          <Li>Preencha o nome do grupo e clique em <strong className="text-white">Criar grupo</strong>.</Li>
+          <Li>Preencha o nome do grupo e clique em <strong className="text-slate-900">Criar grupo</strong>.</Li>
           <Li>A região e seus multiplicadores de demanda/custo são atribuídos automaticamente.</Li>
           <Li>Personalize o nome da empresa (ex.: "EcoBottle Norte") — é o nome que aparece no ranking.</Li>
         </Ul>
@@ -153,7 +153,7 @@ const PROFESSOR_SECTIONS: Section[] = [
         </Ul>
         <H3>Excluir grupo</H3>
         <Ul>
-          <Li>Clique em <strong className="text-white">Excluir</strong> no card do grupo.</Li>
+          <Li>Clique em <strong className="text-slate-900">Excluir</strong> no card do grupo.</Li>
           <Li>Alunos vinculados ficam sem grupo após a exclusão.</Li>
         </Ul>
         <Warn>
@@ -173,7 +173,7 @@ const PROFESSOR_SECTIONS: Section[] = [
       <>
         <H2>Cadastrando e Gerenciando Alunos</H2>
         <P>
-          Acesse <strong className="text-white">Menu → Alunos</strong>. O login dos alunos é feito com <strong className="text-white">RA + senha</strong> (sem e-mail). O Dashboard do professor exibe o total de alunos cadastrados no card "Alunos".
+          Acesse <strong className="text-slate-900">Menu → Alunos</strong>. O login dos alunos é feito com <strong className="text-slate-900">RA + senha</strong> (sem e-mail). O Dashboard do professor exibe o total de alunos cadastrados no card "Alunos".
         </P>
         <H3>Cadastro individual</H3>
         <Ul>
@@ -183,13 +183,13 @@ const PROFESSOR_SECTIONS: Section[] = [
         </Ul>
         <H3>Importação via CSV</H3>
         <Ul>
-          <Li>O CSV deve ter colunas: <code className="text-cyan-400">ra, name, password, group_id</code></Li>
-          <Li>Clique em <strong className="text-white">Importar CSV</strong> e selecione o arquivo.</Li>
+          <Li>O CSV deve ter colunas: <code className="text-blue-700 font-mono bg-blue-50 px-1 rounded">ra, name, password, group_id</code></Li>
+          <Li>Clique em <strong className="text-slate-900">Importar CSV</strong> e selecione o arquivo.</Li>
           <Li>O sistema cria todos os alunos em lote automaticamente.</Li>
         </Ul>
         <H3>Trocar grupo de um aluno</H3>
         <Ul>
-          <Li>Clique em <strong className="text-white">Editar</strong> no registro do aluno.</Li>
+          <Li>Clique em <strong className="text-slate-900">Editar</strong> no registro do aluno.</Li>
           <Li>Selecione o novo grupo e salve.</Li>
         </Ul>
         <Note>
@@ -206,18 +206,18 @@ const PROFESSOR_SECTIONS: Section[] = [
       <>
         <H2>Criando e Controlando Rodadas</H2>
         <P>
-          Acesse <strong className="text-white">Menu → Rodadas</strong>. Cada rodada representa um período de gestão da empresa.
+          Acesse <strong className="text-slate-900">Menu → Rodadas</strong>. Cada rodada representa um período de gestão da empresa.
         </P>
         <H3>Estados da rodada</H3>
         <Ul>
-          <Li><strong className="text-white">Não iniciada</strong> — em configuração; alunos não visualizam.</Li>
-          <Li><strong className="text-white">Aberta</strong> — alunos podem preencher e enviar.</Li>
-          <Li><strong className="text-white">Encerrada</strong> — novos envios bloqueados; aguardando processamento.</Li>
-          <Li><strong className="text-white">Processada</strong> — resultados calculados e visíveis aos alunos.</Li>
+          <Li><strong className="text-slate-900">Não iniciada</strong> — em configuração; alunos não visualizam.</Li>
+          <Li><strong className="text-slate-900">Aberta</strong> — alunos podem preencher e enviar.</Li>
+          <Li><strong className="text-slate-900">Encerrada</strong> — novos envios bloqueados; aguardando processamento.</Li>
+          <Li><strong className="text-slate-900">Processada</strong> — resultados calculados e visíveis aos alunos.</Li>
         </Ul>
         <H3>Evento econômico</H3>
         <Ul>
-          <Li>Aplica multiplicadores de demanda e custo a <strong className="text-white">todos</strong> os grupos simultaneamente.</Li>
+          <Li>Aplica multiplicadores de demanda e custo a <strong className="text-slate-900">todos</strong> os grupos simultaneamente.</Li>
           <Li>Exemplos: Mercado normal, Crescimento econômico, Crise, Inflação alta, Alta temporada, Baixa temporada.</Li>
           <Li>Pode ser alterado a qualquer momento antes de processar.</Li>
         </Ul>
@@ -226,7 +226,7 @@ const PROFESSOR_SECTIONS: Section[] = [
         </Tip>
         <H3>Cancelar envio de um grupo</H3>
         <Ul>
-          <Li>Na tela de controle da rodada, clique em <strong className="text-white">Cancelar envio</strong> ao lado do grupo.</Li>
+          <Li>Na tela de controle da rodada, clique em <strong className="text-slate-900">Cancelar envio</strong> ao lado do grupo.</Li>
           <Li>O grupo volta ao status "Pendente" e pode reenviar.</Li>
         </Ul>
         <H3>Comentários do professor</H3>
@@ -245,21 +245,21 @@ const PROFESSOR_SECTIONS: Section[] = [
       <>
         <H2>Travando Valores por Rodada</H2>
         <P>
-          Na tela de controle de cada rodada, você pode <strong className="text-white">travar valores</strong> que os alunos não poderão alterar, forçando foco em outras variáveis de decisão.
+          Na tela de controle de cada rodada, você pode <strong className="text-slate-900">travar valores</strong> que os alunos não poderão alterar, forçando foco em outras variáveis de decisão.
         </P>
         <H3>Despesas operacionais</H3>
         <Ul>
-          <Li><strong className="text-white">Despesas Fixas R$</strong> — aluguel, energia, serviços gerais.</Li>
-          <Li><strong className="text-white">Transporte R$</strong> — logística de entrega.</Li>
-          <Li><strong className="text-white">Manutenção R$</strong> — conservação das máquinas.</Li>
-          <Li><strong className="text-white">Salário Médio R$/colab.</strong> — valor pago por colaborador por mês.</Li>
+          <Li><strong className="text-slate-900">Despesas Fixas R$</strong> — aluguel, energia, serviços gerais.</Li>
+          <Li><strong className="text-slate-900">Transporte R$</strong> — logística de entrega.</Li>
+          <Li><strong className="text-slate-900">Manutenção R$</strong> — conservação das máquinas.</Li>
+          <Li><strong className="text-slate-900">Salário Médio R$/colab.</strong> — valor pago por colaborador por mês.</Li>
         </Ul>
         <H3>Preços de materiais (novo)</H3>
         <Ul>
-          <Li><strong className="text-white">Plástico R$/un.</strong> — preço unitário do plástico.</Li>
-          <Li><strong className="text-white">Tampas R$/un.</strong> — preço unitário das tampas.</Li>
-          <Li><strong className="text-white">Embalagem R$/un.</strong> — preço unitário da embalagem.</Li>
-          <Li><strong className="text-white">Rótulo R$/un.</strong> — preço unitário do rótulo.</Li>
+          <Li><strong className="text-slate-900">Plástico R$/un.</strong> — preço unitário do plástico.</Li>
+          <Li><strong className="text-slate-900">Tampas R$/un.</strong> — preço unitário das tampas.</Li>
+          <Li><strong className="text-slate-900">Embalagem R$/un.</strong> — preço unitário da embalagem.</Li>
+          <Li><strong className="text-slate-900">Rótulo R$/un.</strong> — preço unitário do rótulo.</Li>
         </Ul>
         <H3>Faixa de preço de venda</H3>
         <Ul>
@@ -267,13 +267,13 @@ const PROFESSOR_SECTIONS: Section[] = [
           <Li>Útil para simular regulação de mercado ou evitar guerra de preços.</Li>
         </Ul>
         <P>
-          Deixe o campo <strong className="text-white">em branco</strong> para o aluno definir livremente. Preencha para travar — o campo aparece no formulário do aluno com cadeado 🔒 e fica somente leitura.
+          Deixe o campo <strong className="text-slate-900">em branco</strong> para o aluno definir livremente. Preencha para travar — o campo aparece no formulário do aluno com cadeado 🔒 e fica somente leitura.
         </P>
         <Tip>
           Use travas progressivamente: nas primeiras rodadas, trave tudo para os alunos focarem em produção e preço. Nas rodadas avançadas, libere mais variáveis para uma gestão completa.
         </Tip>
         <Note>
-          Para habilitar as travas de preços de materiais, execute a migração SQL <code className="text-cyan-400">003_material_price_locks.sql</code> no Supabase SQL Editor.
+          Para habilitar as travas de preços de materiais, execute a migração SQL <code className="text-blue-700 font-mono bg-blue-50 px-1 rounded">003_material_price_locks.sql</code> no Supabase SQL Editor.
         </Note>
       </>
     ),
@@ -286,20 +286,20 @@ const PROFESSOR_SECTIONS: Section[] = [
       <>
         <H2>Processando os Resultados da Rodada</H2>
         <P>
-          Após encerrar a rodada, clique em <strong className="text-white">PROCESSAR INFORMAÇÕES DA RODADA</strong> na tela de controle.
+          Após encerrar a rodada, clique em <strong className="text-slate-900">PROCESSAR INFORMAÇÕES DA RODADA</strong> na tela de controle.
         </P>
         <H3>O que o processamento calcula</H3>
         <Ul>
-          <Li><strong className="text-white">Capacidade efetiva</strong> — fábrica base (5.000 un.) + máquinas acumuladas de rodadas anteriores.</Li>
-          <Li><strong className="text-white">Materiais disponíveis</strong> — compras da rodada + saldo de estoque de matérias-primas não consumidas na rodada anterior.</Li>
-          <Li><strong className="text-white">Produção efetiva</strong> — mínimo entre: quantidade planejada, capacidade e materiais disponíveis.</Li>
-          <Li><strong className="text-white">Demanda</strong> — afetada por preço vs. mercado, marketing, região e evento econômico.</Li>
-          <Li><strong className="text-white">Vendas reais</strong> — mínimo entre demanda e produção efetiva.</Li>
-          <Li><strong className="text-white">DRE completa</strong> — receita, CMV, salários, armazenagem, EBIT, LAIR, IR (15%), CSLL (9%), lucro líquido.</Li>
-          <Li><strong className="text-white">Balanço Patrimonial</strong> — ativo (caixa, duplicatas a receber, estoque, imobilizado), passivo e PL, com saldo de abertura da rodada anterior.</Li>
-          <Li><strong className="text-white">Fluxo de Caixa</strong> — FCO (operacional), FCI (investimento em máquinas), FCF (financiamento).</Li>
-          <Li><strong className="text-white">13 indicadores</strong> — liquidez, rentabilidade, ciclo financeiro.</Li>
-          <Li><strong className="text-white">Ranking + score + medalhas</strong> — posicionamento comparativo entre grupos.</Li>
+          <Li><strong className="text-slate-900">Capacidade efetiva</strong> — fábrica base (5.000 un.) + máquinas acumuladas de rodadas anteriores.</Li>
+          <Li><strong className="text-slate-900">Materiais disponíveis</strong> — compras da rodada + saldo de estoque de matérias-primas não consumidas na rodada anterior.</Li>
+          <Li><strong className="text-slate-900">Produção efetiva</strong> — mínimo entre: quantidade planejada, capacidade e materiais disponíveis.</Li>
+          <Li><strong className="text-slate-900">Demanda</strong> — afetada por preço vs. mercado, marketing, região e evento econômico.</Li>
+          <Li><strong className="text-slate-900">Vendas reais</strong> — mínimo entre demanda e produção efetiva.</Li>
+          <Li><strong className="text-slate-900">DRE completa</strong> — receita, CMV, salários, armazenagem, EBIT, LAIR, IR (15%), CSLL (9%), lucro líquido.</Li>
+          <Li><strong className="text-slate-900">Balanço Patrimonial</strong> — ativo (caixa, duplicatas a receber, estoque, imobilizado), passivo e PL, com saldo de abertura da rodada anterior.</Li>
+          <Li><strong className="text-slate-900">Fluxo de Caixa</strong> — FCO (operacional), FCI (investimento em máquinas), FCF (financiamento).</Li>
+          <Li><strong className="text-slate-900">13 indicadores</strong> — liquidez, rentabilidade, ciclo financeiro.</Li>
+          <Li><strong className="text-slate-900">Ranking + score + medalhas</strong> — posicionamento comparativo entre grupos.</Li>
         </Ul>
         <H3>Empréstimo emergencial automático</H3>
         <P>
@@ -319,19 +319,19 @@ const PROFESSOR_SECTIONS: Section[] = [
       <>
         <H2>Relatórios Consolidados</H2>
         <P>
-          Acesse <strong className="text-white">Menu → Relatórios</strong> para visão consolidada de todas as rodadas processadas.
+          Acesse <strong className="text-slate-900">Menu → Relatórios</strong> para visão consolidada de todas as rodadas processadas.
         </P>
         <H3>Relatório por rodada</H3>
         <Ul>
           <Li>Selecione a rodada no seletor do topo.</Li>
           <Li>Visualize: ranking completo, gráfico de score, market share, indicadores detalhados, DRE, Fluxo de Caixa e BP de cada empresa.</Li>
-          <Li>Exportação em <strong className="text-white">CSV</strong> com todos os dados numéricos.</Li>
+          <Li>Exportação em <strong className="text-slate-900">CSV</strong> com todos os dados numéricos.</Li>
         </Ul>
         <H3>Ranking Acumulado</H3>
         <Ul>
           <Li>Soma os scores de todas as rodadas processadas.</Li>
           <Li>Exibe 🥇🥈🥉 para as três melhores empresas no geral.</Li>
-          <Li>Reflete <strong className="text-white">consistência ao longo do jogo</strong> — não apenas desempenho pontual.</Li>
+          <Li>Reflete <strong className="text-slate-900">consistência ao longo do jogo</strong> — não apenas desempenho pontual.</Li>
         </Ul>
         <H3>Evolução histórica de KPIs</H3>
         <Ul>
@@ -368,21 +368,21 @@ const PROFESSOR_SECTIONS: Section[] = [
         </div>
         <H3>Classificação (Grade)</H3>
         <Ul>
-          <Li><strong className="text-emerald-400">AAA (≥ 75 pts)</strong> — Excelente</Li>
-          <Li><strong className="text-cyan-400">AA (≥ 60 pts)</strong> — Muito Bom</Li>
-          <Li><strong className="text-sky-400">A (≥ 45 pts)</strong> — Bom</Li>
+          <Li><strong className="text-emerald-700">AAA (≥ 75 pts)</strong> — Excelente</Li>
+          <Li><strong className="text-blue-700">AA (≥ 60 pts)</strong> — Muito Bom</Li>
+          <Li><strong className="text-sky-700">A (≥ 45 pts)</strong> — Bom</Li>
           <Li><strong className="text-amber-400">B (≥ 30 pts)</strong> — Regular</Li>
           <Li><strong className="text-orange-400">C (≥ 15 pts)</strong> — Fraco</Li>
           <Li><strong className="text-rose-400">D (&lt; 15 pts)</strong> — Crítico</Li>
         </Ul>
         <H3>Medalhas por rodada</H3>
         <Ul>
-          <Li>🏆 <strong className="text-white">Melhor Gestor</strong> — maior score geral da rodada.</Li>
-          <Li>💧 <strong className="text-white">Melhor Liquidez</strong> — maior liquidez corrente.</Li>
-          <Li>📈 <strong className="text-white">Melhor ROA</strong> — maior retorno sobre ativos.</Li>
-          <Li>💰 <strong className="text-white">Melhor Margem</strong> — maior margem líquida.</Li>
-          <Li>⚡ <strong className="text-white">Ciclo mais Eficiente</strong> — menor ciclo financeiro.</Li>
-          <Li>👑 <strong className="text-white">Maior Receita</strong> — maior receita líquida da rodada.</Li>
+          <Li>🏆 <strong className="text-slate-900">Melhor Gestor</strong> — maior score geral da rodada.</Li>
+          <Li>💧 <strong className="text-slate-900">Melhor Liquidez</strong> — maior liquidez corrente.</Li>
+          <Li>📈 <strong className="text-slate-900">Melhor ROA</strong> — maior retorno sobre ativos.</Li>
+          <Li>💰 <strong className="text-slate-900">Melhor Margem</strong> — maior margem líquida.</Li>
+          <Li>⚡ <strong className="text-slate-900">Ciclo mais Eficiente</strong> — menor ciclo financeiro.</Li>
+          <Li>👑 <strong className="text-slate-900">Maior Receita</strong> — maior receita líquida da rodada.</Li>
         </Ul>
       </>
     ),
@@ -401,25 +401,25 @@ const STUDENT_SECTIONS: Section[] = [
       <>
         <H2>Bem-vindo ao Arena Contábil!</H2>
         <P>
-          Você é o <strong className="text-white">Gestor Financeiro</strong> da{" "}
-          <strong className="text-white">EcoBottle</strong>, empresa produtora de garrafas sustentáveis.
+          Você é o <strong className="text-slate-900">Gestor Financeiro</strong> da{" "}
+          <strong className="text-slate-900">EcoBottle</strong>, empresa produtora de garrafas sustentáveis.
           Junto com seu grupo, você toma decisões financeiras e operacionais a cada rodada,
           competindo com os outros grupos da turma.
         </P>
         <H3>Objetivo do jogo</H3>
         <Ul>
-          <Li>Maximizar o <strong className="text-white">lucro líquido</strong> e os indicadores financeiros da sua empresa.</Li>
-          <Li>Manter boa <strong className="text-white">liquidez</strong> — capacidade de pagar suas dívidas.</Li>
-          <Li>Gerir bem o <strong className="text-white">capital de giro</strong> — ciclo financeiro curto.</Li>
-          <Li>Subir no <strong className="text-white">ranking</strong> acumulado ao longo das rodadas.</Li>
+          <Li>Maximizar o <strong className="text-slate-900">lucro líquido</strong> e os indicadores financeiros da sua empresa.</Li>
+          <Li>Manter boa <strong className="text-slate-900">liquidez</strong> — capacidade de pagar suas dívidas.</Li>
+          <Li>Gerir bem o <strong className="text-slate-900">capital de giro</strong> — ciclo financeiro curto.</Li>
+          <Li>Subir no <strong className="text-slate-900">ranking</strong> acumulado ao longo das rodadas.</Li>
         </Ul>
         <H3>Como funciona uma rodada</H3>
         <Ul>
-          <Li>O professor <strong className="text-white">abre a rodada</strong> — você acessa o formulário.</Li>
-          <Li>Seu grupo <strong className="text-white">preenche as decisões</strong> e salva o rascunho.</Li>
-          <Li>Um integrante <strong className="text-white">envia a rodada</strong> — o formulário fica bloqueado para todos.</Li>
-          <Li>O professor <strong className="text-white">processa</strong> — você vê DRE, BP, Fluxo de Caixa e ranking.</Li>
-          <Li>O saldo final desta rodada vira o <strong className="text-white">saldo de abertura</strong> da próxima (carryover).</Li>
+          <Li>O professor <strong className="text-slate-900">abre a rodada</strong> — você acessa o formulário.</Li>
+          <Li>Seu grupo <strong className="text-slate-900">preenche as decisões</strong> e salva o rascunho.</Li>
+          <Li>Um integrante <strong className="text-slate-900">envia a rodada</strong> — o formulário fica bloqueado para todos.</Li>
+          <Li>O professor <strong className="text-slate-900">processa</strong> — você vê DRE, BP, Fluxo de Caixa e ranking.</Li>
+          <Li>O saldo final desta rodada vira o <strong className="text-slate-900">saldo de abertura</strong> da próxima (carryover).</Li>
         </Ul>
         <Note>
           Qualquer integrante pode salvar o rascunho. Apenas um precisa clicar em "ENVIAR RODADA" — depois disso, ninguém mais consegue alterar.
@@ -435,14 +435,14 @@ const STUDENT_SECTIONS: Section[] = [
       <>
         <H2>Como Preencher o Formulário da Rodada</H2>
         <P>
-          Acesse <strong className="text-white">Menu → Rodada Atual</strong>. Acima do formulário você verá o <strong className="text-white">Saldo de Abertura</strong> — caixa, duplicatas a receber, estoque, imobilizado, empréstimos e PL herdados da rodada anterior.
+          Acesse <strong className="text-slate-900">Menu → Rodada Atual</strong>. Acima do formulário você verá o <strong className="text-slate-900">Saldo de Abertura</strong> — caixa, duplicatas a receber, estoque, imobilizado, empréstimos e PL herdados da rodada anterior.
         </P>
         <H3>1. Produção</H3>
         <Ul>
-          <Li><strong className="text-white">Qtd. a produzir</strong> — quantas unidades a fábrica tentará produzir.</Li>
-          <Li><strong className="text-white">Capacidade produtiva</strong> — calculada automaticamente: 5.000 unidades base + capacidade acumulada das máquinas compradas.</Li>
-          <Li><strong className="text-white">Colaboradores</strong> — número de trabalhadores na produção.</Li>
-          <Li><strong className="text-white">Salário médio R$/colab.</strong> — valor pago por colaborador por mês.</Li>
+          <Li><strong className="text-slate-900">Qtd. a produzir</strong> — quantas unidades a fábrica tentará produzir.</Li>
+          <Li><strong className="text-slate-900">Capacidade produtiva</strong> — calculada automaticamente: 5.000 unidades base + capacidade acumulada das máquinas compradas.</Li>
+          <Li><strong className="text-slate-900">Colaboradores</strong> — número de trabalhadores na produção.</Li>
+          <Li><strong className="text-slate-900">Salário médio R$/colab.</strong> — valor pago por colaborador por mês.</Li>
         </Ul>
         <Tip>
           A produção real é o menor valor entre: quantidade planejada, capacidade da fábrica e materiais disponíveis. Planejar com folga evita gargalos de produção!
@@ -450,33 +450,33 @@ const STUDENT_SECTIONS: Section[] = [
         <H3>2. Compra de Materiais</H3>
         <Ul>
           <Li>Cada produto requer 1 unidade de cada material: plástico, tampa, embalagem e rótulo.</Li>
-          <Li>Se sobrou material da rodada anterior, o sistema exibe o <strong className="text-white">saldo do estoque anterior</strong> e já considera esse estoque na produção — você só precisa comprar o que falta.</Li>
+          <Li>Se sobrou material da rodada anterior, o sistema exibe o <strong className="text-slate-900">saldo do estoque anterior</strong> e já considera esse estoque na produção — você só precisa comprar o que falta.</Li>
           <Li>Se o professor travou o preço unitário (🔒), o campo aparece fixo e não pode ser alterado.</Li>
         </Ul>
         <H3>3. Compra de Máquinas</H3>
         <Ul>
-          <Li><strong className="text-white">Máquina Pequena</strong> — R$ 20.000 → +10.000 unidades de capacidade.</Li>
-          <Li><strong className="text-white">Máquina Média</strong> — R$ 40.000 → +20.000 unidades de capacidade.</Li>
-          <Li><strong className="text-white">Máquina Grande</strong> — R$ 80.000 → +60.000 unidades de capacidade.</Li>
+          <Li><strong className="text-slate-900">Máquina Pequena</strong> — R$ 20.000 → +10.000 unidades de capacidade.</Li>
+          <Li><strong className="text-slate-900">Máquina Média</strong> — R$ 40.000 → +20.000 unidades de capacidade.</Li>
+          <Li><strong className="text-slate-900">Máquina Grande</strong> — R$ 80.000 → +60.000 unidades de capacidade.</Li>
           <Li>Você pode comprar qualquer combinação e quantidade de máquinas.</Li>
-          <Li><strong className="text-white">À vista (15 dias)</strong> — paga o valor total no caixa desta rodada.</Li>
-          <Li><strong className="text-white">3× parcelado</strong> — 1/3 pago agora + 2/3 com juros de 2% a.m. nas próximas rodadas.</Li>
+          <Li><strong className="text-slate-900">À vista (15 dias)</strong> — paga o valor total no caixa desta rodada.</Li>
+          <Li><strong className="text-slate-900">3× parcelado</strong> — 1/3 pago agora + 2/3 com juros de 2% a.m. nas próximas rodadas.</Li>
         </Ul>
         <Note>
           A capacidade das máquinas é acumulada entre rodadas. Uma máquina comprada na Rodada 1 continua aumentando sua capacidade na Rodada 2, 3 e assim por diante.
         </Note>
         <H3>4. Vendas por Região</H3>
         <Ul>
-          <Li>A tabela de vendas mostra as <strong className="text-white">regiões como colunas</strong> e os campos (Vender?, Quantidade, Preço) como linhas — marque apenas as regiões onde deseja vender.</Li>
+          <Li>A tabela de vendas mostra as <strong className="text-slate-900">regiões como colunas</strong> e os campos (Vender?, Quantidade, Preço) como linhas — marque apenas as regiões onde deseja vender.</Li>
           <Li>Defina quantidade e preço de venda para cada região ativa.</Li>
           <Li>Se o professor definiu faixa de preço, campos fora da faixa ficam destacados em vermelho.</Li>
-          <Li><strong className="text-white">Marketing R$</strong> — investimento para ampliar a demanda da sua empresa.</Li>
-          <Li><strong className="text-white">Prazo de recebimento</strong> — quanto maior, mais dinheiro vai para "Duplicatas a Receber" no ativo circulante (e menos no caixa).</Li>
+          <Li><strong className="text-slate-900">Marketing R$</strong> — investimento para ampliar a demanda da sua empresa.</Li>
+          <Li><strong className="text-slate-900">Prazo de recebimento</strong> — quanto maior, mais dinheiro vai para "Duplicatas a Receber" no ativo circulante (e menos no caixa).</Li>
         </Ul>
         <H3>5. Gestão Financeira</H3>
         <Ul>
-          <Li><strong className="text-white">Empréstimo R$</strong> — valor captado; entra no caixa mas gera despesa financeira.</Li>
-          <Li><strong className="text-white">Prazo com fornecedores</strong> — quanto maior, mais prazo para pagar (melhora o caixa de curto prazo).</Li>
+          <Li><strong className="text-slate-900">Empréstimo R$</strong> — valor captado; entra no caixa mas gera despesa financeira.</Li>
+          <Li><strong className="text-slate-900">Prazo com fornecedores</strong> — quanto maior, mais prazo para pagar (melhora o caixa de curto prazo).</Li>
         </Ul>
         <H3>6. Despesas Operacionais</H3>
         <Ul>
@@ -484,7 +484,7 @@ const STUDENT_SECTIONS: Section[] = [
           <Li>Campos travados pelo professor (🔒) aparecem com valor fixo e não podem ser alterados.</Li>
         </Ul>
         <Warn>
-          Se aparecerem <strong className="text-white">Inconsistências</strong> abaixo do formulário, revise seus dados antes de enviar — ex.: produzir mais do que a capacidade, ou materiais insuficientes.
+          Se aparecerem <strong className="text-slate-900">Inconsistências</strong> abaixo do formulário, revise seus dados antes de enviar — ex.: produzir mais do que a capacidade, ou materiais insuficientes.
         </Warn>
       </>
     ),
@@ -497,7 +497,7 @@ const STUDENT_SECTIONS: Section[] = [
       <>
         <H2>Investindo em Capacidade Produtiva</H2>
         <P>
-          Comprar máquinas é a única forma de aumentar a capacidade da sua fábrica além das 5.000 unidades base. O investimento é registrado no <strong className="text-white">Ativo Imobilizado</strong> e depreciado ao longo de 60 meses.
+          Comprar máquinas é a única forma de aumentar a capacidade da sua fábrica além das 5.000 unidades base. O investimento é registrado no <strong className="text-slate-900">Ativo Imobilizado</strong> e depreciado ao longo de 60 meses.
         </P>
         <H3>Catálogo de Máquinas</H3>
         <div className="space-y-2 mb-4">
@@ -507,12 +507,12 @@ const STUDENT_SECTIONS: Section[] = [
         </div>
         <H3>Formas de pagamento</H3>
         <Ul>
-          <Li><strong className="text-white">À vista (15 dias)</strong> — valor total sai do caixa nesta rodada. Sem juros.</Li>
-          <Li><strong className="text-white">3× parcelado</strong> — 1/3 pago agora; restante em 2 parcelas com juros de 2% a.m. Gera "Financiamento de máquinas" no Passivo Circulante.</Li>
+          <Li><strong className="text-slate-900">À vista (15 dias)</strong> — valor total sai do caixa nesta rodada. Sem juros.</Li>
+          <Li><strong className="text-slate-900">3× parcelado</strong> — 1/3 pago agora; restante em 2 parcelas com juros de 2% a.m. Gera "Financiamento de máquinas" no Passivo Circulante.</Li>
         </Ul>
         <H3>Acumulação de capacidade</H3>
         <Ul>
-          <Li>A capacidade das máquinas <strong className="text-white">acumula entre rodadas</strong> via carryover.</Li>
+          <Li>A capacidade das máquinas <strong className="text-slate-900">acumula entre rodadas</strong> via carryover.</Li>
           <Li>Capacidade efetiva = 5.000 (base) + total de capacidade acumulada de todas as máquinas compradas até agora.</Li>
           <Li>O painel de capacidade no formulário mostra: Base / Máquinas acumuladas / Total.</Li>
         </Ul>
@@ -533,11 +533,11 @@ const STUDENT_SECTIONS: Section[] = [
       <>
         <H2>Compra de Matérias-Primas e Estoque</H2>
         <P>
-          Cada unidade produzida consome 1 unidade de cada matéria-prima: <strong className="text-white">plástico, tampas, embalagem e rótulo</strong>.
+          Cada unidade produzida consome 1 unidade de cada matéria-prima: <strong className="text-slate-900">plástico, tampas, embalagem e rótulo</strong>.
         </P>
         <H3>Estoque de matérias-primas (carryover)</H3>
         <Ul>
-          <Li>Se sobrou material da rodada anterior, o sistema mostra o <strong className="text-white">saldo disponível</strong> em cada campo.</Li>
+          <Li>Se sobrou material da rodada anterior, o sistema mostra o <strong className="text-slate-900">saldo disponível</strong> em cada campo.</Li>
           <Li>Esses materiais já estão disponíveis para produção — você só compra o complemento necessário.</Li>
           <Li>Exemplo: sobrou 500 unidades de plástico e você quer produzir 1.000 → compre apenas 500 unidades de plástico.</Li>
         </Ul>
@@ -567,8 +567,8 @@ const STUDENT_SECTIONS: Section[] = [
         <H2>Dicas Estratégicas para o Gestor</H2>
         <H3>Precificação</H3>
         <Ul>
-          <Li>Preço <strong className="text-white">abaixo da média do mercado</strong> → mais demanda, mas margem menor.</Li>
-          <Li>Preço <strong className="text-white">acima da média</strong> → menos demanda, mas margem maior.</Li>
+          <Li>Preço <strong className="text-slate-900">abaixo da média do mercado</strong> → mais demanda, mas margem menor.</Li>
+          <Li>Preço <strong className="text-slate-900">acima da média</strong> → menos demanda, mas margem maior.</Li>
           <Li>Encontre o equilíbrio: preço que maximiza receita sem perder volume de vendas.</Li>
         </Ul>
         <H3>Produção e Estoque</H3>
@@ -584,23 +584,23 @@ const STUDENT_SECTIONS: Section[] = [
           <Li>Use o parcelamento em 3× para preservar o caixa quando o investimento for grande.</Li>
         </Ul>
         <Warn>
-          Se seu caixa projetado ficar negativo, o sistema ativa automaticamente um <strong className="text-white">empréstimo emergencial</strong>. Isso aumenta o passivo e reduz os indicadores de liquidez. Planeje o caixa com cuidado!
+          Se seu caixa projetado ficar negativo, o sistema ativa automaticamente um <strong className="text-slate-900">empréstimo emergencial</strong>. Isso aumenta o passivo e reduz os indicadores de liquidez. Planeje o caixa com cuidado!
         </Warn>
         <H3>Liquidez</H3>
         <Ul>
-          <Li>Mantenha <strong className="text-white">Liquidez Corrente acima de 1,5</strong> — garante capacidade de pagar dívidas de curto prazo.</Li>
+          <Li>Mantenha <strong className="text-slate-900">Liquidez Corrente acima de 1,5</strong> — garante capacidade de pagar dívidas de curto prazo.</Li>
           <Li>Evite empréstimos excessivos — aumentam o passivo circulante e reduzem a liquidez.</Li>
           <Li>Prazo de recebimento curto + prazo com fornecedor longo = melhor gestão do caixa.</Li>
         </Ul>
         <H3>Marketing</H3>
         <Ul>
           <Li>Marketing aumenta a demanda (até +45% com investimento máximo).</Li>
-          <Li>O retorno é <strong className="text-white">decrescente</strong>: R$ 0→10k tem muito impacto; acima de R$ 30k o ganho marginal é pequeno.</Li>
+          <Li>O retorno é <strong className="text-slate-900">decrescente</strong>: R$ 0→10k tem muito impacto; acima de R$ 30k o ganho marginal é pequeno.</Li>
         </Ul>
         <H3>Ciclo Financeiro</H3>
         <Ul>
           <Li>PME (estocagem) + PMR (recebimento) − PMP (pagamento) = Ciclo Financeiro.</Li>
-          <Li><strong className="text-white">Ciclo menor = melhor.</strong> Ciclo negativo significa que você recebe antes de pagar os fornecedores!</Li>
+          <Li><strong className="text-slate-900">Ciclo menor = melhor.</strong> Ciclo negativo significa que você recebe antes de pagar os fornecedores!</Li>
         </Ul>
         <Tip>
           Nas primeiras rodadas, foque em entender as métricas. Nas rodadas seguintes, ajuste a estratégia com base nos resultados anteriores — o BP da rodada passada é seu ponto de partida!
@@ -616,33 +616,33 @@ const STUDENT_SECTIONS: Section[] = [
       <>
         <H2>Interpretando os Resultados</H2>
         <P>
-          Após o professor processar, acesse <strong className="text-white">Menu → Resultados</strong>.
+          Após o professor processar, acesse <strong className="text-slate-900">Menu → Resultados</strong>.
         </P>
         <H3>DRE — Demonstração do Resultado do Exercício</H3>
         <Ul>
-          <Li><strong className="text-white">Receita Líquida</strong> = unidades vendidas × preço × (1 − desconto%).</Li>
-          <Li><strong className="text-white">CMV</strong> = custo unitário de produção × unidades vendidas + depreciação.</Li>
-          <Li><strong className="text-white">Lucro Bruto</strong> = Receita Líquida − CMV.</Li>
-          <Li><strong className="text-white">Despesas Operacionais</strong> = salários + marketing + fixas + transporte + manutenção + armazenagem.</Li>
-          <Li><strong className="text-white">EBIT</strong> = Lucro Bruto − Despesas Operacionais.</Li>
-          <Li><strong className="text-white">LAIR</strong> = EBIT − Despesa Financeira (juros dos empréstimos).</Li>
-          <Li><strong className="text-white">Lucro Líquido</strong> = LAIR − IR (15%) − CSLL (9%).</Li>
+          <Li><strong className="text-slate-900">Receita Líquida</strong> = unidades vendidas × preço × (1 − desconto%).</Li>
+          <Li><strong className="text-slate-900">CMV</strong> = custo unitário de produção × unidades vendidas + depreciação.</Li>
+          <Li><strong className="text-slate-900">Lucro Bruto</strong> = Receita Líquida − CMV.</Li>
+          <Li><strong className="text-slate-900">Despesas Operacionais</strong> = salários + marketing + fixas + transporte + manutenção + armazenagem.</Li>
+          <Li><strong className="text-slate-900">EBIT</strong> = Lucro Bruto − Despesas Operacionais.</Li>
+          <Li><strong className="text-slate-900">LAIR</strong> = EBIT − Despesa Financeira (juros dos empréstimos).</Li>
+          <Li><strong className="text-slate-900">Lucro Líquido</strong> = LAIR − IR (15%) − CSLL (9%).</Li>
         </Ul>
         <H3>Balanço Patrimonial</H3>
         <Ul>
-          <Li><strong className="text-white">Ativo Circulante</strong> = caixa + duplicatas a receber + estoques.</Li>
-          <Li><strong className="text-white">Ativo Não Circulante</strong> = imobilizado (máquinas acumuladas − depreciação).</Li>
-          <Li><strong className="text-white">Passivo Circulante</strong> = fornecedores + empréstimos CP + financiamento de máquinas.</Li>
-          <Li><strong className="text-white">Patrimônio Líquido</strong> = capital social + resultado acumulado.</Li>
+          <Li><strong className="text-slate-900">Ativo Circulante</strong> = caixa + duplicatas a receber + estoques.</Li>
+          <Li><strong className="text-slate-900">Ativo Não Circulante</strong> = imobilizado (máquinas acumuladas − depreciação).</Li>
+          <Li><strong className="text-slate-900">Passivo Circulante</strong> = fornecedores + empréstimos CP + financiamento de máquinas.</Li>
+          <Li><strong className="text-slate-900">Patrimônio Líquido</strong> = capital social + resultado acumulado.</Li>
         </Ul>
         <Note>
-          Equação fundamental sempre verificada: <strong className="text-cyan-400">Ativo Total = Passivo Total + Patrimônio Líquido</strong>
+          Equação fundamental sempre verificada: <strong className="text-blue-700">Ativo Total = Passivo Total + Patrimônio Líquido</strong>
         </Note>
         <H3>Fluxo de Caixa</H3>
         <Ul>
-          <Li><strong className="text-white">FCO</strong> — fluxo das atividades operacionais (recebimentos − pagamentos do dia a dia).</Li>
-          <Li><strong className="text-white">FCI</strong> — fluxo de investimentos (pagamento de máquinas).</Li>
-          <Li><strong className="text-white">FCF</strong> — fluxo de financiamento (empréstimos captados).</Li>
+          <Li><strong className="text-slate-900">FCO</strong> — fluxo das atividades operacionais (recebimentos − pagamentos do dia a dia).</Li>
+          <Li><strong className="text-slate-900">FCI</strong> — fluxo de investimentos (pagamento de máquinas).</Li>
+          <Li><strong className="text-slate-900">FCF</strong> — fluxo de financiamento (empréstimos captados).</Li>
         </Ul>
         <H3>Feedback automático e evolução histórica</H3>
         <Ul>
@@ -690,25 +690,25 @@ const STUDENT_SECTIONS: Section[] = [
           O score de cada empresa é calculado com 6 indicadores ponderados (máx. 100 pontos):
         </P>
         <Ul>
-          <Li><strong className="text-white">Liquidez Corrente</strong> — 20 pontos</Li>
-          <Li><strong className="text-white">Liquidez Seca</strong> — 15 pontos</Li>
-          <Li><strong className="text-white">Liquidez Imediata</strong> — 15 pontos</Li>
-          <Li><strong className="text-white">ROA</strong> — 25 pontos (maior peso!)</Li>
-          <Li><strong className="text-white">Margem Líquida</strong> — 15 pontos</Li>
-          <Li><strong className="text-white">Ciclo Financeiro</strong> — 10 pontos</Li>
+          <Li><strong className="text-slate-900">Liquidez Corrente</strong> — 20 pontos</Li>
+          <Li><strong className="text-slate-900">Liquidez Seca</strong> — 15 pontos</Li>
+          <Li><strong className="text-slate-900">Liquidez Imediata</strong> — 15 pontos</Li>
+          <Li><strong className="text-slate-900">ROA</strong> — 25 pontos (maior peso!)</Li>
+          <Li><strong className="text-slate-900">Margem Líquida</strong> — 15 pontos</Li>
+          <Li><strong className="text-slate-900">Ciclo Financeiro</strong> — 10 pontos</Li>
         </Ul>
         <H3>Ranking Acumulado</H3>
         <P>
-          Os scores de todas as rodadas são somados. Quem for <strong className="text-white">consistente</strong> ao longo do jogo vence o Arena Contábil!
+          Os scores de todas as rodadas são somados. Quem for <strong className="text-slate-900">consistente</strong> ao longo do jogo vence o Arena Contábil!
         </P>
         <H3>Medalhas disponíveis por rodada</H3>
         <Ul>
-          <Li>🏆 <strong className="text-white">Melhor Gestor</strong> — maior score geral da rodada.</Li>
-          <Li>💧 <strong className="text-white">Melhor Liquidez</strong> — maior liquidez corrente.</Li>
-          <Li>📈 <strong className="text-white">Melhor ROA</strong> — maior retorno sobre ativos.</Li>
-          <Li>💰 <strong className="text-white">Melhor Margem</strong> — maior margem líquida.</Li>
-          <Li>⚡ <strong className="text-white">Ciclo mais Eficiente</strong> — menor ciclo financeiro.</Li>
-          <Li>👑 <strong className="text-white">Maior Receita</strong> — maior receita líquida da rodada.</Li>
+          <Li>🏆 <strong className="text-slate-900">Melhor Gestor</strong> — maior score geral da rodada.</Li>
+          <Li>💧 <strong className="text-slate-900">Melhor Liquidez</strong> — maior liquidez corrente.</Li>
+          <Li>📈 <strong className="text-slate-900">Melhor ROA</strong> — maior retorno sobre ativos.</Li>
+          <Li>💰 <strong className="text-slate-900">Melhor Margem</strong> — maior margem líquida.</Li>
+          <Li>⚡ <strong className="text-slate-900">Ciclo mais Eficiente</strong> — menor ciclo financeiro.</Li>
+          <Li>👑 <strong className="text-slate-900">Maior Receita</strong> — maior receita líquida da rodada.</Li>
         </Ul>
         <Tip>
           Mesmo sem liderar o ranking geral, você pode ganhar medalhas por excelência em indicadores específicos. Identifique seu ponto forte e domine-o!
@@ -740,9 +740,9 @@ const STUDENT_SECTIONS: Section[] = [
             ["Armazenagem", "Custo de 5% do valor do estoque de produto acabado não vendido na rodada."],
             ["Empréstimo Emergencial", "Acionado automaticamente quando o caixa fecha negativo — cobre o déficit com custo adicional."],
           ].map(([term, def]) => (
-            <div key={term} className="rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-              <p className="text-xs font-bold text-cyan-400">{term}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">{def}</p>
+            <div key={term} className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-xs font-bold text-blue-700">{term}</p>
+              <p className="text-[11px] text-slate-600 mt-0.5">{def}</p>
             </div>
           ))}
         </div>
@@ -808,22 +808,22 @@ export function ManualButton({ role }: Props) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-3xl flex-col bg-slate-900 shadow-2xl border-l border-white/10"
+              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-3xl flex-col bg-white shadow-2xl border-l border-slate-200"
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 shrink-0">
+              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/20 border border-cyan-400/30">
-                    <BookOpen className="h-4 w-4 text-cyan-400" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 border border-blue-200">
+                    <BookOpen className="h-4 w-4 text-blue-700" />
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-white">{title}</h2>
-                    <p className="text-xs text-slate-400">Arena Contábil — Business Accounting Simulator</p>
+                    <h2 className="text-base font-black text-slate-900">{title}</h2>
+                    <p className="text-xs text-slate-500">Arena Contábil — Business Accounting Simulator</p>
                   </div>
                 </div>
                 <button
                   onClick={() => setOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-200 hover:text-slate-900"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -832,7 +832,7 @@ export function ManualButton({ role }: Props) {
               {/* Body */}
               <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar de navegação */}
-                <nav className="w-52 shrink-0 overflow-y-auto border-r border-white/10 bg-white/[0.02] py-3">
+                <nav className="w-52 shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50 py-3">
                   {sections.map((s) => {
                     const Icon = s.icon;
                     const active = s.id === activeId;
@@ -842,8 +842,8 @@ export function ManualButton({ role }: Props) {
                         onClick={() => setActiveId(s.id)}
                         className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs transition-all ${
                           active
-                            ? "bg-cyan-400/10 border-r-2 border-cyan-400 text-cyan-400 font-bold"
-                            : "text-slate-400 hover:text-white hover:bg-white/5"
+                            ? "bg-blue-50 border-r-2 border-blue-600 text-blue-700 font-bold"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                         }`}
                       >
                         <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -871,14 +871,14 @@ export function ManualButton({ role }: Props) {
               </div>
 
               {/* Footer */}
-              <div className="shrink-0 flex items-center gap-3 border-t border-white/10 px-6 py-3 bg-white/[0.02]">
+              <div className="shrink-0 flex items-center gap-3 border-t border-slate-200 px-6 py-3 bg-slate-50">
                 <p className="text-[11px] text-slate-500">
                   Seção {sections.findIndex((s) => s.id === activeId) + 1} de {sections.length}
                 </p>
                 <button
                   onClick={handleDownload}
                   disabled={downloading}
-                  className="flex items-center gap-1.5 rounded-lg border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs text-cyan-400 transition hover:bg-cyan-400/20 disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-700 transition hover:bg-blue-100 disabled:opacity-50"
                   title="Baixar manual em PDF"
                 >
                   <Download className="h-3.5 w-3.5" />
