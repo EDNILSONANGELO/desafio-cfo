@@ -42,49 +42,54 @@ interface Section {
 // Componentes de formatação do manual
 // ─────────────────────────────────────────────────────────────────────────────
 function H2({ children }: { children: React.ReactNode }) {
-  return <h2 className="mb-3 text-lg font-black text-slate-900">{children}</h2>;
+  return <h2 className="mb-3 text-lg font-black" style={{ color: "#0f172a" }}>{children}</h2>;
 }
 function H3({ children }: { children: React.ReactNode }) {
-  return <h3 className="mb-2 mt-5 text-sm font-black text-blue-700 uppercase tracking-wider">{children}</h3>;
+  return <h3 className="mb-2 mt-5 text-sm font-black uppercase tracking-wider" style={{ color: "#1d4ed8" }}>{children}</h3>;
 }
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="mb-3 text-sm text-slate-700 leading-relaxed">{children}</p>;
+  return <p className="mb-3 text-sm leading-relaxed" style={{ color: "#334155" }}>{children}</p>;
 }
 function Li({ children }: { children: React.ReactNode }) {
-  return <li className="mb-1.5 text-sm text-slate-700 leading-relaxed flex gap-2"><span className="mt-1 text-blue-600 shrink-0">•</span><span>{children}</span></li>;
+  return (
+    <li className="mb-1.5 text-sm leading-relaxed flex gap-2" style={{ color: "#334155" }}>
+      <span className="mt-1 shrink-0" style={{ color: "#2563eb" }}>•</span>
+      <span>{children}</span>
+    </li>
+  );
 }
 function Ul({ children }: { children: React.ReactNode }) {
   return <ul className="mb-4 space-y-0.5">{children}</ul>;
 }
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 flex gap-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
-      <Lightbulb className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
-      <p className="text-xs text-amber-900 leading-relaxed">{children}</p>
+    <div className="tip-box my-4 flex gap-3 rounded-xl border p-3" style={{ background: "#fffbeb", borderColor: "#fcd34d" }}>
+      <Lightbulb className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "#92400e" }} />
+      <p className="text-xs leading-relaxed" style={{ color: "#78350f" }}>{children}</p>
     </div>
   );
 }
 function Note({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-3">
-      <CheckCircle2 className="h-4 w-4 shrink-0 text-blue-600 mt-0.5" />
-      <p className="text-xs text-blue-900 leading-relaxed">{children}</p>
+    <div className="note-box my-4 flex gap-3 rounded-xl border p-3" style={{ background: "#eff6ff", borderColor: "#93c5fd" }}>
+      <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "#1d4ed8" }} />
+      <p className="text-xs leading-relaxed" style={{ color: "#1e3a8a" }}>{children}</p>
     </div>
   );
 }
 function Warn({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-4 flex gap-3 rounded-xl border border-red-200 bg-red-50 p-3">
-      <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 mt-0.5" />
-      <p className="text-xs text-red-900 leading-relaxed">{children}</p>
+    <div className="warn-box my-4 flex gap-3 rounded-xl border p-3" style={{ background: "#fff1f2", borderColor: "#fca5a5" }}>
+      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "#dc2626" }} />
+      <p className="text-xs leading-relaxed" style={{ color: "#7f1d1d" }}>{children}</p>
     </div>
   );
 }
 function Kpi({ label, desc }: { label: string; desc: string }) {
   return (
-    <div className="mb-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-      <p className="text-xs font-bold text-slate-900">{label}</p>
-      <p className="text-[11px] text-slate-600 mt-0.5">{desc}</p>
+    <div className="kpi-box mb-2 rounded-lg border px-3 py-2" style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}>
+      <p className="text-xs font-bold" style={{ color: "#0f172a" }}>{label}</p>
+      <p className="text-[11px] mt-0.5" style={{ color: "#475569" }}>{desc}</p>
     </div>
   );
 }
@@ -808,17 +813,17 @@ export function ManualButton({ role }: Props) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: "100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 280 }}
-              className="fixed inset-y-0 right-0 z-50 flex w-full max-w-3xl flex-col bg-white shadow-2xl border-l border-slate-200"
+              className="manual-light fixed inset-y-0 right-0 z-50 flex w-full max-w-3xl flex-col shadow-2xl border-l"
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-6 py-4 shrink-0">
+              <div className="manual-light-header flex items-center justify-between border-b px-6 py-4 shrink-0">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 border border-blue-200">
-                    <BookOpen className="h-4 w-4 text-blue-700" />
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: "#dbeafe", border: "1px solid #93c5fd" }}>
+                    <BookOpen className="h-4 w-4" style={{ color: "#1d4ed8" }} />
                   </div>
                   <div>
-                    <h2 className="text-base font-black text-slate-900">{title}</h2>
-                    <p className="text-xs text-slate-500">Arena Contábil — Business Accounting Simulator</p>
+                    <h2 className="text-base font-black" style={{ color: "#0f172a" }}>{title}</h2>
+                    <p className="text-xs" style={{ color: "#64748b" }}>Arena Contábil — Business Accounting Simulator</p>
                   </div>
                 </div>
                 <button
@@ -832,7 +837,7 @@ export function ManualButton({ role }: Props) {
               {/* Body */}
               <div className="flex flex-1 overflow-hidden">
                 {/* Sidebar de navegação */}
-                <nav className="w-52 shrink-0 overflow-y-auto border-r border-slate-200 bg-slate-50 py-3">
+                <nav className="manual-light-sidebar w-52 shrink-0 overflow-y-auto border-r py-3">
                   {sections.map((s) => {
                     const Icon = s.icon;
                     const active = s.id === activeId;
@@ -840,10 +845,8 @@ export function ManualButton({ role }: Props) {
                       <button
                         key={s.id}
                         onClick={() => setActiveId(s.id)}
-                        className={`flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs transition-all ${
-                          active
-                            ? "bg-blue-50 border-r-2 border-blue-600 text-blue-700 font-bold"
-                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                        className={`manual-light-sidebar-item flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-xs transition-all ${
+                          active ? "active border-r-2 font-bold" : ""
                         }`}
                       >
                         <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -855,7 +858,7 @@ export function ManualButton({ role }: Props) {
                 </nav>
 
                 {/* Conteúdo */}
-                <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="manual-light-content flex-1 overflow-y-auto px-6 py-6">
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={activeId}
@@ -871,7 +874,7 @@ export function ManualButton({ role }: Props) {
               </div>
 
               {/* Footer */}
-              <div className="shrink-0 flex items-center gap-3 border-t border-slate-200 px-6 py-3 bg-slate-50">
+              <div className="manual-light-footer shrink-0 flex items-center gap-3 border-t px-6 py-3">
                 <p className="text-[11px] text-slate-500">
                   Seção {sections.findIndex((s) => s.id === activeId) + 1} de {sections.length}
                 </p>

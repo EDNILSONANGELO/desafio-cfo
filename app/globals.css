@@ -83,6 +83,61 @@ select option { background-color: #071220; color: #E8EDF5; }
 /* ── Stripe zebra suave para tabelas ── */
 .table-row-even { background: rgba(77,142,240,0.03); }
 
+/* ══════════════════════════════════════════════
+   MANUAL — tema claro (leitura e impressão)
+   ══════════════════════════════════════════════ */
+.manual-light {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+.manual-light-header {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #e2e8f0 !important;
+}
+.manual-light-sidebar {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+.manual-light-sidebar-item {
+  color: #475569 !important;
+}
+.manual-light-sidebar-item:hover {
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+}
+.manual-light-sidebar-item.active {
+  color: #1d4ed8 !important;
+  background-color: #eff6ff !important;
+  border-color: #2563eb !important;
+}
+.manual-light-content {
+  background-color: #ffffff !important;
+  color: #334155 !important;
+}
+.manual-light-footer {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Tipografia interna do manual */
+.manual-light-content h2 { color: #0f172a !important; }
+.manual-light-content h3 { color: #1d4ed8 !important; }
+.manual-light-content p,
+.manual-light-content li,
+.manual-light-content span { color: #334155 !important; }
+.manual-light-content strong { color: #0f172a !important; font-weight: 700; }
+.manual-light-content code  { color: #1d4ed8 !important; background: #eff6ff !important; padding: 1px 4px; border-radius: 4px; }
+
+/* Callouts dentro do manual */
+.manual-light-content .tip-box  { background: #fffbeb !important; border-color: #fcd34d !important; }
+.manual-light-content .tip-box  * { color: #78350f !important; }
+.manual-light-content .note-box { background: #eff6ff !important; border-color: #93c5fd !important; }
+.manual-light-content .note-box * { color: #1e3a8a !important; }
+.manual-light-content .warn-box { background: #fff1f2 !important; border-color: #fca5a5 !important; }
+.manual-light-content .warn-box * { color: #7f1d1d !important; }
+.manual-light-content .kpi-box  { background: #f8fafc !important; border-color: #e2e8f0 !important; }
+
 /* ── Card padrão Unifecaf ── */
 .card-unifecaf {
   background: rgba(10, 22, 40, 0.7);
