@@ -35,6 +35,7 @@ export default async function NotasAlunoPage() {
       groupResults={groupResults || []}
       adjustments={adjustments || []}
       gradeScaleRaw={classData?.grade_scale || []}
+      scoreWeightsRaw={classData?.score_weights || null}
     />
   );
 }
