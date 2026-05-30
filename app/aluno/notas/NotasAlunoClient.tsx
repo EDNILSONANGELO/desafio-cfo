@@ -9,6 +9,7 @@ import {
   buildGradeScale,
   DEFAULT_GRADE_SCALE,
   DEFAULT_WEIGHTS,
+  SCORE_MULTIPLIERS,
   type GradeLevel,
   type ScoreWeights,
 } from "@/lib/simulation/scoring";
@@ -35,60 +36,60 @@ const BG_MAP: Record<string, string> = {
   "text-rose-400":    "bg-rose-500/10 border-rose-500/30",
 };
 
-/** Limiares de pontuação máxima por indicador */
+/** Limiares de pontuação máxima por indicador (derivados de SCORE_MULTIPLIERS) */
 const SCORE_THRESHOLDS = [
   {
     label:      "Liquidez Corrente",
-    formula:    "LC × 20",
-    threshold:  "≥ 5,0",
-    example:    "LC = 5,0 → 5,0 × 20 = 100 pts",
-    tip:        "LC abaixo de 5 → pontuação proporcional (ex: LC 2,5 = 50 pts)",
+    formula:    `LC × ${SCORE_MULTIPLIERS.currentRatio}`,
+    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.currentRatio).toFixed(1).replace(".", ",")}`,
+    example:    `LC = 2,0 → 2,0 × ${SCORE_MULTIPLIERS.currentRatio} = 100 pts`,
+    tip:        `LC = 1,0 = 50 pts · LC = 1,5 = 75 pts · LC < 0 = 0 pts`,
   },
   {
     label:      "Liquidez Seca",
-    formula:    "LS × 22",
-    threshold:  "≥ 4,55",
-    example:    "LS = 4,55 → 4,55 × 22 = 100 pts",
-    tip:        "LS abaixo de 4,55 → pontuação proporcional",
+    formula:    `LS × ${SCORE_MULTIPLIERS.quickRatio}`,
+    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.quickRatio).toFixed(1).replace(".", ",")}`,
+    example:    `LS = 2,0 → 2,0 × ${SCORE_MULTIPLIERS.quickRatio} = 100 pts`,
+    tip:        `LS = 1,0 = 50 pts · LS = 1,5 = 75 pts`,
   },
   {
     label:      "Liquidez Imediata",
-    formula:    "LI × 30",
-    threshold:  "≥ 3,33",
-    example:    "LI = 3,33 → 3,33 × 30 = 100 pts",
-    tip:        "LI abaixo de 3,33 → pontuação proporcional",
+    formula:    `LI × ${SCORE_MULTIPLIERS.immediateRatio}`,
+    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.immediateRatio).toFixed(1).replace(".", ",")}`,
+    example:    `LI = 2,0 → 2,0 × ${SCORE_MULTIPLIERS.immediateRatio} = 100 pts`,
+    tip:        `LI = 1,0 = 50 pts · LI negativa = 0 pts`,
   },
   {
     label:      "ROA",
-    formula:    "ROA × 5",
-    threshold:  "≥ 20%",
-    example:    "ROA = 20% → 20 × 5 = 100 pts",
-    tip:        "ROA negativo = 0 pts. ROA 10% = 50 pts",
+    formula:    `ROA × ${SCORE_MULTIPLIERS.roa}`,
+    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.roa).toFixed(0)}%`,
+    example:    `ROA = 20% → 20 × ${SCORE_MULTIPLIERS.roa} = 100 pts`,
+    tip:        `ROA negativo = 0 pts. ROA 10% = 50 pts`,
   },
   {
     label:      "Margem Líquida",
-    formula:    "ML × 3",
-    threshold:  "≥ 33,3%",
-    example:    "ML = 33,3% → 33,3 × 3 = 100 pts",
-    tip:        "Margem negativa = 0 pts. ML 20% = 60 pts",
+    formula:    `ML × ${SCORE_MULTIPLIERS.netMargin}`,
+    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.netMargin).toFixed(1).replace(".", ",")}%`,
+    example:    `ML = 33,3% → 33,3 × ${SCORE_MULTIPLIERS.netMargin} = 100 pts`,
+    tip:        `Margem negativa = 0 pts. ML 20% = 60 pts`,
   },
   {
     label:      "Ciclo Financeiro",
     formula:    "100 − Ciclo (dias)",
-    threshold:  "= 0 dias",
-    example:    "Ciclo = 0 → 100 − 0 = 100 pts",
-    tip:        "Ciclo positivo reduz pontos (ex: 30 dias = 70 pts). Ciclo negativo também vale 100",
+    threshold:  "≤ 0 dias",
+    example:    "Ciclo = 0 → 100 pts · Ciclo = −10 → 100 pts",
+    tip:        "Ciclo positivo reduz 1 pt por dia (ex: 30 dias = 70 pts). Ciclo ≤ 0 = sempre 100 pts",
   },
 ] as const;
 
-/** Definição de cada critério do score */
+/** Definição de cada critério do score (multipliers vêm de SCORE_MULTIPLIERS) */
 const SCORE_CRITERIA = [
   {
     key:       "currentRatio" as keyof ScoreWeights,
     label:     "Liquidez Corrente",
     desc:      "Capacidade de pagar dívidas de curto prazo com ativos circulantes",
     unit:      "× (índice)",
-    toPoints:  (v: number) => Math.min(v * 20, 100),
+    toPoints:  (v: number) => Math.min(v * SCORE_MULTIPLIERS.currentRatio, 100),
     formatVal: (v: number) => number(v, 2),
   },
   {
@@ -96,7 +97,7 @@ const SCORE_CRITERIA = [
     label:     "Liquidez Seca",
     desc:      "Liquidez excluindo estoques (ativos mais líquidos)",
     unit:      "× (índice)",
-    toPoints:  (v: number) => Math.min(v * 22, 100),
+    toPoints:  (v: number) => Math.min(v * SCORE_MULTIPLIERS.quickRatio, 100),
     formatVal: (v: number) => number(v, 2),
   },
   {
@@ -104,7 +105,7 @@ const SCORE_CRITERIA = [
     label:     "Liquidez Imediata",
     desc:      "Capacidade de pagamento imediato com caixa e equivalentes",
     unit:      "× (índice)",
-    toPoints:  (v: number) => Math.min(Math.max(v, 0) * 30, 100),
+    toPoints:  (v: number) => Math.min(Math.max(v, 0) * SCORE_MULTIPLIERS.immediateRatio, 100),
     formatVal: (v: number) => number(v, 2),
   },
   {
@@ -112,7 +113,7 @@ const SCORE_CRITERIA = [
     label:     "ROA — Retorno sobre Ativos",
     desc:      "Eficiência da empresa em gerar lucro com seus ativos",
     unit:      "% ao período",
-    toPoints:  (v: number) => Math.min(Math.max(v, 0) * 5, 100),
+    toPoints:  (v: number) => Math.min(Math.max(v, 0) * SCORE_MULTIPLIERS.roa, 100),
     formatVal: (v: number) => `${number(v, 1)}%`,
   },
   {
@@ -120,7 +121,7 @@ const SCORE_CRITERIA = [
     label:     "Margem Líquida",
     desc:      "Percentual de lucro sobre a receita líquida de vendas",
     unit:      "% sobre receita",
-    toPoints:  (v: number) => Math.min(Math.max(v, 0) * 3, 100),
+    toPoints:  (v: number) => Math.min(Math.max(v, 0) * SCORE_MULTIPLIERS.netMargin, 100),
     formatVal: (v: number) => `${number(v, 1)}%`,
   },
   {

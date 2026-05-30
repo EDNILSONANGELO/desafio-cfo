@@ -14,6 +14,7 @@ import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import {
   DEFAULT_GRADE_SCALE,
   DEFAULT_WEIGHTS,
+  SCORE_MULTIPLIERS,
   buildGradeScale,
   getScoreGrade,
 } from "@/lib/simulation/scoring";
@@ -35,14 +36,14 @@ const BG_MAP: Record<string, string> = {
   "text-rose-400":    "bg-rose-500/10 border-rose-500/30",
 };
 
-// Definição dos indicadores de pontuação
+// Definição dos indicadores de pontuação (multipliers centralizados em SCORE_MULTIPLIERS)
 const SCORE_ROWS = [
-  { key: "currentRatio",   label: "Liquidez Corrente",  color: "text-cyan-400",    formula: "min(LC × 20, 100) × peso"    },
-  { key: "quickRatio",     label: "Liquidez Seca",      color: "text-cyan-400",    formula: "min(LS × 22, 100) × peso"    },
-  { key: "immediateRatio", label: "Liquidez Imediata",  color: "text-cyan-400",    formula: "min(LI × 30, 100) × peso"    },
-  { key: "roa",            label: "ROA",                color: "text-emerald-400", formula: "min(ROA × 5, 100) × peso"    },
-  { key: "netMargin",      label: "Margem Líquida",     color: "text-emerald-400", formula: "min(ML × 3, 100) × peso"     },
-  { key: "cashCycle",      label: "Ciclo Financeiro",   color: "text-amber-400",   formula: "max(0, 100 − Ciclo) × peso"  },
+  { key: "currentRatio",   label: "Liquidez Corrente",  color: "text-cyan-400",    formula: `min(LC × ${SCORE_MULTIPLIERS.currentRatio}, 100) × peso`,   threshold: `≥ ${(100/SCORE_MULTIPLIERS.currentRatio).toFixed(1)}` },
+  { key: "quickRatio",     label: "Liquidez Seca",      color: "text-cyan-400",    formula: `min(LS × ${SCORE_MULTIPLIERS.quickRatio}, 100) × peso`,      threshold: `≥ ${(100/SCORE_MULTIPLIERS.quickRatio).toFixed(1)}`  },
+  { key: "immediateRatio", label: "Liquidez Imediata",  color: "text-cyan-400",    formula: `min(LI × ${SCORE_MULTIPLIERS.immediateRatio}, 100) × peso`,  threshold: `≥ ${(100/SCORE_MULTIPLIERS.immediateRatio).toFixed(1)}` },
+  { key: "roa",            label: "ROA",                color: "text-emerald-400", formula: `min(ROA × ${SCORE_MULTIPLIERS.roa}, 100) × peso`,            threshold: `≥ ${100/SCORE_MULTIPLIERS.roa}%` },
+  { key: "netMargin",      label: "Margem Líquida",     color: "text-emerald-400", formula: `min(ML × ${SCORE_MULTIPLIERS.netMargin}, 100) × peso`,       threshold: `≥ ${(100/SCORE_MULTIPLIERS.netMargin).toFixed(1)}%` },
+  { key: "cashCycle",      label: "Ciclo Financeiro",   color: "text-amber-400",   formula: "max(0, 100 − Ciclo) × peso",                                 threshold: "≤ 0 dias" },
 ] as const;
 
 // ── Botões de exportação reutilizáveis ────────────────────────────────────────
@@ -480,6 +481,7 @@ function MetodologiaPontuacao({
               <th className="px-3 py-2.5 text-center">Peso (%)</th>
               <th className="px-3 py-2.5 text-center">Padrão</th>
               <th className="px-3 py-2.5 text-left">Fórmula de Cálculo</th>
+              <th className="px-3 py-2.5 text-center">Para 100 pts</th>
             </tr>
           </thead>
           <tbody>
@@ -502,6 +504,11 @@ function MetodologiaPontuacao({
                   {Math.round(DEFAULT_WEIGHTS[r.key] * 100)}%
                 </td>
                 <td className="px-3 py-2.5 font-mono text-[12px] text-slate-300">{r.formula}</td>
+                <td className="px-3 py-2.5 text-center">
+                  <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-black text-emerald-400 whitespace-nowrap">
+                    {r.threshold}
+                  </span>
+                </td>
               </tr>
             ))}
             {/* Bônus fixo (não editável) */}
@@ -512,6 +519,9 @@ function MetodologiaPontuacao({
               </td>
               <td className="px-3 py-2.5 text-center text-xs text-slate-500">+5%</td>
               <td className="px-3 py-2.5 font-mono text-[12px] text-slate-300">(Receita ÷ Maior Receita) × 100 × 0,05</td>
+              <td className="px-3 py-2.5 text-center">
+                <span className="rounded-full bg-violet-500/15 border border-violet-500/30 px-2 py-0.5 text-[10px] font-black text-violet-400 whitespace-nowrap">Sem teto</span>
+              </td>
             </tr>
           </tbody>
           <tfoot>
@@ -531,6 +541,36 @@ function MetodologiaPontuacao({
             </tr>
           </tfoot>
         </table>
+      </div>
+
+      {/* Painel de limiares — como o aluno atinge 100 pts em cada indicador */}
+      <div className="mt-5 rounded-xl border border-cyan-400/15 bg-cyan-500/5 overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-2.5">
+          <Info className="h-3.5 w-3.5 text-cyan-400" />
+          <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+            Regra: quando cada indicador atinge 100 pontos (visível também para o aluno)
+          </p>
+        </div>
+        <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+            { label: "Liquidez Corrente", rule: `≥ ${(100/SCORE_MULTIPLIERS.currentRatio).toFixed(1)}`, detail: `LC × ${SCORE_MULTIPLIERS.currentRatio}. Abaixo disso: proporcional. Negativo = 0 pts.`, color: "text-cyan-400", border: "border-cyan-400/20 bg-cyan-500/5" },
+            { label: "Liquidez Seca",     rule: `≥ ${(100/SCORE_MULTIPLIERS.quickRatio).toFixed(1)}`,   detail: `LS × ${SCORE_MULTIPLIERS.quickRatio}. Abaixo: proporcional.`,                             color: "text-cyan-400", border: "border-cyan-400/20 bg-cyan-500/5" },
+            { label: "Liquidez Imediata", rule: `≥ ${(100/SCORE_MULTIPLIERS.immediateRatio).toFixed(1)}`, detail: `LI × ${SCORE_MULTIPLIERS.immediateRatio}. Negativa = 0 pts.`,                          color: "text-cyan-400", border: "border-cyan-400/20 bg-cyan-500/5" },
+            { label: "ROA",               rule: `≥ ${100/SCORE_MULTIPLIERS.roa}%`,                      detail: `ROA × ${SCORE_MULTIPLIERS.roa}. Negativo = 0 pts.`,                                       color: "text-emerald-400", border: "border-emerald-400/20 bg-emerald-500/5" },
+            { label: "Margem Líquida",    rule: `≥ ${(100/SCORE_MULTIPLIERS.netMargin).toFixed(1)}%`,   detail: `ML × ${SCORE_MULTIPLIERS.netMargin}. Negativa = 0 pts.`,                                  color: "text-emerald-400", border: "border-emerald-400/20 bg-emerald-500/5" },
+            { label: "Ciclo Financeiro",  rule: "≤ 0 dias",                                             detail: "100 − Ciclo. Cada dia positivo retira 1 pt (mín 0). Ciclo negativo = 100 pts.",           color: "text-amber-400", border: "border-amber-400/20 bg-amber-500/5" },
+          ].map(item => (
+            <div key={item.label} className={`rounded-xl border p-3 ${item.border}`}>
+              <p className={`text-xs font-black ${item.color}`}>{item.label}</p>
+              <p className="mt-0.5 text-lg font-black text-white">{item.rule}</p>
+              <p className="mt-1 text-[10px] text-slate-500 leading-snug">{item.detail}</p>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-white/5 bg-amber-500/5 px-4 py-2 text-[11px] text-amber-300">
+          <strong>Atenção:</strong> se precisar ajustar esses limiares, entre em contato com o suporte técnico.
+          Os alunos visualizam estas mesmas regras no menu <strong>Notas</strong>.
+        </div>
       </div>
 
       {/* Validação */}

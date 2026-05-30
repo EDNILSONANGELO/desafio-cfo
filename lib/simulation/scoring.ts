@@ -12,22 +12,38 @@ export const DEFAULT_WEIGHTS = {
 
 export type ScoreWeights = typeof DEFAULT_WEIGHTS;
 
+// ─── Limiares de pontuação máxima (100 pts) por indicador ────────────────────
+// Liquidez Corrente  ≥ 2,0  → 100 pts  (multiplicador: 50)
+// Liquidez Seca      ≥ 2,0  → 100 pts  (multiplicador: 50)
+// Liquidez Imediata  ≥ 2,0  → 100 pts  (multiplicador: 50)
+// ROA                ≥ 20%  → 100 pts  (multiplicador: 5)
+// Margem Líquida     ≥ 33%  → 100 pts  (multiplicador: 3)
+// Ciclo Financeiro   ≤ 0d   → 100 pts  (100 − ciclo, mín 0)
+export const SCORE_MULTIPLIERS = {
+  currentRatio:   50,  // LC   ≥ 2,0 → 100 pts
+  quickRatio:     50,  // LS   ≥ 2,0 → 100 pts
+  immediateRatio: 50,  // LI   ≥ 2,0 → 100 pts
+  roa:             5,  // ROA  ≥ 20% → 100 pts
+  netMargin:       3,  // ML   ≥ 33% → 100 pts
+} as const;
+
 // ─── Cálculo do score de uma empresa ─────────────────────────────────────────
 export function scoreResult(
   result: SimulationResult,
   maxRevenue: number,
   weights: ScoreWeights = DEFAULT_WEIGHTS
 ): number {
+  // Ciclo Financeiro: ≤ 0 dias = 100 pts; cada dia positivo reduz 1 pt (mín 0)
   const normalizedCycle = Math.max(0, 100 - Math.max(0, result.cashCycle));
   const marketShare = maxRevenue ? (result.netRevenue / maxRevenue) * 100 : 0;
 
   return (
-    Math.min(result.currentRatio * 20, 100)                      * weights.currentRatio +
-    Math.min(result.quickRatio * 22, 100)                        * weights.quickRatio +
-    Math.min(Math.max(result.immediateRatio, 0) * 30, 100)       * weights.immediateRatio +
-    Math.min(Math.max(result.roa, 0) * 5, 100)                   * weights.roa +
-    Math.min(Math.max(result.netMargin, 0) * 3, 100)             * weights.netMargin +
-    normalizedCycle                                               * weights.cashCycle +
+    Math.min(result.currentRatio                    * SCORE_MULTIPLIERS.currentRatio,   100) * weights.currentRatio +
+    Math.min(result.quickRatio                      * SCORE_MULTIPLIERS.quickRatio,     100) * weights.quickRatio +
+    Math.min(Math.max(result.immediateRatio, 0)     * SCORE_MULTIPLIERS.immediateRatio, 100) * weights.immediateRatio +
+    Math.min(Math.max(result.roa, 0)                * SCORE_MULTIPLIERS.roa,            100) * weights.roa +
+    Math.min(Math.max(result.netMargin, 0)          * SCORE_MULTIPLIERS.netMargin,      100) * weights.netMargin +
+    normalizedCycle                                                                           * weights.cashCycle +
     marketShare * 0.05   // bônus de market share (fixo, não entra nos 100%)
   );
 }
