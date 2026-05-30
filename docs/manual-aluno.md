@@ -175,10 +175,9 @@ Informe quanto de cada material deseja comprar para a produção desta rodada.
 - **Quantidade** a comprar
 - **Preço unitário** pago ao fornecedor (se não estiver travado pelo professor)
 - **Prazo de pagamento** ao fornecedor:
-  - 15 dias
-  - 30 dias
-  - 60 dias
-  - 90 dias *(maior prazo = menor pressão no caixa imediato)*
+  - **15 dias** → você paga 100% do valor na rodada atual.
+  - **30 dias** → você paga 50% na rodada atual e 50% na próxima rodada.
+  - **60 dias** → você paga 50% na próxima rodada e 50% na rodada posterior (nenhuma saída na rodada atual).
 
 > **Estoque carregado:** Se sobrou matéria-prima da rodada anterior, o saldo aparece como "estoque atual". Isso já está disponível para produção.
 
@@ -209,12 +208,11 @@ Informe onde e quanto você pretende vender.
 - O sistema ajusta automaticamente as vendas reais com base nesse diferencial.
 
 **Prazo de recebimento dos clientes:**
-- 15 dias (à vista com pequeno desconto de prazo)
-- 30 dias
-- 60 dias
-- 90 dias *(mais prazo = clientes demoram mais para pagar = mais risco de caixa)*
+- **15 dias (à vista)** → você recebe 100% do valor na rodada atual.
+- **30 dias** → você recebe 50% na rodada atual e 50% na próxima rodada.
+- **60 dias** → você recebe 50% na próxima rodada e 50% na rodada posterior (nenhuma entrada na rodada atual).
 
-> **Dica:** Prazos mais curtos de recebimento melhoram o PMR e o fluxo de caixa.
+> **Dica:** Prazos mais curtos de recebimento melhoram o PMR e o fluxo de caixa. Tenha cuidado com o prazo de 60 dias: não haverá receita em caixa na rodada atual, o que pode gerar déficit de caixa.
 
 ---
 

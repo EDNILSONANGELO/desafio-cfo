@@ -179,14 +179,18 @@ export interface SimulationResult {
 
   // ── ATIVO ─────────────────────────────────────────────────────────────────────
   finalCash: number;
-  clients: number;
+  clients: number;               // A/R total no BP (clientsNext + clientsDeferred)
+  clientsNext?: number;          // parcela a receber na próxima rodada (carryover)
+  clientsDeferred?: number;      // parcela a receber na rodada posterior (carryover)
   endingInventory: number;
   currentAssets: number;
   fixedAssets: number;
   totalAssets: number;
 
   // ── PASSIVO ───────────────────────────────────────────────────────────────────
-  suppliers: number;          // Fornecedores (PC)
+  suppliers: number;             // Fornecedores total no BP (suppliersNext + suppliersDeferred)
+  suppliersNext?: number;        // parcela a pagar na próxima rodada (carryover)
+  suppliersDeferred?: number;    // parcela a pagar na rodada posterior (carryover)
   loans: number;              // Empréstimos total
   machinePayable: number;     // Financiamento de máquinas (PC – 70% não pago)
   currentLiabilities: number; // Passivo Circulante total
@@ -340,10 +344,12 @@ export interface InitialBalance {
   cash: number;
   banks: number;
   applications: number;
-  clients: number;
+  clients: number;               // A/R a receber NESTA rodada (carryover da anterior)
+  clientsDeferred?: number;      // A/R a receber na PRÓXIMA rodada (60 dias – 2ª parcela)
   inventory: number;
   fixedAssets: number;
-  suppliers: number;
+  suppliers: number;             // A/P a pagar NESTA rodada (carryover da anterior)
+  suppliersDeferred?: number;    // A/P a pagar na PRÓXIMA rodada (60 dias – 2ª parcela)
   loans: number;
   equity: number;
   machineCapacity?: number;      // capacidade acumulada de máquinas compradas (carryover)

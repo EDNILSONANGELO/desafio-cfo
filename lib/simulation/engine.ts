@@ -58,9 +58,11 @@ export const INITIAL_BALANCE: InitialBalance = {
   banks: 30000,
   applications: 20000,
   clients: 40000,
+  clientsDeferred: 0,
   inventory: 25000,
   fixedAssets: 150000,
   suppliers: 35000,
+  suppliersDeferred: 0,
   loans: 60000,
   equity: 220000, // Capital Social inicial
 };
@@ -130,10 +132,14 @@ export function resultToOpeningBalance(prev: SimulationResult): Partial<InitialB
     cash:        Math.max(0, rawCash),
     banks:       0,
     applications: 0,
-    clients:     prev.clients,
+    // Prazos de recebimento: clientsNext vira clients; clientsDeferred vira clientsDeferred
+    clients:          prev.clientsNext     ?? prev.clients,
+    clientsDeferred:  prev.clientsDeferred ?? 0,
     inventory:   prev.endingInventory,
     fixedAssets: prev.fixedAssets,
-    suppliers:   prev.suppliers,
+    // Prazos de pagamento: suppliersNext vira suppliers; suppliersDeferred vira suppliersDeferred
+    suppliers:         prev.suppliersNext     ?? prev.suppliers,
+    suppliersDeferred: prev.suppliersDeferred ?? 0,
     loans:       prev.loans + emergencyLoan,
     equity:      prev.equity,
     // Carryover de capacidade acumulada de máquinas
@@ -368,28 +374,33 @@ export function simulateCompany(
   const purchases = possibleProduction * unitMaterialCost;
 
   // ── FLUXO DE CAIXA ───────────────────────────────────────────────────────────
-  const cashCollectionRate =
-    Number(d.receivableTerm) <= 30
-      ? 0.75
-      : Number(d.receivableTerm) <= 60
-      ? 0.48
-      : 0.25;
-  const supplierPaymentRate =
-    Number(d.supplierTerm) <= 30
-      ? 0.75
-      : Number(d.supplierTerm) <= 60
-      ? 0.45
-      : 0.25;
+  // Regra de recebimento por prazo:
+  //   15 dias → 100% na rodada atual, 0% seguinte, 0% posterior
+  //   30 dias →  50% na rodada atual, 50% seguinte, 0% posterior
+  //   60 dias →   0% na rodada atual, 50% seguinte, 50% posterior
+  const rTerm  = Number(d.receivableTerm);
+  const rNow   = rTerm <= 15 ? 1.0 : rTerm <= 30 ? 0.5 : 0.0;
+  const rNext  = rTerm <= 15 ? 0.0 : rTerm <= 30 ? 0.5 : 0.5;
+  const rLater = rTerm <= 15 ? 0.0 : rTerm <= 30 ? 0.0 : 0.5;
 
-  // Entradas: recebimento de clientes + empréstimo captado
-  const cashIn = netRevenue * cashCollectionRate + Number(d.loan || 0);
+  // Regra de pagamento a fornecedores por prazo (mesma lógica):
+  //   15 dias → 100% na rodada atual
+  //   30 dias →  50% na rodada atual, 50% seguinte
+  //   60 dias →   0% na rodada atual, 50% seguinte, 50% posterior
+  const sTerm  = Number(d.supplierTerm);
+  const sNow   = sTerm <= 15 ? 1.0 : sTerm <= 30 ? 0.5 : 0.0;
+  const sNext  = sTerm <= 15 ? 0.0 : sTerm <= 30 ? 0.5 : 0.5;
+  const sLater = sTerm <= 15 ? 0.0 : sTerm <= 30 ? 0.0 : 0.5;
+
+  // Entradas: recebimento desta rodada + carryover de clientes da rodada anterior + empréstimo
+  const cashIn = netRevenue * rNow + (ib.clients ?? 0) + Number(d.loan || 0);
 
   // Salários + encargos pagos no período (saída de caixa)
   const laborCashOut = totalSalary + payrollCharges;
 
-  // Saídas de caixa
+  // Saídas de caixa: pagamento desta rodada + carryover de fornecedores da rodada anterior
   const cashOut =
-    purchases * supplierPaymentRate +
+    purchases * sNow + (ib.suppliers ?? 0) +
     laborCashOut +
     (operationalExpenses - totalSalary - payrollCharges) + // demais desp. operac. (incl. armazenagem)
     financialExpense +
@@ -412,7 +423,13 @@ export function simulateCompany(
   }
   const finalCash = rawFinalCash;
 
-  const clients = ib.clients + netRevenue * (1 - cashCollectionRate);
+  // A/R = parcelas futuras desta rodada
+  // clientsNext     = parcela que entra na PRÓXIMA rodada
+  // clientsDeferred = parcela que entra na rodada POSTERIOR (2 períodos à frente)
+  // clients (BP)    = total de A/R em aberto
+  const clientsNext     = (ib.clientsDeferred ?? 0) + netRevenue * rNext;
+  const clientsDeferred = netRevenue * rLater;
+  const clients         = clientsNext + clientsDeferred;
 
   // Estoque = unidades NÃO vendidas × custo de produção unitário
   const endingInventory = ib.inventory + unsoldUnits * unitProductionCost;
@@ -426,7 +443,13 @@ export function simulateCompany(
   const totalAssets = currentAssets + fixedAssets;
 
   // PASSIVO
-  const suppliersBalance = ib.suppliers + purchases * (1 - supplierPaymentRate);
+  // A/P = parcelas futuras desta rodada
+  // suppliersNext     = parcela que sai na PRÓXIMA rodada
+  // suppliersDeferred = parcela que sai na rodada POSTERIOR
+  // suppliersBalance (BP) = total de A/P em aberto
+  const suppliersNext     = (ib.suppliersDeferred ?? 0) + purchases * sNext;
+  const suppliersDeferred = purchases * sLater;
+  const suppliersBalance  = suppliersNext + suppliersDeferred;
   const loansBalance     = ib.loans + Number(d.loan || 0) + emergencyLoan;
   // machinePayable: legado (70% do machineInvestment livre) + parcelas novas + parcelas em aberto
   const machinePayable   =
@@ -499,8 +522,10 @@ export function simulateCompany(
 
   // ── FLUXO DE CAIXA (breakdown para demonstração) ─────────────────────────────
   const cfOpeningBalance = ib.cash + ib.banks + ib.applications;
-  const cfReceipts = netRevenue * cashCollectionRate;
-  const cfSupplierPayments = purchases * supplierPaymentRate;
+  // Recebimentos = % desta rodada + carryover de clientes anterior
+  const cfReceipts = netRevenue * rNow + (ib.clients ?? 0);
+  // Pagamentos a fornecedores = % desta rodada + carryover de fornecedores anterior
+  const cfSupplierPayments = purchases * sNow + (ib.suppliers ?? 0);
   const cfLaborPayments = totalSalary + payrollCharges; // salários + encargos sobre folha
   const cfOperationalPayments = operationalExpenses - totalSalary - payrollCharges;
   const cfFinancialPayments = financialExpense;
@@ -550,12 +575,16 @@ export function simulateCompany(
     totalAssets,
     finalCash,
     clients,
+    clientsNext,
+    clientsDeferred,
     endingInventory,
     // Passivo
     currentLiabilities,
     longTermLiabilities,
     totalLiabilities,
     suppliers: suppliersBalance,
+    suppliersNext,
+    suppliersDeferred,
     loans: loansBalance,
     machinePayable,
     // PL

@@ -49,17 +49,15 @@ interface Props {
 }
 
 const SUPPLIER_OPTIONS = [
-  { value: 15, label: "15 dias" },
-  { value: 30, label: "30 dias" },
-  { value: 60, label: "60 dias" },
-  { value: 90, label: "90 dias" },
+  { value: 15, label: "15 dias", hint: "Você pagará 100% do valor na rodada atual." },
+  { value: 30, label: "30 dias", hint: "Você pagará 50% na rodada atual e 50% na próxima rodada." },
+  { value: 60, label: "60 dias", hint: "Você pagará 50% na próxima rodada e 50% na rodada posterior. Não haverá saída de caixa na rodada atual." },
 ];
 
 const RECEIVABLE_OPTIONS = [
-  { value: 15, label: "15 dias (à vista)" },
-  { value: 30, label: "30 dias" },
-  { value: 60, label: "60 dias" },
-  { value: 90, label: "90 dias" },
+  { value: 15, label: "15 dias (à vista)", hint: "Você receberá 100% do valor na rodada atual." },
+  { value: 30, label: "30 dias", hint: "Você receberá 50% na rodada atual e 50% na próxima rodada." },
+  { value: 60, label: "60 dias", hint: "Você receberá 50% na próxima rodada e 50% na rodada posterior. Não haverá entrada de caixa na rodada atual." },
 ];
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -803,6 +801,14 @@ export function DecisionForm({
                     onChange={(e) => set("supplierTerm", e.target.value)}
                     options={SUPPLIER_OPTIONS}
                   />
+                  {(() => {
+                    const opt = SUPPLIER_OPTIONS.find((o) => o.value === Number(d.supplierTerm));
+                    return opt ? (
+                      <p className="mt-1 rounded bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
+                        💡 {opt.hint}
+                      </p>
+                    ) : null;
+                  })()}
                 </div>
 
                 {/* 4 preços unitários */}
@@ -1255,12 +1261,22 @@ export function DecisionForm({
 
         {/* Prazo de recebimento */}
         <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Select
-            label="Prazo de recebimento"
-            value={d.receivableTerm}
-            onChange={(e) => set("receivableTerm", e.target.value)}
-            options={RECEIVABLE_OPTIONS}
-          />
+          <div>
+            <Select
+              label="Prazo de recebimento"
+              value={d.receivableTerm}
+              onChange={(e) => set("receivableTerm", e.target.value)}
+              options={RECEIVABLE_OPTIONS}
+            />
+            {(() => {
+              const opt = RECEIVABLE_OPTIONS.find((o) => o.value === Number(d.receivableTerm));
+              return opt ? (
+                <p className="mt-1 rounded bg-cyan-500/10 px-2 py-1 text-xs text-cyan-300">
+                  💡 {opt.hint}
+                </p>
+              ) : null;
+            })()}
+          </div>
           {/* Resumo de inserções quando grade regional está ativa */}
           {hasGroups && insertions > 0 && (
             <div className="flex flex-col gap-1">
