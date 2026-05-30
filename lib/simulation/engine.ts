@@ -54,12 +54,12 @@ const PROD_FACTOR_STRIKE = 0.70; // 30% de queda de produtividade
 const PROD_FACTOR_ALERT  = 0.90; // 10% de queda de produtividade
 
 export const INITIAL_BALANCE: InitialBalance = {
-  cash: 50000,
+  cash: 75000,      // R$25.000 realocados do estoque (inventory → caixa, BP permanece equilibrado)
   banks: 30000,
   applications: 20000,
   clients: 40000,
   clientsDeferred: 0,
-  inventory: 25000,
+  inventory: 0,     // Estoque inicial = 0: produção = vendas → estoque final = 0 (sem saldo fictício)
   fixedAssets: 150000,
   accumulatedDepreciation: 0,
   suppliers: 35000,
@@ -322,18 +322,28 @@ export function simulateCompany(
     .filter((rs) => rs.active && rs.region_name !== company.region_name)
     .reduce((sum, rs) => sum + Math.max(0, rs.qty || 0) * interRegionalCostPerUnit, 0);
 
-  const realSalesQty = Math.min(demand, possibleProduction);
+  // ── CUSTO UNITÁRIO (calculado antes das vendas para converter estoque inicial em unidades) ──
+  const unitMaterialCost   = MATERIAL_COST_PER_UNIT(d) * cost_factor * eventCostFactor;
+  const unitProductionCost = unitMaterialCost; // custo unitário = só material
+
+  // ── ESTOQUE INICIAL EM UNIDADES + TOTAL DISPONÍVEL PARA VENDA ────────────────
+  // Converte o saldo inicial (R$) em unidades usando o custo unitário corrente.
+  // Isso garante que: Estoque Final = Estoque Inicial + Produção − Vendas (em unidades).
+  const initialInventoryUnits = (ib.inventory > 0 && unitProductionCost > 0)
+    ? Math.round(ib.inventory / unitProductionCost)
+    : 0;
+  const totalUnitsAvailable = initialInventoryUnits + possibleProduction;
+
+  // Vendas limitadas pela demanda E pelo estoque físico total disponível (inicial + produção)
+  const realSalesQty = Math.min(demand, totalUnitsAvailable);
 
   // ── DRE ─────────────────────────────────────────────────────────────────────
   // Receita Líquida
   const netPrice = Number(d.salePrice) * (1 - Number(d.discount || 0) / 100);
   const netRevenue = realSalesQty * netPrice;
 
-  // CMV: custo dos produtos VENDIDOS (materiais + depreciação)
-  const unitMaterialCost = MATERIAL_COST_PER_UNIT(d) * cost_factor * eventCostFactor;
-  const unitProductionCost = unitMaterialCost; // custo unitário = só material
-
-  const materialCost = realSalesQty * unitMaterialCost;   // materiais das unidades vendidas
+  // CMV: custo dos produtos VENDIDOS (materiais das unidades vendidas + depreciação)
+  const materialCost = realSalesQty * unitMaterialCost;
 
   // ── DEPRECIAÇÃO LINEAR ────────────────────────────────────────────────────────
   // Taxa: 10% ao ano / Vida útil: 10 anos (método linear, conforme NBC TG 27)
@@ -361,12 +371,14 @@ export function simulateCompany(
   const payrollChargesPct = roundConfig?.payroll_charges_pct ?? 0;
   const payrollCharges = totalSalary * (payrollChargesPct / 100);
 
-  // ── CUSTO DE ARMAZENAGEM (Phase 1) ──────────────────────────────────────────
-  // Unidades não vendidas geram custo de estoque (5% do valor de custo do estoque
-  // acumulado no período). Incentiva o aluno a planejar melhor a produção.
-  const unsoldUnits = Math.max(0, possibleProduction - realSalesQty);
-  const periodEndingInventoryValue = ib.inventory + unsoldUnits * unitProductionCost;
-  const storageExpense = periodEndingInventoryValue * 0.05; // 5% a.p. sobre saldo de estoque
+  // ── ESTOQUE FINAL E CUSTO DE ARMAZENAGEM ────────────────────────────────────
+  // Fórmula correta: Estoque Final (un.) = Estoque Inicial + Produção − Vendas
+  // Unidades não vendidas (do total disponível — inclui estoque inicial e nova produção)
+  const unsoldUnits    = Math.max(0, totalUnitsAvailable - realSalesQty);
+  // Estoque Final valorado ao custo unitário corrente (custo médio ponderado simplificado)
+  const endingInventory = unsoldUnits * unitProductionCost;
+  // Custo de armazenagem: 5% do estoque final (incentiva produzir próximo da demanda)
+  const storageExpense  = endingInventory * 0.05;
 
   // ── LIMITE DE EMPRÉSTIMO (Ajuste 4) ─────────────────────────────────────────
   // Professor pode limitar o valor máximo de empréstimo por rodada
@@ -466,8 +478,8 @@ export function simulateCompany(
   const clientsDeferred = netRevenue * rLater;
   const clients         = clientsNext + clientsDeferred;
 
-  // Estoque = unidades NÃO vendidas × custo de produção unitário
-  const endingInventory = ib.inventory + unsoldUnits * unitProductionCost;
+  // endingInventory já calculado acima: unsoldUnits * unitProductionCost
+  // (Estoque Final = Estoque Inicial + Produção − Vendas, valorado ao custo unitário)
 
   const currentAssets = finalCash + clients + endingInventory;
 
