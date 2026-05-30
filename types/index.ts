@@ -267,9 +267,10 @@ export interface SimulationResult {
   // ── COMPRA DE MÁQUINAS ────────────────────────────────────────────────────────
   machinesTotalCost?: number;       // custo total das máquinas compradas na rodada
   machinesCapacityAdded?: number;   // capacidade adicionada pelas novas máquinas
-  machinesDownPayment?: number;     // valor pago no ato (à vista = total; 3x = 1/3)
-  machinesPayable?: number;         // parcelas futuras (3x = 2/3 + juros)
-  machinesInterest?: number;        // total de juros do parcelamento
+  machinesDownPayment?: number;      // valor pago no ato (à vista = 100% | parcelado = 1/3)
+  machinesPayable?: number;          // 2ª + 3ª parcelas futuras (parcelado = 2/3, sem juros)
+  machinesInterest?: number;         // total de juros — mantido por compatibilidade (sempre 0)
+  machinePayableBalance2?: number;   // 3ª parcela herdada do opening balance (para carryover)
   accumulatedMachineCapacity?: number; // capacidade total acumulada (inclui rounds anteriores)
 }
 
@@ -358,8 +359,9 @@ export interface InitialBalance {
   suppliersDeferred?: number;    // A/P a pagar na PRÓXIMA rodada (60 dias – 2ª parcela)
   loans: number;
   equity: number;
-  machineCapacity?: number;      // capacidade acumulada de máquinas compradas (carryover)
-  machinePayableBalance?: number; // parcelas de máquinas a vencer (carryover de 3x)
+  machineCapacity?: number;       // capacidade acumulada de máquinas compradas (carryover)
+  machinePayableBalance?: number;  // 2ª parcela de máquinas — a ser paga NESTA rodada (automático)
+  machinePayableBalance2?: number; // 3ª parcela de máquinas — a ser paga na PRÓXIMA rodada
   // Saldo de matérias-primas não consumidas (carryover)
   plasticStock?: number;
   capsStock?: number;

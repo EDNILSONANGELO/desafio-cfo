@@ -66,6 +66,8 @@ export const INITIAL_BALANCE: InitialBalance = {
   suppliersDeferred: 0,
   loans: 60000,
   equity: 220000, // Capital Social inicial
+  machinePayableBalance:  0, // 2ª parcela de máquinas a pagar na rodada 1
+  machinePayableBalance2: 0, // 3ª parcela de máquinas a pagar na rodada 2
 };
 
 export const DEFAULT_MACHINE_PURCHASE: MachinePurchase = {
@@ -146,8 +148,12 @@ export function resultToOpeningBalance(prev: SimulationResult): Partial<InitialB
     equity:      prev.equity,
     // Carryover de capacidade acumulada de máquinas
     machineCapacity: prev.accumulatedMachineCapacity ?? 0,
-    // Carryover de parcelas a vencer (2ª e 3ª parcelas do parcelamento de máquinas)
-    machinePayableBalance: prev.machinesPayable ?? 0,
+    // Carryover de parcelas de máquinas (3 parcelas iguais, sem juros):
+    //   machinePayableBalance  = 2ª parcela → paga NO INÍCIO da próxima rodada (cashOut automático)
+    //   machinePayableBalance2 = 3ª parcela → paga na rodada seguinte
+    // Cálculo: a 2ª parcela da nova rodada = 3ª parcela herdada + metade das parcelas novas
+    machinePayableBalance:  (prev.machinePayableBalance2 ?? 0) + (prev.machinesPayable ?? 0) / 2,
+    machinePayableBalance2: (prev.machinesPayable ?? 0) / 2,
     // Carryover de matéria-prima não consumida
     plasticStock:  prev.plasticLeftover  ?? 0,
     capsStock:     prev.capsLeftover     ?? 0,
@@ -252,19 +258,21 @@ export function simulateCompany(
     }
   }
 
-  // Pagamento: à vista = paga tudo agora; 3× = entrada (1/3) + 2 parcelas futuras com juros
+  // Pagamento de máquinas:
+  //   À vista:  100% pago nesta rodada (sem juros).
+  //   A prazo:  3× — 33,33% nesta rodada / 33,33% na próxima / restante na seguinte.
+  //             Juros de 2% a.m. incidem sobre as 2 parcelas diferidas (despesa financeira).
   let machinesDownPayment: number;
   let machinesPayable: number;
   let machinesInterest: number;
 
   if (mPurchase.paymentMethod === "installments" && machinesTotalCost > 0) {
-    machinesDownPayment = machinesTotalCost / 3;                   // 1ª parcela (sem juros)
-    const deferred       = (machinesTotalCost * 2) / 3;           // 2/3 diferidos
-    machinesInterest    = deferred * MACHINE_INSTALLMENT_RATE * 2; // juros sobre 2 parcelas futuras
-    // Passivo = apenas principal diferido (juros são despesa financeira, não capitalizado)
-    machinesPayable     = deferred;
+    machinesDownPayment = machinesTotalCost / 3;                    // 1ª parcela (33,33%) — sem juros
+    const deferred      = (machinesTotalCost * 2) / 3;             // 2ª + 3ª parcelas diferidas
+    machinesInterest    = deferred * MACHINE_INSTALLMENT_RATE * 2; // juros sobre as 2 parcelas futuras
+    machinesPayable     = deferred;                                 // principal diferido (sem juros)
   } else {
-    machinesDownPayment = machinesTotalCost; // à vista: paga tudo agora
+    machinesDownPayment = machinesTotalCost; // à vista: 100% pago nesta rodada
     machinesPayable     = 0;
     machinesInterest    = 0;
   }
@@ -446,13 +454,16 @@ export function simulateCompany(
   const laborCashOut = totalSalary + payrollCharges;
 
   // Saídas de caixa: pagamento desta rodada + carryover de fornecedores da rodada anterior
+  // ib.machinePayableBalance = 2ª ou 3ª parcela de máquinas compradas em rodadas anteriores
+  const machineInstallmentPayment = ib.machinePayableBalance ?? 0; // pago automaticamente esta rodada
   const cashOut =
     purchases * sNow + (ib.suppliers ?? 0) +
     laborCashOut +
     (operationalExpenses - totalSalary - payrollCharges) + // demais desp. operac. (incl. armazenagem)
     financialExpense +
     Number(d.machineInvestment || 0) * 0.3 + // legado: 30% do investimento livre
-    machinesDownPayment +                      // entrada das novas máquinas (à vista ou 1ª parcela)
+    machinesDownPayment +                      // 1ª parcela (à vista = 100% | parcelado = 1/3)
+    machineInstallmentPayment +               // 2ª ou 3ª parcela de compras anteriores (automático)
     incomeTax;
 
   // ── BALANÇO PATRIMONIAL ──────────────────────────────────────────────────────
@@ -501,11 +512,15 @@ export function simulateCompany(
   const suppliersDeferred = purchases * sLater;
   const suppliersBalance  = suppliersNext + suppliersDeferred;
   const loansBalance     = ib.loans + effectiveLoan + emergencyLoan;
-  // machinePayable: legado (70% do machineInvestment livre) + parcelas novas + parcelas em aberto
+  // machinePayable = total de obrigações FUTURAS com máquinas (o que ainda vai ser pago):
+  //   - legado: 70% do machineInvestment (campo antigo, compatibilidade)
+  //   - machinesPayable: 2ª + 3ª parcelas das máquinas compradas NESTA rodada
+  //   - machinePayableBalance2: 3ª parcela de compras anteriores (ainda não paga)
+  //   (machinePayableBalance já foi pago nesta rodada via cashOut — não entra aqui)
   const machinePayable   =
-    Number(d.machineInvestment || 0) * 0.7  // legado
-    + machinesPayable                        // parcelas futuras das novas máquinas (2/3 + juros)
-    + (ib.machinePayableBalance ?? 0);       // parcelas herdadas de rounds anteriores
+    Number(d.machineInvestment || 0) * 0.7   // legado
+    + machinesPayable                         // 2ª + 3ª parcelas das novas máquinas (sem juros)
+    + (ib.machinePayableBalance2 ?? 0);       // 3ª parcela herdada de compra anterior
 
   const currentLiabilities  = suppliersBalance + loansBalance * 0.35 + machinePayable;
   const longTermLiabilities  = loansBalance * 0.65;
@@ -588,7 +603,8 @@ export function simulateCompany(
     cfTaxPaid;
 
   const cfLoanReceived = effectiveLoan;
-  const cfMachinePayment = Number(d.machineInvestment || 0) * 0.3 + machinesDownPayment;
+  // FCI — máquinas: 1ª parcela desta rodada + pagamento automático de parcela anterior
+  const cfMachinePayment = Number(d.machineInvestment || 0) * 0.3 + machinesDownPayment + machineInstallmentPayment;
   const cfInvesting = -cfMachinePayment;
   const cfFinancing = cfLoanReceived;
   const cfNetChange = cfOperating + cfInvesting + cfFinancing;
@@ -684,6 +700,8 @@ export function simulateCompany(
     machinesPayable,
     machinesInterest,
     accumulatedMachineCapacity,
+    // Carryover de parcelas (para resultToOpeningBalance)
+    machinePayableBalance2: ib.machinePayableBalance2 ?? 0,
     // Cash flow
     cfReceipts,
     cfSupplierPayments,

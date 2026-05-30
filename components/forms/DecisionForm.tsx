@@ -8,7 +8,7 @@ import {
   DEFAULT_MACHINE_PURCHASE,
   DEFAULT_EMPLOYEES,
   MACHINE_CATALOG,
-  MACHINE_INSTALLMENT_RATE,
+
   BASE_PRODUCTION_CAPACITY,
   DEFAULT_MARKETING_INSERTION_COST,
   REGIONAL_TRANSPORT_COST_PER_UNIT,
@@ -217,9 +217,8 @@ export function DecisionForm({
   );
   const machineDownPayment =
     currentMachines.paymentMethod === "installments" ? totalMachineCost / 3 : totalMachineCost;
-  const machineDeferred =
-    currentMachines.paymentMethod === "installments" ? (totalMachineCost * 2) / 3 : 0;
-  const machineInterestTotal = machineDeferred * MACHINE_INSTALLMENT_RATE * 2;
+  // Sem juros: 3 parcelas iguais de 1/3 cada
+  const machineInstallmentValue = totalMachineCost / 3; // valor de cada parcela
 
   /* ── Regional Sales helpers ─────────────────────────────────────────────── */
   const regionalSales: RegionalSale[] = (() => {
@@ -252,9 +251,16 @@ export function DecisionForm({
   // Identifica se a região da venda é a mesma do grupo do aluno
   const homeRegion = myGroup?.region_name ?? null;
 
-  // Handler explícito para quantidade de máquinas — usado fora do <fieldset>
+  // Total de máquinas selecionadas (limite: 1 por rodada)
+  const totalMachinesSelected = MACHINE_CATALOG.reduce(
+    (sum, m) => sum + Math.max(0, Number(currentMachines[m.id] || 0)), 0
+  );
+
+  // Handler explícito para quantidade de máquinas
+  // Regra: máximo 1 máquina por rodada — bloqueia QUALQUER incremento se já há 1 selecionada
   const setMachineQty = (type: "small" | "medium" | "large", delta: number) => {
     const current = Math.max(0, Number(currentMachines[type] || 0));
+    if (delta > 0 && totalMachinesSelected >= 1) return; // bloqueio absoluto: 1 máquina por rodada
     const next = Math.max(0, current + delta);
     onChange({ ...d, machines: { ...currentMachines, [type]: next } });
   };
@@ -579,7 +585,13 @@ export function DecisionForm({
                   <button
                     type="button"
                     onClick={() => setMachineQty(machine.id, 1)}
-                    className="h-9 w-9 rounded-lg border border-cyan-400/30 bg-cyan-400/10 text-cyan-400 font-bold text-lg hover:bg-cyan-400/20 flex items-center justify-center transition-colors"
+                    disabled={totalMachinesSelected >= 1}
+                    title={totalMachinesSelected >= 1 ? "É permitido comprar apenas 1 máquina por rodada." : undefined}
+                    className={`h-9 w-9 rounded-lg border font-bold text-lg flex items-center justify-center transition-colors ${
+                      totalMachinesSelected >= 1
+                        ? "border-white/10 bg-white/5 text-slate-600 cursor-not-allowed opacity-50"
+                        : "border-cyan-400/30 bg-cyan-400/10 text-cyan-400 hover:bg-cyan-400/20"
+                    }`}
                   >
                     +
                   </button>
@@ -642,11 +654,11 @@ export function DecisionForm({
                       À Vista
                     </p>
                   </div>
-                  <p className="text-[11px] text-slate-500">Pagamento em 15 dias</p>
+                  <p className="text-[11px] text-slate-500">100% pago nesta rodada</p>
                   <p className="text-xs font-semibold text-white mt-1.5">
                     R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                   </p>
-                  <p className="text-[10px] text-emerald-500 mt-0.5">Sem juros</p>
+                  <p className="text-[10px] text-emerald-500 mt-0.5">✅ Sem juros · sem parcelas futuras</p>
                 </button>
 
                 {/* 3× parcelado */}
@@ -675,15 +687,12 @@ export function DecisionForm({
                       3× Parcelado
                     </p>
                   </div>
-                  <p className="text-[11px] text-slate-500">
-                    Juros: {(MACHINE_INSTALLMENT_RATE * 100).toFixed(1)}% a.m.
-                  </p>
-                  <p className="text-xs font-semibold text-white mt-1.5">
-                    Entrada: R$ {(totalMachineCost / 3).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
-                  <p className="text-[10px] text-amber-500 mt-0.5">
-                    + 2× R$ {((totalMachineCost / 3) * (1 + MACHINE_INSTALLMENT_RATE)).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                  </p>
+                  <p className="text-[11px] text-slate-500">3 parcelas · juros sobre as 2 últimas</p>
+                  <div className="mt-1.5 space-y-0.5 text-[11px]">
+                    <p className="text-slate-300">🟢 1ª rodada: <strong>33,33%</strong></p>
+                    <p className="text-slate-300">🟡 2ª rodada: <strong>33,33%</strong></p>
+                    <p className="text-slate-300">🟠 3ª rodada: <strong>restante</strong></p>
+                  </div>
                 </button>
               </div>
             </div>
@@ -705,32 +714,48 @@ export function DecisionForm({
                   R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex justify-between border-t border-white/10 pt-1.5">
-                <span className="text-slate-400">
-                  {currentMachines.paymentMethod === "cash" ? "Pago agora (saída de caixa)" : "Entrada paga agora"}
-                </span>
-                <span className={`font-bold ${currentMachines.paymentMethod === "cash" ? "text-rose-400" : "text-amber-400"}`}>
-                  R$ {machineDownPayment.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
-                </span>
+              {/* Regra de pagamento */}
+              <div className={`rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${
+                currentMachines.paymentMethod === "cash"
+                  ? "border-emerald-400/20 bg-emerald-500/5 text-emerald-300"
+                  : "border-amber-400/20 bg-amber-500/5 text-amber-300"
+              }`}>
+                {currentMachines.paymentMethod === "cash"
+                  ? "💳 Pagamento à vista: 100% do valor será pago nesta rodada."
+                  : "📆 Pagamento a prazo: 33,33% nesta rodada · 33,33% na próxima rodada · restante na rodada seguinte."}
               </div>
-              {currentMachines.paymentMethod === "installments" && (
+
+              {currentMachines.paymentMethod === "cash" ? (
+                <div className="flex justify-between border-t border-white/10 pt-1.5">
+                  <span className="text-slate-400">💰 Pago nesta rodada (100%)</span>
+                  <span className="font-bold text-rose-400">
+                    R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  </span>
+                </div>
+              ) : (
                 <>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">Parcelas restantes (passivo)</span>
-                    <span className="font-bold text-slate-300">
-                      R$ {machineDeferred.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                  <div className="flex justify-between border-t border-white/10 pt-1.5">
+                    <span className="text-slate-400">🟢 1ª rodada (33,33%)</span>
+                    <span className="font-bold text-rose-400">
+                      R$ {machineInstallmentValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-400">Total de juros</span>
+                    <span className="text-slate-400">🟡 2ª rodada (33,33%)</span>
                     <span className="font-bold text-amber-300">
-                      R$ {machineInterestTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      R$ {machineInstallmentValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-400">🟠 3ª rodada (restante)</span>
+                    <span className="font-bold text-amber-300">
+                      R$ {machineInstallmentValue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between border-t border-white/10 pt-1.5">
-                    <span className="text-slate-400">Custo total com juros</span>
+                    <span className="text-slate-400">Total da máquina</span>
                     <span className="font-black text-white">
-                      R$ {(totalMachineCost + machineInterestTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                      R$ {totalMachineCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </>
