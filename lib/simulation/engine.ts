@@ -61,6 +61,7 @@ export const INITIAL_BALANCE: InitialBalance = {
   clientsDeferred: 0,
   inventory: 25000,
   fixedAssets: 150000,
+  accumulatedDepreciation: 0,
   suppliers: 35000,
   suppliersDeferred: 0,
   loans: 60000,
@@ -137,6 +138,7 @@ export function resultToOpeningBalance(prev: SimulationResult): Partial<InitialB
     clientsDeferred:  prev.clientsDeferred ?? 0,
     inventory:   prev.endingInventory,
     fixedAssets: prev.fixedAssets,
+    accumulatedDepreciation: prev.accumulatedDepreciation ?? 0,
     // Prazos de pagamento: suppliersNext vira suppliers; suppliersDeferred vira suppliersDeferred
     suppliers:         prev.suppliersNext     ?? prev.suppliers,
     suppliersDeferred: prev.suppliersDeferred ?? 0,
@@ -168,6 +170,9 @@ export function simulateCompany(
   // Mescla o saldo padrão com o carryover da rodada anterior (quando houver)
   const ib: InitialBalance = { ...INITIAL_BALANCE, ...(openingBalance ?? {}) };
   const isCarryover = !!openingBalance;
+
+  // Inconsistências acumuladas ao longo do cálculo
+  const inconsistencies: string[] = [];
 
   const demand_factor = company.region_demand ?? 1;
   const cost_factor = company.region_cost ?? 1;
@@ -221,13 +226,30 @@ export function simulateCompany(
   // ── COMPRA DE MÁQUINAS ───────────────────────────────────────────────────────
   const mPurchase = { ...DEFAULT_MACHINE_PURCHASE, ...(d.machines ?? {}) };
 
-  // Calcula custo total e capacidade adicionada pelas novas máquinas
+  // Ajuste 5: Limite de 1 máquina por rodada — aplica apenas a primeira encontrada
   let machinesTotalCost = 0;
   let machinesCapacityAdded = 0;
+  let totalMachinesBought = 0;
   for (const m of MACHINE_CATALOG) {
     const qty = Math.max(0, Math.floor(Number(mPurchase[m.id]) || 0));
+    totalMachinesBought += qty;
     machinesTotalCost    += qty * m.price;
     machinesCapacityAdded += qty * m.capacity;
+  }
+
+  // Se comprou mais de 1 máquina, aplica apenas a primeira encontrada
+  if (totalMachinesBought > 1) {
+    inconsistencies.push("É permitido comprar apenas 1 máquina por rodada. Apenas a primeira máquina foi considerada.");
+    machinesTotalCost = 0;
+    machinesCapacityAdded = 0;
+    for (const m of MACHINE_CATALOG) {
+      const qty = Math.max(0, Math.floor(Number(mPurchase[m.id]) || 0));
+      if (qty > 0) {
+        machinesTotalCost    = m.price;    // apenas 1 unidade
+        machinesCapacityAdded = m.capacity;
+        break;
+      }
+    }
   }
 
   // Pagamento: à vista = paga tudo agora; 3× = entrada (1/3) + 2 parcelas futuras com juros
@@ -292,11 +314,13 @@ export function simulateCompany(
       eventDemandFactor
   );
 
-  // ── CUSTO DE TRANSPORTE REGIONAL (Migration 008) ─────────────────────────────
+  // ── CUSTO DE TRANSPORTE REGIONAL (Migration 008 / Ajuste 7) ─────────────────
   // Vender fora da região de origem gera custo adicional de logística
+  // Ajuste 7: Professor pode configurar o valor por unidade (null = padrão R$3.00)
+  const interRegionalCostPerUnit = roundConfig?.inter_regional_cost ?? REGIONAL_TRANSPORT_COST_PER_UNIT;
   const regionalTransportCost = (d.regionalSales ?? [])
     .filter((rs) => rs.active && rs.region_name !== company.region_name)
-    .reduce((sum, rs) => sum + Math.max(0, rs.qty || 0) * REGIONAL_TRANSPORT_COST_PER_UNIT, 0);
+    .reduce((sum, rs) => sum + Math.max(0, rs.qty || 0) * interRegionalCostPerUnit, 0);
 
   const realSalesQty = Math.min(demand, possibleProduction);
 
@@ -344,9 +368,20 @@ export function simulateCompany(
   const periodEndingInventoryValue = ib.inventory + unsoldUnits * unitProductionCost;
   const storageExpense = periodEndingInventoryValue * 0.05; // 5% a.p. sobre saldo de estoque
 
+  // ── LIMITE DE EMPRÉSTIMO (Ajuste 4) ─────────────────────────────────────────
+  // Professor pode limitar o valor máximo de empréstimo por rodada
+  const requestedLoan = Number(d.loan || 0);
+  const loanLimitValue = roundConfig?.loan_limit;
+  let effectiveLoan = requestedLoan;
+  if (loanLimitValue != null && requestedLoan > loanLimitValue) {
+    const fmtBRL = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+    inconsistencies.push(`Valor solicitado (${fmtBRL(requestedLoan)}) superior ao limite de empréstimo definido pelo professor para esta rodada (${fmtBRL(loanLimitValue)}). O valor foi limitado automaticamente.`);
+    effectiveLoan = loanLimitValue;
+  }
+
   // Despesas Operacionais (inclui salários + encargos + armazenagem + demais Migration 008/009)
   // Despesa financeira = juros do empréstimo + juros das parcelas de máquinas (accrual)
-  const financialExpense = Number(d.loan || 0) * (Number(d.loanRate || 0) / 100) + machinesInterest;
+  const financialExpense = effectiveLoan * (Number(d.loanRate || 0) / 100) + machinesInterest;
   const operationalExpenses =
     Number(d.fixedExpenses) +
     totalSalary +
@@ -393,7 +428,7 @@ export function simulateCompany(
   const sLater = sTerm <= 15 ? 0.0 : sTerm <= 30 ? 0.0 : 0.5;
 
   // Entradas: recebimento desta rodada + carryover de clientes da rodada anterior + empréstimo
-  const cashIn = netRevenue * rNow + (ib.clients ?? 0) + Number(d.loan || 0);
+  const cashIn = netRevenue * rNow + (ib.clients ?? 0) + effectiveLoan;
 
   // Salários + encargos pagos no período (saída de caixa)
   const laborCashOut = totalSalary + payrollCharges;
@@ -437,8 +472,11 @@ export function simulateCompany(
   const currentAssets = finalCash + clients + endingInventory;
 
   // ATIVO NÃO CIRCULANTE
-  // Imobilizado líquido = saldo anterior + novos investimentos − depreciação do período
-  const fixedAssets = ib.fixedAssets + Number(d.machineInvestment || 0) + machinesTotalCost - depreciationExpense;
+  // Ajuste 1: Imobilizado — rastreia bruto e depreciação acumulada separadamente
+  const grossFixedAssets = ib.fixedAssets + (ib.accumulatedDepreciation ?? 0) + Number(d.machineInvestment || 0) + machinesTotalCost;
+  const accumulatedDepreciation = (ib.accumulatedDepreciation ?? 0) + depreciationExpense;
+  // Imobilizado líquido = custo histórico total − depreciação acumulada total
+  const fixedAssets = grossFixedAssets - accumulatedDepreciation;
 
   const totalAssets = currentAssets + fixedAssets;
 
@@ -450,7 +488,7 @@ export function simulateCompany(
   const suppliersNext     = (ib.suppliersDeferred ?? 0) + purchases * sNext;
   const suppliersDeferred = purchases * sLater;
   const suppliersBalance  = suppliersNext + suppliersDeferred;
-  const loansBalance     = ib.loans + Number(d.loan || 0) + emergencyLoan;
+  const loansBalance     = ib.loans + effectiveLoan + emergencyLoan;
   // machinePayable: legado (70% do machineInvestment livre) + parcelas novas + parcelas em aberto
   const machinePayable   =
     Number(d.machineInvestment || 0) * 0.7  // legado
@@ -486,7 +524,6 @@ export function simulateCompany(
 
   // ── INCONSISTÊNCIAS ───────────────────────────────────────────────────────────
   const fmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
-  const inconsistencies: string[] = [];
   if (Number(d.productionQty) > effectiveCapacity)
     inconsistencies.push(`Produção (${Number(d.productionQty).toLocaleString("pt-BR")}) acima da capacidade efetiva (${effectiveCapacity.toLocaleString("pt-BR")} unid.).`);
   if (totalMaterialAvailable < Number(d.productionQty))
@@ -538,7 +575,7 @@ export function simulateCompany(
     cfFinancialPayments -
     cfTaxPaid;
 
-  const cfLoanReceived = Number(d.loan || 0);
+  const cfLoanReceived = effectiveLoan;
   const cfMachinePayment = Number(d.machineInvestment || 0) * 0.3 + machinesDownPayment;
   const cfInvesting = -cfMachinePayment;
   const cfFinancing = cfLoanReceived;
@@ -572,6 +609,8 @@ export function simulateCompany(
     // Ativo
     currentAssets,
     fixedAssets,
+    grossFixedAssets,         // Ajuste 1: custo histórico bruto
+    accumulatedDepreciation,  // Ajuste 1: depreciação acumulada total
     totalAssets,
     finalCash,
     clients,

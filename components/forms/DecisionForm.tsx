@@ -46,6 +46,10 @@ interface Props {
   machineMinEmployees?: number | null;
   // Encargos sobre folha salarial em % (null/0 = sem encargos)
   payrollChargesPct?: number | null;
+  // Limite de empréstimo por rodada (null = sem limite)
+  loanLimit?: number | null;
+  // Custo inter-regional por unidade (null = padrão R$3.00)
+  interRegionalCostPerUnit?: number | null;
 }
 
 const SUPPLIER_OPTIONS = [
@@ -122,6 +126,8 @@ export function DecisionForm({
   marketingInsertionCost: marketingInsertionCostProp,
   machineMinEmployees,
   payrollChargesPct,
+  loanLimit,
+  interRegionalCostPerUnit,
 }: Props) {
   const d = { ...DEFAULT_DECISION, ...decision };
 
@@ -467,11 +473,43 @@ export function DecisionForm({
     {/* ── Compra de Máquinas — FORA do fieldset para os botões funcionarem ── */}
     <div className={disabled ? "pointer-events-none select-none opacity-50" : ""}>
       <SectionTitle>🔧 Compra de Máquinas</SectionTitle>
-        <p className="mb-4 text-xs text-slate-400 leading-relaxed">
-          Selecione quantas máquinas deseja adquirir nesta rodada. A capacidade é{" "}
+        <p className="mb-3 text-xs text-slate-400 leading-relaxed">
+          Selecione <strong className="text-white">1 máquina</strong> por rodada. A capacidade é{" "}
           <strong className="text-white">acumulativa</strong> — máquinas compradas agora
-          continuam produzindo nas rodadas seguintes. Você pode combinar tipos livremente.
+          continuam produzindo nas rodadas seguintes.
         </p>
+        <div className="mb-4 flex items-start gap-2 rounded-xl border border-cyan-400/10 bg-cyan-500/5 p-3 text-xs">
+          <span className="text-cyan-400 shrink-0">ℹ️</span>
+          <div>
+            <p className="text-slate-300">
+              <strong className="text-cyan-300">Regra:</strong> É permitido comprar apenas 1 máquina por rodada.
+              Se mais de uma for selecionada, apenas a primeira será considerada pelo sistema.
+            </p>
+            <p className="text-slate-500 mt-0.5">
+              A máquina comprada entrará em operação nesta mesma rodada.
+            </p>
+          </div>
+        </div>
+        {/* Contador de máquinas selecionadas */}
+        {(() => {
+          const totalSelected = MACHINE_CATALOG.reduce(
+            (sum, m) => sum + Math.max(0, Number(currentMachines[m.id] || 0)), 0
+          );
+          return totalSelected > 1 ? (
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-rose-400/30 bg-rose-500/10 p-3 text-xs text-rose-300">
+              <span>⚠️</span>
+              <p>
+                <strong>{totalSelected} máquinas</strong> selecionadas — apenas a primeira será considerada.
+                Retire as demais para evitar confusão.
+              </p>
+            </div>
+          ) : totalSelected === 1 ? (
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/5 p-3 text-xs text-emerald-300">
+              <span>✅</span>
+              <p>1 máquina selecionada — limite respeitado.</p>
+            </div>
+          ) : null;
+        })()}
 
         {/* Aviso sobre colaboradores necessários para as máquinas */}
         {totalMachineCapacity > 0 && (
@@ -882,15 +920,21 @@ export function DecisionForm({
         )}
 
         {/* Aviso sobre custo regional */}
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-cyan-400/10 bg-cyan-500/5 p-3 text-xs">
-          <span className="text-cyan-400">🚚</span>
-          <p className="text-slate-400">
-            <strong className="text-cyan-300">Custo de logística regional:</strong>{" "}
-            Vendas fora da sua região de origem geram custo adicional de{" "}
-            <strong className="text-white">R$ {REGIONAL_TRANSPORT_COST_PER_UNIT.toFixed(2)}/unidade</strong>.
-            {homeRegion && ` Sua região base é ${homeRegion}.`}
-          </p>
-        </div>
+        {(() => {
+          const effectiveInterRegionalCost = interRegionalCostPerUnit ?? REGIONAL_TRANSPORT_COST_PER_UNIT;
+          return (
+            <div className="mb-4 flex items-start gap-2 rounded-xl border border-cyan-400/10 bg-cyan-500/5 p-3 text-xs">
+              <span className="text-cyan-400">🚚</span>
+              <p className="text-slate-400">
+                <strong className="text-cyan-300">Custo de logística regional:</strong>{" "}
+                Vendas fora da sua região de origem geram custo adicional de{" "}
+                <strong className="text-white">R$ {effectiveInterRegionalCost.toFixed(2)}/unidade</strong>{" "}
+                (adicional inter-regional definido pelo professor).
+                {homeRegion && ` Sua região base é ${homeRegion}.`}
+              </p>
+            </div>
+          );
+        })()}
 
         {hasGroups ? (
           <div className="w-full min-w-0">
@@ -1178,24 +1222,30 @@ export function DecisionForm({
                 </div>
 
                 {/* Custo regional detalhado */}
-                {regionalSales.some((rs) => rs.active && homeRegion && rs.region_name !== homeRegion) && (
-                  <div className="rounded-xl border border-orange-400/20 bg-orange-500/5 px-4 py-2.5 text-xs">
-                    <p className="font-semibold text-orange-300 mb-1">🚚 Custo de logística inter-regional</p>
-                    <div className="flex flex-wrap gap-x-4 gap-y-0.5">
-                      {regionalSales
-                        .filter((rs) => rs.active && homeRegion != null && rs.region_name !== homeRegion)
-                        .map((rs) => (
-                          <span key={rs.group_id} className="text-slate-400">
-                            {rs.region_name}: {(rs.qty || 0).toLocaleString("pt-BR")} unid. ×{" "}
-                            R$ {REGIONAL_TRANSPORT_COST_PER_UNIT.toFixed(2)} ={" "}
-                            <strong className="text-orange-300">
-                              R$ {((rs.qty || 0) * REGIONAL_TRANSPORT_COST_PER_UNIT).toLocaleString("pt-BR")}
-                            </strong>
-                          </span>
-                        ))}
+                {regionalSales.some((rs) => rs.active && homeRegion && rs.region_name !== homeRegion) && (() => {
+                  const effectiveCostPerUnit = interRegionalCostPerUnit ?? REGIONAL_TRANSPORT_COST_PER_UNIT;
+                  return (
+                    <div className="rounded-xl border border-orange-400/20 bg-orange-500/5 px-4 py-2.5 text-xs">
+                      <p className="font-semibold text-orange-300 mb-1">🚚 Custo de logística inter-regional</p>
+                      <p className="text-slate-500 mb-1.5 text-[10px] italic">
+                        Esta venda está sendo realizada fora da sua região de origem e sofrerá incidência do adicional inter-regional definido pelo professor.
+                      </p>
+                      <div className="flex flex-wrap gap-x-4 gap-y-0.5">
+                        {regionalSales
+                          .filter((rs) => rs.active && homeRegion != null && rs.region_name !== homeRegion)
+                          .map((rs) => (
+                            <span key={rs.group_id} className="text-slate-400">
+                              {rs.region_name}: {(rs.qty || 0).toLocaleString("pt-BR")} unid. ×{" "}
+                              R$ {effectiveCostPerUnit.toFixed(2)} ={" "}
+                              <strong className="text-orange-300">
+                                R$ {((rs.qty || 0) * effectiveCostPerUnit).toLocaleString("pt-BR")}
+                              </strong>
+                            </span>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             )}
           </div>
@@ -1295,8 +1345,34 @@ export function DecisionForm({
       {/* FINANCEIRO */}
       <div>
         <SectionTitle>💰 Gestão Financeira</SectionTitle>
+        {loanLimit != null && (
+          <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-400/20 bg-amber-500/10 p-3 text-xs">
+            <span className="text-amber-400 shrink-0">💳</span>
+            <p className="text-slate-300">
+              <strong className="text-amber-300">Limite de empréstimo:</strong>{" "}
+              R$ {loanLimit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} nesta rodada.
+              Valores acima serão automaticamente limitados.
+            </p>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <CurrencyInput label="Empréstimo" value={d.loan || null} onChange={(n) => set("loan", n ?? 0)} />
+          <div>
+            <CurrencyInput
+              label="Empréstimo"
+              value={d.loan || null}
+              onChange={(n) => set("loan", n ?? 0)}
+              error={
+                loanLimit != null && Number(d.loan || 0) > loanLimit
+                  ? `Limite: R$ ${loanLimit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`
+                  : undefined
+              }
+            />
+            {loanLimit != null && Number(d.loan || 0) > loanLimit && (
+              <p className="mt-1 text-[10px] text-amber-400">
+                Valor superior ao limite de empréstimo desta rodada. Será limitado automaticamente.
+              </p>
+            )}
+          </div>
 
           {/* Taxa de juros — BLOQUEADA */}
           <div className="flex flex-col gap-1">

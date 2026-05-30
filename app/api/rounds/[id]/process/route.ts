@@ -115,11 +115,13 @@ export async function POST(
   const prices = decisions.map((d) => Number(d.salePrice || 42));
   const marketAvgPrice = prices.reduce((s, p) => s + p, 0) / prices.length;
 
-  // Configuração da rodada para o engine (Migration 008 + 009)
+  // Configuração da rodada para o engine (Migration 008 + 009 + 010)
   const roundConfig: RoundConfig = {
     marketing_insertion_cost: round.marketing_insertion_cost ?? null,
     machine_min_employees:    round.machine_min_employees    ?? null,
     payroll_charges_pct:      round.payroll_charges_pct      ?? null,
+    loan_limit:               round.loan_limit               ?? null,
+    inter_regional_cost:      round.inter_regional_cost      ?? null,
   };
 
   // Simulate each company (with carryover opening balance when available)

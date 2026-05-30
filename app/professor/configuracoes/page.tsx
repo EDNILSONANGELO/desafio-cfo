@@ -950,6 +950,8 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
   const [insertionCost,    setInsertionCost]    = React.useState<number | null>(round.marketing_insertion_cost ?? null);
   const [minEmployees,     setMinEmployees]     = React.useState<number | null>(round.machine_min_employees ?? null);
   const [payrollChargesPct, setPayrollChargesPct] = React.useState<number | null>(round.payroll_charges_pct ?? null);
+  const [loanLimit,        setLoanLimit]        = React.useState<number | null>(round.loan_limit ?? null);
+  const [interRegionalCost, setInterRegionalCost] = React.useState<number | null>(round.inter_regional_cost ?? null);
   const [saving,  setSaving]  = React.useState(false);
   const [saved,   setSaved]   = React.useState(false);
   const [saveErr, setSaveErr] = React.useState<string | null>(null);
@@ -960,6 +962,8 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
     setInsertionCost(round.marketing_insertion_cost ?? null);
     setMinEmployees(round.machine_min_employees ?? null);
     setPayrollChargesPct(round.payroll_charges_pct ?? null);
+    setLoanLimit(round.loan_limit ?? null);
+    setInterRegionalCost(round.inter_regional_cost ?? null);
     setSaved(false);
     setSaveErr(null);
   }, [round.id]);
@@ -974,15 +978,17 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
         marketing_insertion_cost: insertionCost,
         machine_min_employees:    minEmployees,
         payroll_charges_pct:      payrollChargesPct,
+        loan_limit:               loanLimit,
+        inter_regional_cost:      interRegionalCost,
       }),
     });
     const json = await res.json();
     if (!res.ok) {
       const msg = json.error || "Erro ao salvar.";
-      if (msg.includes("marketing_insertion_cost") || msg.includes("payroll_charges_pct") || msg.includes("column")) setNeedsMigration(true);
+      if (msg.includes("marketing_insertion_cost") || msg.includes("payroll_charges_pct") || msg.includes("loan_limit") || msg.includes("inter_regional_cost") || msg.includes("column")) setNeedsMigration(true);
       setSaveErr(msg);
     } else {
-      onUpdate({ marketing_insertion_cost: insertionCost, machine_min_employees: minEmployees, payroll_charges_pct: payrollChargesPct });
+      onUpdate({ marketing_insertion_cost: insertionCost, machine_min_employees: minEmployees, payroll_charges_pct: payrollChargesPct, loan_limit: loanLimit, inter_regional_cost: interRegionalCost });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     }
@@ -1009,7 +1015,9 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
           <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 text-xs text-emerald-300">
 {`ALTER TABLE rounds ADD COLUMN IF NOT EXISTS marketing_insertion_cost DECIMAL DEFAULT NULL;
 ALTER TABLE rounds ADD COLUMN IF NOT EXISTS machine_min_employees INTEGER DEFAULT NULL;
-ALTER TABLE rounds ADD COLUMN IF NOT EXISTS payroll_charges_pct DECIMAL DEFAULT NULL;`}
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS payroll_charges_pct DECIMAL DEFAULT NULL;
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS loan_limit DECIMAL DEFAULT NULL;
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS inter_regional_cost DECIMAL DEFAULT NULL;`}
           </pre>
         </div>
       )}
@@ -1199,6 +1207,74 @@ ALTER TABLE rounds ADD COLUMN IF NOT EXISTS payroll_charges_pct DECIMAL DEFAULT 
         </div>
       </div>
 
+      {/* ── Limite de Empréstimo (Ajuste 4) ── */}
+      <div className="mt-6 border-t border-white/10 pt-6">
+        <p className="mb-1 text-xs font-black uppercase tracking-widest text-slate-400">
+          💳 Limite de Empréstimo por Rodada
+        </p>
+        <p className="mb-3 text-xs text-slate-500">
+          Valor máximo que cada grupo pode solicitar como empréstimo nesta rodada.
+          Deixe em branco para sem limite (padrão: R$ 100.000).
+        </p>
+        <div className="flex items-center gap-2 max-w-xs">
+          <CurrencyInput
+            label="Limite de empréstimo (R$)"
+            value={loanLimit}
+            onChange={(n) => { setLoanLimit(n); setSaved(false); }}
+            placeholder="Sem limite (padrão)"
+          />
+          {loanLimit !== null && (
+            <button
+              type="button"
+              onClick={() => { setLoanLimit(null); setSaved(false); }}
+              className="mt-5 rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-xs text-slate-400 hover:text-white"
+              title="Remover limite"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {loanLimit !== null && (
+          <p className="mt-1 text-xs text-amber-300">
+            Grupos não poderão solicitar empréstimos acima de <strong>R$ {loanLimit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>.
+          </p>
+        )}
+      </div>
+
+      {/* ── Custo Inter-Regional (Ajuste 7) ── */}
+      <div className="mt-6 border-t border-white/10 pt-6">
+        <p className="mb-1 text-xs font-black uppercase tracking-widest text-slate-400">
+          🚚 Adicional de Frete Inter-Regional (R$/unid.)
+        </p>
+        <p className="mb-3 text-xs text-slate-500">
+          Custo adicional por unidade para vendas fora da região de origem.
+          Deixe em branco para usar o padrão do sistema (R$ 3,00/unidade).
+        </p>
+        <div className="flex items-center gap-2 max-w-xs">
+          <CurrencyInput
+            label="Custo por unidade (R$)"
+            value={interRegionalCost}
+            onChange={(n) => { setInterRegionalCost(n); setSaved(false); }}
+            placeholder="3,00 (padrão)"
+          />
+          {interRegionalCost !== null && (
+            <button
+              type="button"
+              onClick={() => { setInterRegionalCost(null); setSaved(false); }}
+              className="mt-5 rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-xs text-slate-400 hover:text-white"
+              title="Usar padrão do sistema"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+        {interRegionalCost !== null && (
+          <p className="mt-1 text-xs text-violet-300">
+            Nesta rodada: <strong>R$ {interRegionalCost.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/unidade</strong> para vendas inter-regionais.
+          </p>
+        )}
+      </div>
+
       {/* Regras de status */}
       <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.02] p-4 text-xs">
         <p className="font-black uppercase tracking-widest text-slate-500 mb-2">
@@ -1239,7 +1315,7 @@ ALTER TABLE rounds ADD COLUMN IF NOT EXISTS payroll_charges_pct DECIMAL DEFAULT 
         <Button onClick={save} loading={saving}>
           <CheckCircle2 className="h-4 w-4" /> Salvar Configurações
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => { setInsertionCost(null); setMinEmployees(null); setPayrollChargesPct(null); setSaved(false); }}>
+        <Button variant="ghost" size="sm" onClick={() => { setInsertionCost(null); setMinEmployees(null); setPayrollChargesPct(null); setLoanLimit(null); setInterRegionalCost(null); setSaved(false); }}>
           <RefreshCw className="h-4 w-4" /> Restaurar Padrão
         </Button>
       </div>

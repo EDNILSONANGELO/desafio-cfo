@@ -125,7 +125,15 @@ export function BalancoPatrimonialPanel({ result: r }: Props) {
 
       <Sub>Ativo Não Circulante</Sub>
       <div className="mb-3 space-y-1.5">
-        <Row label="Imobilizado (líq. de depreciação)" value={currency(r.fixedAssets)} />
+        {r.grossFixedAssets != null ? (
+          <>
+            <Row label="Imobilizado (custo histórico)" value={currency(r.grossFixedAssets)} />
+            <Row label="(-) Depreciação Acumulada" value={`(${currency(r.accumulatedDepreciation ?? 0)})`} />
+            <Row label="Imobilizado Líquido" value={currency(r.fixedAssets)} bold />
+          </>
+        ) : (
+          <Row label="Imobilizado (líq. de depreciação)" value={currency(r.fixedAssets)} />
+        )}
         <SubTotal label="Total Ativo Não Circulante" value={currency(r.fixedAssets)} color="cyan" />
       </div>
 

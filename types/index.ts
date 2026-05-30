@@ -68,6 +68,9 @@ export interface Round {
   machine_min_employees: number | null;     // Min. funcionários por 1.000 unidades (null = 3)
   // ── Novos campos (Migration 009 — Encargos sobre folha) ───────────────────────
   payroll_charges_pct: number | null;       // % de encargos sobre folha salarial (null = 0%)
+  // ── Novos campos (Migration 010 — Limite de empréstimo e custo inter-regional) ─
+  loan_limit: number | null;               // Limite de empréstimo por rodada (null = sem limite = padrão R$100.000)
+  inter_regional_cost: number | null;      // Custo adicional inter-regional R$/unid (null = padrão R$3.00)
   class_id: string;
   created_at: string;
   opened_at: string | null;
@@ -184,7 +187,9 @@ export interface SimulationResult {
   clientsDeferred?: number;      // parcela a receber na rodada posterior (carryover)
   endingInventory: number;
   currentAssets: number;
-  fixedAssets: number;
+  fixedAssets: number;           // Imobilizado líquido (custo histórico - depreciação acumulada)
+  grossFixedAssets?: number;     // Imobilizado bruto (custo histórico total)
+  accumulatedDepreciation?: number; // Depreciação acumulada total
   totalAssets: number;
 
   // ── PASSIVO ───────────────────────────────────────────────────────────────────
@@ -348,6 +353,7 @@ export interface InitialBalance {
   clientsDeferred?: number;      // A/R a receber na PRÓXIMA rodada (60 dias – 2ª parcela)
   inventory: number;
   fixedAssets: number;
+  accumulatedDepreciation?: number; // Depreciação acumulada carregada da rodada anterior
   suppliers: number;             // A/P a pagar NESTA rodada (carryover da anterior)
   suppliersDeferred?: number;    // A/P a pagar na PRÓXIMA rodada (60 dias – 2ª parcela)
   loans: number;
@@ -368,4 +374,6 @@ export interface RoundConfig {
   marketing_insertion_cost?: number | null;
   machine_min_employees?: number | null;
   payroll_charges_pct?: number | null;       // % de encargos sobre folha (null/0 = sem encargos)
+  loan_limit?: number | null;                // Limite de empréstimo por rodada (null = sem limite)
+  inter_regional_cost?: number | null;       // Custo adicional inter-regional R$/unid (null = padrão R$3.00)
 }

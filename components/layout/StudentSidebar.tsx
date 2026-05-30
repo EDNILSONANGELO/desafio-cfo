@@ -10,6 +10,7 @@ import {
   BarChart3,
   Calculator,
   Globe,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils/format";
 
@@ -17,6 +18,7 @@ const navItems = [
   { href: "/aluno",           icon: LayoutDashboard, label: "Início",     exact: true },
   { href: "/aluno/resultados",icon: BarChart3,        label: "Resultados"             },
   { href: "/aluno/mercado",   icon: Globe,            label: "Mercado"                },
+  { href: "/aluno/notas",     icon: GraduationCap,   label: "Notas"                  },
 ];
 
 /** Busca a rodada aberta do aluno para montar o link do formulário */
