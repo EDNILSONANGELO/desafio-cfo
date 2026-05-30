@@ -402,6 +402,9 @@ export default function ResultadosClient({ groupResults, fullRanking, medals, se
               ? (r.realSalesQty / (r.productionEffective ?? 1)) * 100
               : 0;
             const temEstoque = (r.unsoldUnits ?? 0) > 0;
+            // Estoque Final correto: unidades físicas × custo unitário
+            // (guarda contra resultados antigos que somavam ib.inventory mesmo sem unidades físicas)
+            const displayEndingInventory = (r.unsoldUnits ?? 0) * (r.unitProductionCost ?? 0);
 
             async function exportProducao() {
               const rows = [
@@ -409,7 +412,7 @@ export default function ResultadosClient({ groupResults, fullRanking, medals, se
                   "Produção Efetiva (un.)": r.productionEffective ?? 0,
                   "Qtd. Vendida (un.)": r.realSalesQty,
                   "Não Vendidas (un.)": r.unsoldUnits ?? 0,
-                  "Estoque Final (R$)": r.endingInventory,
+                  "Estoque Final (R$)": displayEndingInventory,
                   "Custo Unit. (R$)": r.unitProductionCost ?? 0,
                   "Taxa de Venda (%)": taxaVenda.toFixed(1),
                 },
@@ -453,7 +456,9 @@ export default function ResultadosClient({ groupResults, fullRanking, medals, se
                           {temEstoque && <p className="text-[10px] font-normal text-amber-500/80">em estoque</p>}
                         </td>
                         <td className="px-3 py-3 text-right">
-                          <p className="font-semibold text-white">{currency(r.endingInventory)}</p>
+                          <p className={`font-semibold ${temEstoque ? "text-white" : "text-slate-500"}`}>
+                            {currency(displayEndingInventory)}
+                          </p>
                           {temEstoque && (
                             <p className="text-[10px] text-slate-500">
                               {(r.unsoldUnits ?? 0).toLocaleString("pt-BR")} un. × {currency(r.unitProductionCost ?? 0)}

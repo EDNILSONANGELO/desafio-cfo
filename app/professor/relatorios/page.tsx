@@ -523,6 +523,8 @@ export default function RelatoriosPage() {
                     const rows = results.map((r) => {
                       const taxaVenda = r.productionEffective > 0
                         ? (r.realSalesQty / r.productionEffective) * 100 : 0;
+                      // Estoque Final correto: unidades físicas × custo unitário
+                      const displayEnding = (r.unsoldUnits ?? 0) * (r.unitProductionCost ?? 0);
                       return {
                         "Empresa":              r.company,
                         "Grupo":                r.group,
@@ -530,7 +532,7 @@ export default function RelatoriosPage() {
                         "Produção Efetiva (un.)": r.productionEffective ?? 0,
                         "Qtd. Vendida (un.)":   r.realSalesQty,
                         "Não Vendidas (un.)":   r.unsoldUnits ?? 0,
-                        "Estoque Final (R$)":   r.endingInventory,
+                        "Estoque Final (R$)":   displayEnding,
                         "Custo Unit. (R$)":     r.unitProductionCost ?? 0,
                         "Taxa de Venda (%)":    taxaVenda,
                       };
@@ -548,7 +550,7 @@ export default function RelatoriosPage() {
                         <th className="px-3 py-2.5 text-right" title="Unidades efetivamente produzidas no período">Produção Efetiva</th>
                         <th className="px-3 py-2.5 text-right" title="Unidades vendidas de fato (mín. entre demanda e produção)">Qtd. Vendida</th>
                         <th className="px-3 py-2.5 text-right" title="Unidades produzidas mas não vendidas neste período">Não Vendidas</th>
-                        <th className="px-3 py-2.5 text-right" title="Valor do estoque ao final da rodada (inclui estoque inicial + produção não vendida)">Estoque Final (R$)</th>
+                        <th className="px-3 py-2.5 text-right" title="Valor do estoque ao final da rodada (unidades não vendidas × custo unitário)">Estoque Final (R$)</th>
                         <th className="px-3 py-2.5 text-right" title="Custo unitário de produção (materiais + mão de obra)">Custo Unit.</th>
                         <th className="px-3 py-2.5 text-right" title="% das unidades produzidas que foram vendidas">Taxa Venda</th>
                       </tr>
@@ -558,7 +560,9 @@ export default function RelatoriosPage() {
                         const taxaVenda = r.productionEffective > 0
                           ? (r.realSalesQty / r.productionEffective) * 100
                           : 0;
-                        const temEstoque = r.unsoldUnits > 0;
+                        const temEstoque = (r.unsoldUnits ?? 0) > 0;
+                        // Estoque Final correto: unidades físicas × custo unitário
+                        const displayEnding = (r.unsoldUnits ?? 0) * (r.unitProductionCost ?? 0);
                         return (
                           <tr key={r.companyId} className={`border-b border-white/5 hover:bg-white/5 ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
                             <td className="px-3 py-3">
@@ -578,8 +582,10 @@ export default function RelatoriosPage() {
                               )}
                             </td>
                             <td className="px-3 py-3 text-right">
-                              <p className="font-semibold text-white">{currency(r.endingInventory)}</p>
-                              {(r.unsoldUnits ?? 0) > 0 && (
+                              <p className={`font-semibold ${temEstoque ? "text-white" : "text-slate-500"}`}>
+                                {currency(displayEnding)}
+                              </p>
+                              {temEstoque && (
                                 <p className="text-[10px] text-slate-500">
                                   {(r.unsoldUnits ?? 0).toLocaleString("pt-BR")} un. × {currency(r.unitProductionCost ?? 0)}
                                 </p>
