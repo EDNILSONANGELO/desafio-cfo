@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
-import { simulateCompany, DEFAULT_DECISION, resultToOpeningBalance } from "@/lib/simulation/engine";
+import { simulateCompany, DEFAULT_DECISION, resultToOpeningBalance, BASE_PRODUCTION_CAPACITY } from "@/lib/simulation/engine";
 import { rankResults, DEFAULT_WEIGHTS, ScoreWeights } from "@/lib/simulation/scoring";
 import { assignMedals } from "@/lib/simulation/medals";
+import { computeCompetitiveDistribution, hasRegionalSales } from "@/lib/simulation/competitive";
 import type { Group, Decision, EconomicEvent, SimulationResult, InitialBalance, RoundConfig } from "@/types";
 
 const EVENT_MAP: Record<string, EconomicEvent> = {
@@ -125,11 +126,91 @@ export async function POST(
     loan_rate:                round.loan_rate                ?? null,  // Ajuste 10
   };
 
-  // Simulate each company (with carryover opening balance when available)
-  const simResults = groups.map((g: Group) => {
+  // ── AJUSTE 6: Distribuição Competitiva Regional ──────────────────────────────
+  // Verifica se algum grupo usa vendas regionais. Se sim, distribui a demanda
+  // competitivamente antes de rodar as simulações individuais.
+  const competitiveEntries = groups.map((g: Group) => {
     const decision       = submissionMap.get(g.id) || DEFAULT_DECISION;
     const openingBalance = openingBalanceMap.get(g.id) ?? undefined;
-    return simulateCompany(g, decision, marketAvgPrice, effectiveEvent, openingBalance, roundConfig);
+    const ib             = { ...{ cash: 75000, banks: 30000, applications: 20000, clients: 40000, inventory: 0, fixedAssets: 150000, suppliers: 35000, loans: 60000, equity: 220000 }, ...(openingBalance ?? {}) };
+
+    // Unidades disponíveis: capacidade efetiva (produção + estoque inicial)
+    const machineCapacity   = ib.machineCapacity ?? 0;
+    const effectiveCap      = BASE_PRODUCTION_CAPACITY + machineCapacity;
+    const productionQty     = Math.min(Number(decision.productionQty ?? 0), effectiveCap);
+    const initialUnits      = ib.inventory > 0 && Number(decision.plasticUnit ?? 0) > 0
+      ? Math.round(ib.inventory / (Number(decision.plasticUnit ?? 7) + Number(decision.capsUnit ?? 1.2) + Number(decision.packageUnit ?? 1.8) + Number(decision.labelUnit ?? 0.7)))
+      : 0;
+    const availableUnits    = initialUnits + productionQty;
+
+    return { group: g, decision, availableUnits };
+  });
+
+  const useCompetitive = hasRegionalSales(competitiveEntries);
+  const eventDemandFactor = effectiveEvent?.demandFactor ?? 1.0;
+
+  // Mapa groupId → override competitivo (somente quando há vendas regionais)
+  const competitiveOverrideMap = new Map<number, { realSalesQty: number; netRevenue: number; competitiveScore: number; regionalBreakdown: unknown[] }>();
+  let allRegionsCompetition: unknown[] = [];
+
+  if (useCompetitive) {
+    const { groupResults, regionResults } = computeCompetitiveDistribution(
+      competitiveEntries,
+      eventDemandFactor
+    );
+    for (const [groupId, result] of groupResults) {
+      competitiveOverrideMap.set(groupId, {
+        realSalesQty:      result.totalSoldQty,
+        netRevenue:        result.totalNetRevenue,
+        competitiveScore:  result.competitiveScore,
+        regionalBreakdown: result.regionResults.map((r) => ({
+          region_name:       r.region_name,
+          offeredQty:        r.offeredQty,
+          soldQty:           r.soldQty,
+          price:             r.price,
+          insertions:        r.insertions,
+          competitiveScore:  r.competitiveScore,
+          marketShare:       r.marketShare,
+          isHomeRegion:      r.isHomeRegion,
+        })),
+      });
+    }
+    allRegionsCompetition = regionResults.map((rr) => ({
+      region_name:  rr.region_name,
+      totalDemand:  rr.totalDemand,
+      totalSold:    rr.totalSold,
+      demandUnmet:  rr.demandUnmet,
+      competitors:  rr.competitors.map((c) => ({
+        groupId:          c.groupId,
+        company:          c.company,
+        soldQty:          c.soldQty,
+        price:            c.price,
+        competitiveScore: c.competitiveScore,
+        marketShare:      c.marketShare,
+      })),
+    }));
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Simulate each company (with carryover opening balance when available)
+  const simResults = groups.map((g: Group) => {
+    const decision         = submissionMap.get(g.id) || DEFAULT_DECISION;
+    const openingBalance   = openingBalanceMap.get(g.id) ?? undefined;
+    const compOverrideRaw  = competitiveOverrideMap.get(g.id);
+    const compOverride = compOverrideRaw
+      ? {
+          realSalesQty:      compOverrideRaw.realSalesQty,
+          netRevenue:        compOverrideRaw.netRevenue,
+          competitiveScore:  compOverrideRaw.competitiveScore,
+          regionalBreakdown: compOverrideRaw.regionalBreakdown as Parameters<typeof simulateCompany>[6] extends { regionalBreakdown?: infer T } ? T : never,
+        }
+      : undefined;
+    const result = simulateCompany(g, decision, marketAvgPrice, effectiveEvent, openingBalance, roundConfig, compOverride);
+    // Incluir dados de competição de todas as regiões no resultado (para relatório de mercado)
+    if (allRegionsCompetition.length > 0) {
+      Object.assign(result, { allRegionsCompetition });
+    }
+    return result;
   });
 
   // Carregar pesos customizados da turma (se existir a coluna score_weights)

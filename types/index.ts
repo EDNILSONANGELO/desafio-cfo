@@ -257,6 +257,33 @@ export interface SimulationResult {
   cfNetChange?: number;          // Variação Líquida de Caixa
   cfOpeningBalance?: number;     // Saldo inicial de caixa
 
+  // ── INTELIGÊNCIA COMPETITIVA (Ajuste 6) ──────────────────────────────────────
+  competitiveScore?: number;       // score competitivo médio ponderado (0–1)
+  regionalBreakdown?: Array<{      // detalhes de competição por região
+    region_name: string;
+    offeredQty: number;
+    soldQty: number;
+    price: number;
+    insertions: number;
+    competitiveScore: number;
+    marketShare: number;
+    isHomeRegion: boolean;
+  }>;
+  allRegionsCompetition?: Array<{  // visão geral de TODAS as regiões (para relatório de mercado)
+    region_name: string;
+    totalDemand: number;
+    totalSold: number;
+    demandUnmet: number;
+    competitors: Array<{
+      groupId: number;
+      company: string;
+      soldQty: number;
+      price: number;
+      competitiveScore: number;
+      marketShare: number;
+    }>;
+  }>;
+
   // ── CAMPOS DE CARRYOVER ───────────────────────────────────────────────────────
   isCarryover?: boolean;         // true se usou saldo do período anterior
 

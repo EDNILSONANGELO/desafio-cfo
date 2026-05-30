@@ -435,6 +435,102 @@ export default function MercadoProfessorPage() {
         <RegionProfileTable results={results} />
       </div>
 
+      {/* Inteligência de Mercado Regional */}
+      {(results[0]?.data?.allRegionsCompetition?.length ?? 0) > 0 && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <SectionTitle>
+            <Target className="mr-2 inline h-4 w-4" />
+            Inteligência de Mercado Regional
+          </SectionTitle>
+          <p className="mb-5 text-xs text-slate-500">
+            Visão completa da competição por região — demanda, oferta e desempenho de cada concorrente.
+          </p>
+          <div className="space-y-6">
+            {results[0].data.allRegionsCompetition!.map((region) => {
+              const unmetPct = region.totalDemand > 0 ? ((region.demandUnmet / region.totalDemand) * 100) : 0;
+              return (
+                <div key={region.region_name} className="rounded-xl border border-white/10 bg-slate-900/50 overflow-hidden">
+                  {/* Region header */}
+                  <div className="flex flex-wrap items-center gap-4 border-b border-white/10 bg-white/5 px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Globe className="h-4 w-4 text-cyan-400 shrink-0" />
+                      <span className="font-bold text-white">{region.region_name}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-3 ml-auto">
+                      <div className="flex flex-col items-center rounded-lg bg-white/5 px-3 py-1.5 border border-white/10">
+                        <span className="text-xs font-black text-white">{number(region.totalDemand, 0)}</span>
+                        <span className="text-[10px] text-slate-500">Demanda Total</span>
+                      </div>
+                      <div className="flex flex-col items-center rounded-lg bg-white/5 px-3 py-1.5 border border-white/10">
+                        <span className="text-xs font-black text-emerald-400">{number(region.totalSold, 0)}</span>
+                        <span className="text-[10px] text-slate-500">Total Vendido</span>
+                      </div>
+                      <div className="flex flex-col items-center rounded-lg bg-white/5 px-3 py-1.5 border border-white/10">
+                        <span className={`text-xs font-black ${unmetPct > 20 ? "text-rose-400" : unmetPct > 5 ? "text-amber-400" : "text-slate-300"}`}>
+                          {number(unmetPct, 1)}%
+                        </span>
+                        <span className="text-[10px] text-slate-500">Dem. Não Atend.</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Competitors table */}
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-xs">
+                      <thead>
+                        <tr className="border-b border-white/10 bg-slate-900/60">
+                          <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Empresa</th>
+                          <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Preço Praticado</th>
+                          <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Qtd. Ofertada</th>
+                          <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Qtd. Vendida</th>
+                          <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Market Share</th>
+                          <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Score Competitivo</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {region.competitors.map((comp, ci) => {
+                          const sc = comp.competitiveScore ?? 0;
+                          const scoreColor = sc >= 0.7 ? "bg-emerald-500" : sc >= 0.4 ? "bg-amber-500" : "bg-rose-500";
+                          const scoreBadge = sc >= 0.7 ? "text-emerald-400 bg-emerald-500/15 border-emerald-500/30" : sc >= 0.4 ? "text-amber-400 bg-amber-500/15 border-amber-500/30" : "text-rose-400 bg-rose-500/15 border-rose-500/30";
+                          const ms = comp.marketShare ?? 0;
+                          return (
+                            <tr key={comp.groupId} className={`border-b border-white/5 transition-colors hover:bg-white/[0.04] ${ci % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                              <td className="px-3 py-2.5 min-w-[140px]">
+                                <span className="font-semibold text-white">{comp.company}</span>
+                              </td>
+                              <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{currency(comp.price)}</td>
+                              <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">—</td>
+                              <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{number(comp.soldQty, 0)}</td>
+                              <td className="px-3 py-2.5 min-w-[120px]">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-mono text-slate-300 w-10 shrink-0">{number(ms * 100, 1)}%</span>
+                                  <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                                    <div className="h-full rounded-full bg-cyan-500" style={{ width: `${Math.min(ms * 100, 100)}%` }} />
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-3 py-2.5 min-w-[160px]">
+                                <div className="flex items-center gap-2">
+                                  <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${scoreBadge}`}>
+                                    {number(sc * 100, 0)}%
+                                  </span>
+                                  <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                                    <div className={`h-full rounded-full ${scoreColor}`} style={{ width: `${Math.min(sc * 100, 100)}%` }} />
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Professor tips */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <SectionTitle>

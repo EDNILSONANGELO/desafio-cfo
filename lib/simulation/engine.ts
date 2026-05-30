@@ -164,13 +164,31 @@ export function resultToOpeningBalance(prev: SimulationResult): Partial<InitialB
   };
 }
 
+/** Parâmetro opcional de override para distribuição competitiva regional */
+export interface CompetitiveOverride {
+  realSalesQty: number;       // quantidade total vendida pela distribuição competitiva
+  netRevenue: number;         // receita líquida total (considera preços diferentes por região)
+  competitiveScore: number;   // score médio ponderado (0–1)
+  regionalBreakdown?: Array<{
+    region_name: string;
+    offeredQty: number;
+    soldQty: number;
+    price: number;
+    insertions: number;
+    competitiveScore: number;
+    marketShare: number;
+    isHomeRegion: boolean;
+  }>;
+}
+
 export function simulateCompany(
   company: Group,
   decision: Partial<Decision>,
   marketAvgPrice = 42,
   event?: EconomicEvent | null,
   openingBalance?: Partial<InitialBalance>,  // ← carryover da rodada anterior
-  roundConfig?: RoundConfig                  // ← configurações da rodada (professor)
+  roundConfig?: RoundConfig,                 // ← configurações da rodada (professor)
+  competitiveOverride?: CompetitiveOverride  // ← distribuição competitiva (Ajuste 6)
 ): SimulationResult {
   const d: Decision = { ...DEFAULT_DECISION, ...decision };
   // Mescla o saldo padrão com o carryover da rodada anterior (quando houver)
@@ -343,12 +361,18 @@ export function simulateCompany(
   const totalUnitsAvailable = initialInventoryUnits + possibleProduction;
 
   // Vendas limitadas pela demanda E pelo estoque físico total disponível (inicial + produção)
-  const realSalesQty = Math.min(demand, totalUnitsAvailable);
+  // Ajuste 6: se há override competitivo, usa a quantidade distribuída pelo motor de competição
+  const realSalesQty = competitiveOverride
+    ? Math.min(competitiveOverride.realSalesQty, totalUnitsAvailable)
+    : Math.min(demand, totalUnitsAvailable);
 
   // ── DRE ─────────────────────────────────────────────────────────────────────
   // Receita Líquida
+  // Ajuste 6: com vendas regionais a preços diferentes, usa receita pré-calculada
   const netPrice = Number(d.salePrice) * (1 - Number(d.discount || 0) / 100);
-  const netRevenue = realSalesQty * netPrice;
+  const netRevenue = competitiveOverride
+    ? competitiveOverride.netRevenue   // calculada pelo motor competitivo (preços por região)
+    : realSalesQty * netPrice;         // fórmula clássica (preço único)
 
   // CMV: custo dos produtos VENDIDOS (materiais das unidades vendidas + depreciação)
   const materialCost = realSalesQty * unitMaterialCost;
@@ -720,5 +744,8 @@ export function simulateCompany(
     cfFinancing,
     cfNetChange,
     cfOpeningBalance,
+    // Ajuste 6: Inteligência competitiva regional
+    competitiveScore:    competitiveOverride?.competitiveScore,
+    regionalBreakdown:   competitiveOverride?.regionalBreakdown,
   };
 }

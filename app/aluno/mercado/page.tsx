@@ -600,6 +600,89 @@ export default function MercadoPage() {
         <RegionProfileTable results={results} myGroupId={myGroupId} />
       </div>
 
+      {/* Meu Desempenho Regional */}
+      {(myResult?.data?.regionalBreakdown?.length ?? 0) > 0 && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+          <SectionTitle>
+            <Target className="mr-2 inline h-4 w-4" />
+            Meu Desempenho Regional
+          </SectionTitle>
+          <p className="mb-5 text-xs text-slate-500">
+            Detalhamento das suas vendas por região nesta rodada.
+          </p>
+
+          {/* Info box — scoring factors */}
+          <div className="mb-5 rounded-xl border border-sky-500/30 bg-sky-500/8 px-4 py-3">
+            <div className="flex items-start gap-2">
+              <Shield className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+              <div>
+                <p className="text-xs font-bold text-sky-300">Como o Score Competitivo é calculado?</p>
+                <p className="mt-0.5 text-[11px] text-slate-400 leading-relaxed">
+                  Combina preço praticado vs. média do mercado, quantidade ofertada vs. demanda da região e número de inserções de marketing.
+                  Score ≥ 70% = ótimo &nbsp;·&nbsp; 40–69% = regular &nbsp;·&nbsp; &lt; 40% = fraco.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-white/10">
+            <table className="min-w-full text-xs">
+              <thead>
+                <tr className="border-b border-white/10 bg-slate-900/80 sticky top-0 z-10">
+                  <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Região</th>
+                  <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Preço</th>
+                  <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Inserções Mkt</th>
+                  <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Qtd. Ofertada</th>
+                  <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Qtd. Vendida</th>
+                  <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Market Share</th>
+                  <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Score Competitivo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myResult!.data.regionalBreakdown!.map((row, ri) => {
+                  const sc = row.competitiveScore ?? 0;
+                  const scoreColor = sc >= 0.7 ? "bg-emerald-500" : sc >= 0.4 ? "bg-amber-500" : "bg-rose-500";
+                  const scoreBadge = sc >= 0.7 ? "text-emerald-400 bg-emerald-500/15 border-emerald-500/30" : sc >= 0.4 ? "text-amber-400 bg-amber-500/15 border-amber-500/30" : "text-rose-400 bg-rose-500/15 border-rose-500/30";
+                  const ms = row.marketShare ?? 0;
+                  return (
+                    <tr key={row.region_name} className={`border-b border-white/5 transition-colors hover:bg-white/[0.04] ${ri % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                      <td className="px-3 py-2.5 min-w-[130px]">
+                        <div className="flex items-center gap-1.5">
+                          {row.isHomeRegion && <span title="Região sede">🏠</span>}
+                          <span className="font-semibold text-white">{row.region_name}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{currency(row.price)}</td>
+                      <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{number(row.insertions, 0)}</td>
+                      <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{number(row.offeredQty, 0)}</td>
+                      <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{number(row.soldQty, 0)}</td>
+                      <td className="px-3 py-2.5 min-w-[120px]">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-slate-300 w-10 shrink-0">{number(ms * 100, 1)}%</span>
+                          <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                            <div className="h-full rounded-full bg-cyan-500" style={{ width: `${Math.min(ms * 100, 100)}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2.5 min-w-[160px]">
+                        <div className="flex items-center gap-2">
+                          <span className={`rounded-md border px-1.5 py-0.5 text-[10px] font-bold whitespace-nowrap ${scoreBadge}`}>
+                            {number(sc * 100, 0)}%
+                          </span>
+                          <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                            <div className={`h-full rounded-full ${scoreColor}`} style={{ width: `${Math.min(sc * 100, 100)}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {/* Strategic tips */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <SectionTitle>
