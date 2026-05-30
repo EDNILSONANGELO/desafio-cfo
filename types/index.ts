@@ -277,8 +277,10 @@ export interface SimulationResult {
     competitors: Array<{
       groupId: number;
       company: string;
+      offeredQty: number;   // quantidade ofertada pelo grupo nesta região
       soldQty: number;
       price: number;
+      insertions: number;   // inserções de marketing
       competitiveScore: number;
       marketShare: number;
     }>;

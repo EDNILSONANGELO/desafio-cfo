@@ -183,8 +183,10 @@ export async function POST(
       competitors:  rr.competitors.map((c) => ({
         groupId:          c.groupId,
         company:          c.company,
+        offeredQty:       c.offeredQty,    // ← quantidade ofertada
         soldQty:          c.soldQty,
         price:            c.price,
+        insertions:       c.insertions,    // ← inserções de marketing
         competitiveScore: c.competitiveScore,
         marketShare:      c.marketShare,
       })),

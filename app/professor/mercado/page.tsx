@@ -505,7 +505,11 @@ export default function MercadoProfessorPage() {
                                 <span className="font-semibold text-white">{comp.company}</span>
                               </td>
                               <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{currency(comp.price)}</td>
-                              <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">—</td>
+                              <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">
+                                {comp.offeredQty != null && comp.offeredQty > 0
+                                  ? number(comp.offeredQty, 0)
+                                  : <span className="text-slate-600">—</span>}
+                              </td>
                               <td className="px-3 py-2.5 font-mono text-slate-300 whitespace-nowrap">{number(comp.soldQty, 0)}</td>
                               <td className="px-3 py-2.5 min-w-[120px]">
                                 <div className="flex items-center gap-2">
