@@ -951,6 +951,7 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
   const [minEmployees,     setMinEmployees]     = React.useState<number | null>(round.machine_min_employees ?? null);
   const [payrollChargesPct, setPayrollChargesPct] = React.useState<number | null>(round.payroll_charges_pct ?? null);
   const [loanLimit,        setLoanLimit]        = React.useState<number | null>(round.loan_limit ?? null);
+  const [loanRate,         setLoanRate]         = React.useState<number | null>(round.loan_rate ?? null);
   const [interRegionalCost, setInterRegionalCost] = React.useState<number | null>(round.inter_regional_cost ?? null);
   const [saving,  setSaving]  = React.useState(false);
   const [saved,   setSaved]   = React.useState(false);
@@ -963,6 +964,7 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
     setMinEmployees(round.machine_min_employees ?? null);
     setPayrollChargesPct(round.payroll_charges_pct ?? null);
     setLoanLimit(round.loan_limit ?? null);
+    setLoanRate(round.loan_rate ?? null);
     setInterRegionalCost(round.inter_regional_cost ?? null);
     setSaved(false);
     setSaveErr(null);
@@ -979,16 +981,17 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
         machine_min_employees:    minEmployees,
         payroll_charges_pct:      payrollChargesPct,
         loan_limit:               loanLimit,
+        loan_rate:                loanRate,
         inter_regional_cost:      interRegionalCost,
       }),
     });
     const json = await res.json();
     if (!res.ok) {
       const msg = json.error || "Erro ao salvar.";
-      if (msg.includes("marketing_insertion_cost") || msg.includes("payroll_charges_pct") || msg.includes("loan_limit") || msg.includes("inter_regional_cost") || msg.includes("column")) setNeedsMigration(true);
+      if (msg.includes("marketing_insertion_cost") || msg.includes("payroll_charges_pct") || msg.includes("loan_limit") || msg.includes("loan_rate") || msg.includes("inter_regional_cost") || msg.includes("column")) setNeedsMigration(true);
       setSaveErr(msg);
     } else {
-      onUpdate({ marketing_insertion_cost: insertionCost, machine_min_employees: minEmployees, payroll_charges_pct: payrollChargesPct, loan_limit: loanLimit, inter_regional_cost: interRegionalCost });
+      onUpdate({ marketing_insertion_cost: insertionCost, machine_min_employees: minEmployees, payroll_charges_pct: payrollChargesPct, loan_limit: loanLimit, loan_rate: loanRate, inter_regional_cost: interRegionalCost });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     }
@@ -1017,7 +1020,8 @@ function EmployeeMarketingPanel({ round, onUpdate }: { round: Round; onUpdate: (
 ALTER TABLE rounds ADD COLUMN IF NOT EXISTS machine_min_employees INTEGER DEFAULT NULL;
 ALTER TABLE rounds ADD COLUMN IF NOT EXISTS payroll_charges_pct DECIMAL DEFAULT NULL;
 ALTER TABLE rounds ADD COLUMN IF NOT EXISTS loan_limit DECIMAL DEFAULT NULL;
-ALTER TABLE rounds ADD COLUMN IF NOT EXISTS inter_regional_cost DECIMAL DEFAULT NULL;`}
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS inter_regional_cost DECIMAL DEFAULT NULL;
+ALTER TABLE rounds ADD COLUMN IF NOT EXISTS loan_rate DECIMAL DEFAULT NULL;`}
           </pre>
         </div>
       )}
@@ -1207,38 +1211,80 @@ ALTER TABLE rounds ADD COLUMN IF NOT EXISTS inter_regional_cost DECIMAL DEFAULT 
         </div>
       </div>
 
-      {/* ── Limite de Empréstimo (Ajuste 4) ── */}
+      {/* ── Limite de Empréstimo + Taxa de Juros (Ajustes 4 e 10) ── */}
       <div className="mt-6 border-t border-white/10 pt-6">
         <p className="mb-1 text-xs font-black uppercase tracking-widest text-slate-400">
-          💳 Limite de Empréstimo por Rodada
+          💳 Empréstimo — Limite e Taxa de Juros
         </p>
         <p className="mb-3 text-xs text-slate-500">
-          Valor máximo que cada grupo pode solicitar como empréstimo nesta rodada.
-          Deixe em branco para sem limite (padrão: R$ 100.000).
+          Configure o limite máximo e/ou a taxa de juros dos empréstimos nesta rodada.
+          Deixe em branco para não restringir (aluno define livremente).
         </p>
-        <div className="flex items-center gap-2 max-w-xs">
-          <CurrencyInput
-            label="Limite de empréstimo (R$)"
-            value={loanLimit}
-            onChange={(n) => { setLoanLimit(n); setSaved(false); }}
-            placeholder="Sem limite (padrão)"
-          />
-          {loanLimit !== null && (
-            <button
-              type="button"
-              onClick={() => { setLoanLimit(null); setSaved(false); }}
-              className="mt-5 rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-xs text-slate-400 hover:text-white"
-              title="Remover limite"
-            >
-              ✕
-            </button>
-          )}
+        <div className="grid gap-4 sm:grid-cols-2 max-w-xl">
+          {/* Limite */}
+          <div>
+            <div className="flex items-center gap-2">
+              <CurrencyInput
+                label="Limite de empréstimo (R$)"
+                value={loanLimit}
+                onChange={(n) => { setLoanLimit(n); setSaved(false); }}
+                placeholder="Sem limite"
+              />
+              {loanLimit !== null && (
+                <button type="button" onClick={() => { setLoanLimit(null); setSaved(false); }}
+                  className="mt-5 rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-xs text-slate-400 hover:text-white" title="Remover limite">
+                  ✕
+                </button>
+              )}
+            </div>
+            {loanLimit !== null ? (
+              <p className="mt-1 text-xs text-amber-300">
+                🔒 Máx. <strong>R$ {loanLimit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong> por grupo.
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-slate-600 italic">Sem limite — aluno define o valor.</p>
+            )}
+          </div>
+
+          {/* Taxa de Juros */}
+          <div>
+            <label className="mb-1 block text-xs font-semibold text-slate-400">
+              Taxa de Juros do Empréstimo (%)
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                inputMode="decimal"
+                autoComplete="off"
+                min={0}
+                max={100}
+                step={0.1}
+                value={loanRate ?? ""}
+                onChange={(e) => {
+                  if (e.target.value === "") { setLoanRate(null); setSaved(false); return; }
+                  const v = parseFloat(e.target.value);
+                  if (!isNaN(v)) { setLoanRate(Math.min(100, Math.max(0, v))); setSaved(false); }
+                }}
+                placeholder="Ex.: 3,2 (padrão do aluno)"
+                className="w-full rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder-slate-600 focus:border-cyan-400/50 focus:outline-none"
+              />
+              <span className="shrink-0 text-sm text-slate-400">%</span>
+              {loanRate !== null && (
+                <button type="button" onClick={() => { setLoanRate(null); setSaved(false); }}
+                  className="shrink-0 rounded-lg border border-white/10 bg-white/5 px-2 py-2 text-xs text-slate-400 hover:text-white" title="Remover taxa">
+                  ✕
+                </button>
+              )}
+            </div>
+            {loanRate !== null ? (
+              <p className="mt-1 text-xs text-cyan-300">
+                🔒 Juros fixados em <strong>{loanRate.toLocaleString("pt-BR")}%</strong> ao mês para esta rodada.
+              </p>
+            ) : (
+              <p className="mt-1 text-xs text-slate-600 italic">Aluno define a taxa livremente.</p>
+            )}
+          </div>
         </div>
-        {loanLimit !== null && (
-          <p className="mt-1 text-xs text-amber-300">
-            Grupos não poderão solicitar empréstimos acima de <strong>R$ {loanLimit.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong>.
-          </p>
-        )}
       </div>
 
       {/* ── Custo Inter-Regional (Ajuste 7) ── */}
@@ -1315,7 +1361,7 @@ ALTER TABLE rounds ADD COLUMN IF NOT EXISTS inter_regional_cost DECIMAL DEFAULT 
         <Button onClick={save} loading={saving}>
           <CheckCircle2 className="h-4 w-4" /> Salvar Configurações
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => { setInsertionCost(null); setMinEmployees(null); setPayrollChargesPct(null); setLoanLimit(null); setInterRegionalCost(null); setSaved(false); }}>
+        <Button variant="ghost" size="sm" onClick={() => { setInsertionCost(null); setMinEmployees(null); setPayrollChargesPct(null); setLoanLimit(null); setLoanRate(null); setInterRegionalCost(null); setSaved(false); }}>
           <RefreshCw className="h-4 w-4" /> Restaurar Padrão
         </Button>
       </div>

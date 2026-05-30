@@ -68,6 +68,8 @@ export interface Round {
   machine_min_employees: number | null;     // Min. funcionários por 1.000 unidades (null = 3)
   // ── Novos campos (Migration 009 — Encargos sobre folha) ───────────────────────
   payroll_charges_pct: number | null;       // % de encargos sobre folha salarial (null = 0%)
+  // ── Novos campos (Ajuste 10) ──────────────────────────────────────────────────
+  loan_rate: number | null;                 // Taxa de juros do empréstimo % (null = aluno define)
   // ── Novos campos (Migration 010 — Limite de empréstimo e custo inter-regional) ─
   loan_limit: number | null;               // Limite de empréstimo por rodada (null = sem limite = padrão R$100.000)
   inter_regional_cost: number | null;      // Custo adicional inter-regional R$/unid (null = padrão R$3.00)
@@ -378,4 +380,5 @@ export interface RoundConfig {
   payroll_charges_pct?: number | null;       // % de encargos sobre folha (null/0 = sem encargos)
   loan_limit?: number | null;                // Limite de empréstimo por rodada (null = sem limite)
   inter_regional_cost?: number | null;       // Custo adicional inter-regional R$/unid (null = padrão R$3.00)
+  loan_rate?: number | null;                 // Taxa de juros do empréstimo % (null = aluno define livremente)
 }

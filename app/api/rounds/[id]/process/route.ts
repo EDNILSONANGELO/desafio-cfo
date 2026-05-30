@@ -122,6 +122,7 @@ export async function POST(
     payroll_charges_pct:      round.payroll_charges_pct      ?? null,
     loan_limit:               round.loan_limit               ?? null,
     inter_regional_cost:      round.inter_regional_cost      ?? null,
+    loan_rate:                round.loan_rate                ?? null,  // Ajuste 10
   };
 
   // Simulate each company (with carryover opening balance when available)

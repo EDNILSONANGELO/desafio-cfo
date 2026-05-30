@@ -634,6 +634,9 @@ ${machines ? `
             marketingInsertionCost={round?.marketing_insertion_cost}
             machineMinEmployees={round?.machine_min_employees}
             payrollChargesPct={round?.payroll_charges_pct}
+            loanLimit={round?.loan_limit ?? null}
+            loanRate={round?.loan_rate ?? null}
+            interRegionalCostPerUnit={round?.inter_regional_cost ?? null}
           />
 
           {canEdit && (

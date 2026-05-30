@@ -401,7 +401,11 @@ export function simulateCompany(
 
   // Despesas Operacionais (inclui salários + encargos + armazenagem + demais Migration 008/009)
   // Despesa financeira = juros do empréstimo + juros das parcelas de máquinas (accrual)
-  const financialExpense = effectiveLoan * (Number(d.loanRate || 0) / 100) + machinesInterest;
+  // Ajuste 10: se o professor configurou a taxa, ela prevalece sobre a escolha do aluno
+  const effectiveLoanRate = roundConfig?.loan_rate != null
+    ? roundConfig.loan_rate           // taxa configurada pelo professor (%)
+    : Number(d.loanRate || 0);        // taxa informada pelo aluno no formulário
+  const financialExpense = effectiveLoan * (effectiveLoanRate / 100) + machinesInterest;
   const operationalExpenses =
     Number(d.fixedExpenses) +
     totalSalary +

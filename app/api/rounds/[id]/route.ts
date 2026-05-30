@@ -41,6 +41,9 @@ export async function PATCH(
     plastic_unit, caps_unit, package_unit, label_unit,
     marketing_insertion_cost, machine_min_employees,
     payroll_charges_pct,
+    loan_limit,           // Ajuste 4 — limite de empréstimo (era ignorado antes)
+    inter_regional_cost,  // Ajuste 7 — frete inter-regional (era ignorado antes)
+    loan_rate,            // Ajuste 10 — taxa de juros do empréstimo
   } = body;
 
   const supabase = createAdminClient();
@@ -75,6 +78,15 @@ export async function PATCH(
   // Migration 009: Encargos sobre folha
   if (payroll_charges_pct !== undefined)
     updates.payroll_charges_pct = payroll_charges_pct === "" || payroll_charges_pct === null ? null : Number(payroll_charges_pct);
+  // Ajuste 4: Limite de empréstimo por rodada
+  if (loan_limit !== undefined)
+    updates.loan_limit = loan_limit === "" || loan_limit === null ? null : Number(loan_limit);
+  // Ajuste 7: Custo inter-regional por unidade
+  if (inter_regional_cost !== undefined)
+    updates.inter_regional_cost = inter_regional_cost === "" || inter_regional_cost === null ? null : Number(inter_regional_cost);
+  // Ajuste 10: Taxa de juros do empréstimo (%)
+  if (loan_rate !== undefined)
+    updates.loan_rate = loan_rate === "" || loan_rate === null ? null : Number(loan_rate);
 
   const { data, error } = await supabase
     .from("rounds")
