@@ -88,16 +88,17 @@ function MetricPill({ label, value, color = "text-white" }: { label: string; val
 
 /* ─── Region Profile Table (horizontal, sortable) ─── */
 function RegionProfileTable({ results }: { results: ResultRow[] }) {
-  const [sortKey, setSortKey] = useState("position");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState("score");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   function handleSort(key: string) {
     if (key === sortKey) setSortDir(d => d === "asc" ? "desc" : "asc");
-    else { setSortKey(key); setSortDir("asc"); }
+    else { setSortKey(key); setSortDir(key === "score" ? "desc" : "asc"); }
   }
 
   const cols = [
-    { key: "position",     label: "#",          title: "Posição no ranking" },
+    { key: "position",     label: "#",           title: "Posição no ranking" },
+    { key: "score",        label: "Score ★",     title: "Score — pontuação final (maior = melhor)" },
     { key: "company",      label: "Empresa",     title: "Nome da empresa" },
     { key: "region",       label: "Região",      title: "Região" },
     { key: "netRevenue",   label: "Receita",     title: "Receita Líquida" },
@@ -113,13 +114,13 @@ function RegionProfileTable({ results }: { results: ResultRow[] }) {
     { key: "pmp",          label: "PMP",         title: "Prazo Médio de Pagamento (dias)" },
     { key: "cashCycle",    label: "Ciclo Fin.",  title: "Ciclo Financeiro (dias)" },
     { key: "marketShare",  label: "Mkt Share",   title: "Market Share (%)" },
-    { key: "score",        label: "Score",       title: "Pontuação final" },
   ];
 
   const lowerBetter = new Set(["cashCycle", "pme", "pmr"]);
 
   const bests: Record<string, number> = {};
-  for (const col of cols.slice(3)) {
+  for (const col of cols.slice(1)) { // começa do score (índice 1), pula position
+    if (col.key === "company" || col.key === "region") continue;
     const vals = results.map(r => col.key === "score" ? (r.data.score ?? 0) : ((r.data as unknown as Record<string, number>)[col.key] ?? 0));
     bests[col.key] = lowerBetter.has(col.key) ? Math.min(...vals) : Math.max(...vals);
   }
@@ -164,19 +165,25 @@ function RegionProfileTable({ results }: { results: ResultRow[] }) {
 
             return (
               <tr key={r.group_id} className={`border-b border-white/5 transition-colors hover:bg-white/[0.04] ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                {/* # posição */}
                 <td className="px-3 py-2.5 text-base font-bold text-slate-300">{MEDAL_ICONS[originalRank - 1] || `${originalRank}º`}</td>
+                {/* Score — destaque visual */}
+                {cell("score")}
+                {/* Empresa */}
                 <td className="px-3 py-2.5 min-w-[140px]">
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: hex }} />
                     <p className="font-semibold whitespace-nowrap text-white">{r.group?.company_name || `Grupo ${r.group_id}`}</p>
                   </div>
                 </td>
+                {/* Região */}
                 <td className="px-3 py-2.5 min-w-[100px]">
                   <span className="rounded-lg px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap" style={{ background: `${hex}22`, color: hex }}>
                     {r.group?.region_name}
                   </span>
                 </td>
-                {cols.slice(3).map(c => cell(c.key))}
+                {/* Demais colunas numéricas (pula position=0, score=1, company=2, region=3) */}
+                {cols.slice(4).map(c => cell(c.key))}
               </tr>
             );
           })}

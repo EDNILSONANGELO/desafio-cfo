@@ -35,6 +35,52 @@ const BG_MAP: Record<string, string> = {
   "text-rose-400":    "bg-rose-500/10 border-rose-500/30",
 };
 
+/** Limiares de pontuação máxima por indicador */
+const SCORE_THRESHOLDS = [
+  {
+    label:      "Liquidez Corrente",
+    formula:    "LC × 20",
+    threshold:  "≥ 5,0",
+    example:    "LC = 5,0 → 5,0 × 20 = 100 pts",
+    tip:        "LC abaixo de 5 → pontuação proporcional (ex: LC 2,5 = 50 pts)",
+  },
+  {
+    label:      "Liquidez Seca",
+    formula:    "LS × 22",
+    threshold:  "≥ 4,55",
+    example:    "LS = 4,55 → 4,55 × 22 = 100 pts",
+    tip:        "LS abaixo de 4,55 → pontuação proporcional",
+  },
+  {
+    label:      "Liquidez Imediata",
+    formula:    "LI × 30",
+    threshold:  "≥ 3,33",
+    example:    "LI = 3,33 → 3,33 × 30 = 100 pts",
+    tip:        "LI abaixo de 3,33 → pontuação proporcional",
+  },
+  {
+    label:      "ROA",
+    formula:    "ROA × 5",
+    threshold:  "≥ 20%",
+    example:    "ROA = 20% → 20 × 5 = 100 pts",
+    tip:        "ROA negativo = 0 pts. ROA 10% = 50 pts",
+  },
+  {
+    label:      "Margem Líquida",
+    formula:    "ML × 3",
+    threshold:  "≥ 33,3%",
+    example:    "ML = 33,3% → 33,3 × 3 = 100 pts",
+    tip:        "Margem negativa = 0 pts. ML 20% = 60 pts",
+  },
+  {
+    label:      "Ciclo Financeiro",
+    formula:    "100 − Ciclo (dias)",
+    threshold:  "= 0 dias",
+    example:    "Ciclo = 0 → 100 − 0 = 100 pts",
+    tip:        "Ciclo positivo reduz pontos (ex: 30 dias = 70 pts). Ciclo negativo também vale 100",
+  },
+] as const;
+
 /** Definição de cada critério do score */
 const SCORE_CRITERIA = [
   {
@@ -543,6 +589,61 @@ export default function NotasAlunoClient({
                 pontualidade nos envios ou qualidade nas entregas.
                 Esse ajuste é justificado e visível para você.
               </p>
+            </div>
+          </div>
+
+          {/* ── Tabela de limiares ─────────────────────────────────────── */}
+          <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+            <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-2.5">
+              <BarChart3 className="h-3.5 w-3.5 text-cyan-400" />
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                Quando cada indicador atinge 100 pontos
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-600">
+                    <th className="px-3 py-2 text-left">Indicador</th>
+                    <th className="px-3 py-2 text-center">Fórmula</th>
+                    <th className="px-3 py-2 text-center">Valor mínimo para 100 pts</th>
+                    <th className="px-3 py-2 text-left hidden sm:table-cell">Exemplo</th>
+                    <th className="px-3 py-2 text-left hidden lg:table-cell">Dica</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {SCORE_THRESHOLDS.map((t, i) => (
+                    <tr key={t.label} className={`border-b border-white/5 hover:bg-white/5 ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                      <td className="px-3 py-2.5 font-semibold text-white whitespace-nowrap">{t.label}</td>
+                      <td className="px-3 py-2.5 text-center font-mono text-cyan-400 whitespace-nowrap">{t.formula}</td>
+                      <td className="px-3 py-2.5 text-center">
+                        <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 font-black text-emerald-400 whitespace-nowrap">
+                          {t.threshold}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2.5 text-slate-400 hidden sm:table-cell whitespace-nowrap">{t.example}</td>
+                      <td className="px-3 py-2.5 text-slate-500 hidden lg:table-cell leading-snug">{t.tip}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-b border-white/5 bg-violet-500/5">
+                    <td className="px-3 py-2.5 font-semibold text-slate-300">Market Share Bônus</td>
+                    <td className="px-3 py-2.5 text-center font-mono text-violet-400 whitespace-nowrap">MS% × 5%</td>
+                    <td className="px-3 py-2.5 text-center">
+                      <span className="rounded-full bg-violet-500/15 border border-violet-500/30 px-2.5 py-0.5 font-black text-violet-400 whitespace-nowrap">
+                        Sem teto
+                      </span>
+                    </td>
+                    <td className="px-3 py-2.5 text-slate-400 hidden sm:table-cell">MS = 18,7% → +0,94 pts</td>
+                    <td className="px-3 py-2.5 text-slate-500 hidden lg:table-cell">
+                      Único indicador sem limite máximo — por isso o score pode ultrapassar 100
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="border-t border-white/5 bg-amber-500/5 px-4 py-2.5 text-[11px] text-amber-300">
+              <strong>Atenção:</strong> indicadores abaixo do limiar recebem pontuação proporcional (ex: Liquidez Corrente = 2,5 → 50 pts em vez de 100 pts).
+              Valores negativos em ROA, Margem Líquida e Liquidez Imediata resultam em 0 pts naquele critério.
             </div>
           </div>
 

@@ -98,8 +98,8 @@ function MetricPill({ label, value, color = "text-white" }: { label: string; val
 
 /* ─── Region Profile Table (horizontal, sortable) ─── */
 function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGroupId?: number }) {
-  const [sortKey, setSortKey] = useState("position");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState("score");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   async function handleExport() {
     const rows = [...results]
@@ -130,7 +130,8 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
   }
 
   const cols = [
-    { key: "position",     label: "#",          title: "Posição no ranking" },
+    { key: "position",     label: "#",           title: "Posição no ranking" },
+    { key: "score",        label: "Score ★",     title: "Score — pontuação final (maior = melhor)" },
     { key: "company",      label: "Empresa",     title: "Nome da empresa" },
     { key: "region",       label: "Região",      title: "Região" },
     { key: "netRevenue",   label: "Receita",     title: "Receita Líquida" },
@@ -143,14 +144,14 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
     { key: "roe",          label: "ROE",         title: "Retorno sobre Patrimônio" },
     { key: "cashCycle",    label: "Ciclo Fin.",  title: "Ciclo Financeiro (dias)" },
     { key: "marketShare",  label: "Mkt Share",   title: "Market Share (%)" },
-    { key: "score",        label: "Score",       title: "Pontuação final" },
   ];
 
   const lowerBetter = new Set(["cashCycle", "pme", "pmr"]);
 
-  // Best values per numeric column
+  // Best values per numeric column (começa do índice 1 = score, pula company e region)
   const bests: Record<string, number> = {};
-  for (const col of cols.slice(3)) {
+  for (const col of cols.slice(1)) {
+    if (col.key === "company" || col.key === "region") continue;
     const vals = results.map(r => {
       if (col.key === "score") return r.data.score ?? 0;
       return (r.data as unknown as Record<string, number>)[col.key] ?? 0;
@@ -211,8 +212,10 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
 
             return (
               <tr key={r.group_id} className={`border-b border-white/5 transition-colors hover:bg-white/[0.04] ${isMe ? "bg-cyan-400/5" : i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
-                {/* # */}
+                {/* # posição */}
                 <td className="px-3 py-2.5 text-base font-bold text-slate-300">{MEDAL_ICONS[originalRank - 1] || `${originalRank}º`}</td>
+                {/* Score — destaque visual */}
+                {cell("score")}
                 {/* Empresa */}
                 <td className="px-3 py-2.5 min-w-[140px]">
                   <div className="flex items-center gap-2">
@@ -231,8 +234,8 @@ function RegionProfileTable({ results, myGroupId }: { results: ResultRow[]; myGr
                     {r.group?.region_name}
                   </span>
                 </td>
-                {/* Numeric cols */}
-                {cols.slice(3).map(c => cell(c.key))}
+                {/* Demais colunas numéricas (pula position=0, score=1, company=2, region=3) */}
+                {cols.slice(4).map(c => cell(c.key))}
               </tr>
             );
           })}
