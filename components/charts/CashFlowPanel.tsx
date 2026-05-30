@@ -95,7 +95,7 @@ export function CashFlowPanel({ result }: Props) {
         <Row label="(−) Despesa financeira (juros)" value={-r.cfFinancialPayments} indent color="rose" />
       )}
       {r.cfTaxPaid > 0 && (
-        <Row label="(−) IR / CSLL (15%)" value={-r.cfTaxPaid} indent color="rose" />
+        <Row label="(−) IR / CSLL (24%)" value={-r.cfTaxPaid} indent color="rose" />
       )}
       <Row
         label="= Fluxo Operacional Líquido (FCO)"
