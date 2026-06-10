@@ -372,11 +372,13 @@ Se o professor usa vendas por região, aparece a seção **"Meu Desempenho Regio
 
 ### Liquidez
 
-| Indicador | Fórmula | Meta |
-|-----------|---------|------|
-| **Liquidez Corrente (LC)** | Ativo Circulante ÷ Passivo Circulante | ≥ 2,0 |
-| **Liquidez Seca (LS)** | (AC − Estoques) ÷ Passivo Circulante | ≥ 2,0 |
-| **Liquidez Imediata (LI)** | Caixa ÷ Passivo Circulante | ≥ 2,0 |
+| Indicador | Fórmula | Meta padrão |
+|-----------|---------|------------|
+| **Liquidez Corrente (LC)** | Ativo Circulante ÷ Passivo Circulante | ≥ 1,5 |
+| **Liquidez Seca (LS)** | (AC − Estoques) ÷ Passivo Circulante | ≥ 1,5 |
+| **Liquidez Imediata (LI)** | Caixa ÷ Passivo Circulante | ≥ 1,5 |
+
+> A meta pode ser ajustada pelo professor. Consulte o painel **Metas dos Indicadores** na seção 10.3.
 
 ### Rentabilidade
 
@@ -427,21 +429,24 @@ Ao processar a rodada, o sistema gera automaticamente **6 indicadores** que ser�
 
 Cada indicador tem uma **fórmula de conversão** e um **teto de 100 pontos**. Indicadores negativos valem 0 pontos.
 
-| Indicador | Fórmula | Teto (100 pts) |
-|-----------|---------|----------------|
-| **Liquidez Corrente** | `LC × 50` | LC ≥ **2,0** |
-| **Liquidez Seca** | `LS × 50` | LS ≥ **2,0** |
-| **Liquidez Imediata** | `max(LI, 0) × 50` | LI ≥ **2,0** |
-| **ROA** | `max(ROA, 0) × 5` | ROA ≥ **20%** |
-| **Margem Líquida** | `max(ML, 0) × 3` | ML ≥ **33,3%** |
+| Indicador | Fórmula (padrão) | Meta padrão (100 pts) |
+|-----------|------------------|-----------------------|
+| **Liquidez Corrente** | `min(LC × 66,67, 100)` | LC ≥ **1,5** |
+| **Liquidez Seca** | `min(LS × 66,67, 100)` | LS ≥ **1,5** |
+| **Liquidez Imediata** | `min(max(LI,0) × 66,67, 100)` | LI ≥ **1,5** |
+| **ROA** | `min(max(ROA,0) × 5, 100)` | ROA ≥ **20%** |
+| **Margem Líquida** | `min(max(ML,0) × 3, 100)` | ML ≥ **33,3%** |
 | **Ciclo Financeiro** | `max(0 ; 100 − max(0 ; ciclo))` | Ciclo ≤ **0 dias** |
 
-**Exemplos rápidos:**
+> **Metas configuráveis:** o multiplicador é calculado automaticamente pelo sistema → `multiplicador = 100 ÷ meta`. Se o professor alterar as metas, as fórmulas acima mudam proporcionalmente. Veja as metas vigentes da sua turma no menu **Notas**.
+
+**Exemplos rápidos (metas padrão):**
 
 | Situação | Cálculo | Pontos |
 |----------|---------|--------|
-| LC = 1,5 | 1,5 × 50 = 75 | **75 pts** |
-| LC = 2,0 ou mais | 2,0 × 50 = 100 → teto | **100 pts** |
+| LC = 1,5 | min(1,5 × 66,67, 100) = 100 → **meta atingida** | **100 pts** |
+| LC = 1,0 | 1,0 × 66,67 = 66,7 | **66,7 pts** |
+| LC = 0,75 | 0,75 × 66,67 = 50 | **50 pts** |
 | ROA = 8% | 8 × 5 = 40 | **40 pts** |
 | ML = 25% | 25 × 3 = 75 | **75 pts** |
 | Ciclo = 30 dias | 100 − 30 = 70 | **70 pts** |
@@ -489,30 +494,32 @@ Empresa com os seguintes resultados após uma rodada:
 
 | Indicador | Valor apurado | Cálculo da pontuação | Pontuação | Peso | Contribuição |
 |-----------|---------------|----------------------|-----------|------|-------------|
-| Liquidez Corrente | 2,5 | min(2,5 × 50, 100) | **100** | 20% | **20,00** |
-| Liquidez Seca | 2,0 | min(2,0 × 50, 100) | **100** | 15% | **15,00** |
-| Liquidez Imediata | 1,0 | min(1,0 × 50, 100) | **50** | 15% | **7,50** |
-| ROA | 15% | min(15 × 5, 100) | **75** | 25% | **18,75** |
-| Margem Líquida | 25% | min(25 × 3, 100) | **75** | 15% | **11,25** |
+| Liquidez Corrente | 2,0 | min(2,0 × 66,67, 100) = 133 → teto | **100** | 20% | **20,00** |
+| Liquidez Seca | 1,5 | min(1,5 × 66,67, 100) = 100 → meta | **100** | 15% | **15,00** |
+| Liquidez Imediata | 1,0 | min(1,0 × 66,67, 100) = 66,7 | **66,7** | 15% | **10,00** |
+| ROA | 15% | min(15 × 5, 100) = 75 | **75** | 25% | **18,75** |
+| Margem Líquida | 25% | min(25 × 3, 100) = 75 | **75** | 15% | **11,25** |
 | Ciclo Financeiro | 20 dias | max(0, 100 − 20) | **80** | 10% | **8,00** |
-| **Subtotal** | | | | | **80,50** |
+| **Subtotal** | | | | | **83,00** |
 | Bônus Market Share | 30% da maior receita | 30 × 5% | — | — | **+1,50** |
-| **SCORE FINAL** | | | | | **82,00 pts** |
+| **SCORE FINAL** | | | | | **84,50 pts** |
 
-Score **82,00** → Grau **AA** → **Nota 8,5**
+Score **84,50** → Grau **AAA** → **Nota 10,0**
 
 ---
 
-### 10.3 Tabela de metas para 100 pontos
+### 10.3 Tabela de metas para 100 pontos (padrão)
 
-| Indicador | Meta para 100 pts | O que representa |
-|-----------|-------------------|-----------------|
-| Liquidez Corrente | LC ≥ **2,0** | Ativo Circulante = 2× o Passivo Circulante |
-| Liquidez Seca | LS ≥ **2,0** | Mesma lógica, sem contar estoques |
-| Liquidez Imediata | LI ≥ **2,0** | Só o caixa já cobre 2× o Passivo Circulante |
-| ROA | ROA ≥ **20%** | Lucro = 20% do total de ativos |
-| Margem Líquida | ML ≥ **33,3%** | 1 em cada 3 reais de receita vira lucro |
-| Ciclo Financeiro | **≤ 0 dias** | Você recebe antes de precisar pagar |
+| Indicador | Meta padrão | Multiplicador | O que representa |
+|-----------|------------|---------------|-----------------|
+| Liquidez Corrente | LC ≥ **1,5** | 66,67 | AC cobre 1,5× o PC |
+| Liquidez Seca | LS ≥ **1,5** | 66,67 | Mesma lógica, sem estoques |
+| Liquidez Imediata | LI ≥ **1,5** | 66,67 | Só caixa cobre 1,5× o PC |
+| ROA | ROA ≥ **20%** | 5,00 | Lucro = 20% do ativo total |
+| Margem Líquida | ML ≥ **33,3%** | 3,00 | 1 em cada 3 reais vira lucro |
+| Ciclo Financeiro | **≤ 0 dias** | — | Recebe antes de precisar pagar |
+
+> **Importante:** o professor pode personalizar as metas para sua turma. Quando isso ocorre, o multiplicador é recalculado automaticamente (`100 ÷ meta`). No menu **Notas**, você sempre verá as metas vigentes, seu valor atual e quantos pontos faltam para atingir 100 em cada indicador.
 
 ---
 

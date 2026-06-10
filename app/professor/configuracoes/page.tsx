@@ -30,8 +30,14 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select } from "@/components/ui/Input";
 import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
-import { DEFAULT_WEIGHTS, DEFAULT_GRADE_SCALE, buildGradeScale } from "@/lib/simulation/scoring";
-import type { GradeLevel } from "@/lib/simulation/scoring";
+import {
+  DEFAULT_WEIGHTS,
+  DEFAULT_GRADE_SCALE,
+  DEFAULT_SCORE_TARGETS,
+  buildGradeScale,
+  targetToMultiplier,
+} from "@/lib/simulation/scoring";
+import type { GradeLevel, ScoreTargets } from "@/lib/simulation/scoring";
 import type { Round } from "@/types";
 
 // ── Tipos ──────────────────────────────────────────────────────────────────────
@@ -43,6 +49,7 @@ interface ClassData {
   maintenance: number | null;
   score_weights?: Record<string, number> | null;
   grade_scale?: Omit<GradeLevel, "color">[] | null;
+  score_targets?: Partial<ScoreTargets> | null;
 }
 
 // ── Eventos econômicos (mesma lista da rodada) ─────────────────────────────────
@@ -248,6 +255,249 @@ function ScoreWeightsPanel({ classData, onSave }: { classData: ClassData | null;
         <Button onClick={save} loading={saving} disabled={!isValid || migrationNeeded}>
           <CheckCircle2 className="h-4 w-4" />
           Salvar Configuração
+        </Button>
+        <Button variant="ghost" size="sm" onClick={restore} disabled={saving}>
+          <RefreshCw className="h-4 w-4" />
+          Restaurar Padrão
+        </Button>
+      </div>
+    </Panel>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PAINEL: METAS DOS INDICADORES
+// ═══════════════════════════════════════════════════════════════════════════════
+const TARGET_ROWS = [
+  {
+    key:     "currentRatio"   as keyof ScoreTargets,
+    label:   "Liquidez Corrente",
+    unit:    "(índice)",
+    color:   "text-cyan-400",
+    hint:    "Ex: 1,5 → multiplicador = 100 ÷ 1,5 = 66,67",
+    min:     0.1,
+    step:    0.1,
+    decimals: 2,
+  },
+  {
+    key:     "quickRatio"     as keyof ScoreTargets,
+    label:   "Liquidez Seca",
+    unit:    "(índice)",
+    color:   "text-cyan-400",
+    hint:    "Ex: 1,5 → multiplicador = 100 ÷ 1,5 = 66,67",
+    min:     0.1,
+    step:    0.1,
+    decimals: 2,
+  },
+  {
+    key:     "immediateRatio" as keyof ScoreTargets,
+    label:   "Liquidez Imediata",
+    unit:    "(índice)",
+    color:   "text-cyan-400",
+    hint:    "Ex: 1,5 → multiplicador = 100 ÷ 1,5 = 66,67",
+    min:     0.1,
+    step:    0.1,
+    decimals: 2,
+  },
+  {
+    key:     "roa"            as keyof ScoreTargets,
+    label:   "ROA",
+    unit:    "(%)",
+    color:   "text-emerald-400",
+    hint:    "Ex: 20 → multiplicador = 100 ÷ 20 = 5,00",
+    min:     1,
+    step:    1,
+    decimals: 1,
+  },
+  {
+    key:     "netMargin"      as keyof ScoreTargets,
+    label:   "Margem Líquida",
+    unit:    "(%)",
+    color:   "text-emerald-400",
+    hint:    "Ex: 33,33 → multiplicador = 100 ÷ 33,33 = 3,00",
+    min:     1,
+    step:    0.5,
+    decimals: 2,
+  },
+  {
+    key:     "cashCycle"      as keyof ScoreTargets,
+    label:   "Ciclo Financeiro",
+    unit:    "(dias ≤ meta = 100 pts)",
+    color:   "text-amber-400",
+    hint:    "0 = ciclo zero ou negativo atinge 100 pts",
+    min:     0,
+    step:    1,
+    decimals: 0,
+  },
+] as const;
+
+type TargetKey = (typeof TARGET_ROWS)[number]["key"];
+type TargetStrings = Record<TargetKey, string>;
+
+function targetsToStrings(t: Partial<ScoreTargets>): TargetStrings {
+  const r = {} as TargetStrings;
+  for (const row of TARGET_ROWS) {
+    r[row.key] = String(t[row.key] ?? DEFAULT_SCORE_TARGETS[row.key]);
+  }
+  return r;
+}
+
+function targetsToNumbers(s: TargetStrings): ScoreTargets {
+  const r = {} as ScoreTargets;
+  for (const row of TARGET_ROWS) r[row.key] = Number(s[row.key]);
+  return r;
+}
+
+function ScoreTargetsPanel({ classData, onSave }: { classData: ClassData | null; onSave: () => void }) {
+  const saved = classData?.score_targets;
+  const initial = targetsToStrings(saved ?? DEFAULT_SCORE_TARGETS);
+
+  const [vals, setVals]         = useState<TargetStrings>(initial);
+  const [saving, setSaving]     = useState(false);
+  const [savedMsg, setSavedMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    setVals(targetsToStrings(classData?.score_targets ?? DEFAULT_SCORE_TARGETS));
+  }, [classData]);
+
+  function set(key: TargetKey, v: string) {
+    setVals((prev) => ({ ...prev, [key]: v }));
+    setSavedMsg("");
+    setErrorMsg("");
+  }
+
+  function restore() {
+    setVals(targetsToStrings(DEFAULT_SCORE_TARGETS));
+    setSavedMsg("");
+    setErrorMsg("");
+  }
+
+  const allValid = TARGET_ROWS.every((row) => {
+    const v = Number(vals[row.key]);
+    return !isNaN(v) && v >= row.min;
+  });
+
+  async function save() {
+    if (!allValid) { setErrorMsg("Verifique os valores — todos devem ser maiores que zero."); return; }
+    setSaving(true);
+    setErrorMsg("");
+    setSavedMsg("");
+    const res = await fetch("/api/classes", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ score_targets: targetsToNumbers(vals) }),
+    });
+    const json = await res.json();
+    if (!res.ok) {
+      setErrorMsg(json.error || "Erro ao salvar.");
+    } else {
+      setSavedMsg("Metas salvas! Reprocesse as rodadas para aplicar.");
+      onSave();
+    }
+    setSaving(false);
+  }
+
+  return (
+    <Panel
+      title="Metas dos Indicadores"
+      subtitle="Define o valor mínimo necessário para obter 100 pontos em cada indicador"
+      icon={BarChart3}
+    >
+      {/* Instrução */}
+      <div className="mb-5 rounded-xl border border-emerald-400/20 bg-emerald-500/5 p-4 text-sm">
+        <p className="mb-1.5 font-bold text-emerald-300">Como funciona</p>
+        <ul className="space-y-1 text-slate-300">
+          <li>• A meta define o <strong className="text-white">valor mínimo</strong> para que o indicador receba 100 pontos.</li>
+          <li>• O multiplicador é calculado automaticamente: <strong className="text-white">multiplicador = 100 ÷ meta</strong>.</li>
+          <li>• Valores abaixo da meta recebem pontuação proporcional (ex: 50% da meta = 50 pts).</li>
+          <li>• Após salvar, <strong className="text-white">reprocesse as rodadas</strong> para aplicar as novas metas.</li>
+        </ul>
+      </div>
+
+      {/* Tabela de metas */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10 text-[11px] font-black uppercase tracking-widest text-slate-500">
+              <th className="py-2.5 text-left">Indicador</th>
+              <th className="py-2.5 text-center">Meta para 100 pts</th>
+              <th className="py-2.5 text-center">Fórmula gerada</th>
+              <th className="py-2.5 text-center hidden sm:table-cell">Padrão</th>
+            </tr>
+          </thead>
+          <tbody>
+            {TARGET_ROWS.map((row, i) => {
+              const numVal   = Number(vals[row.key]);
+              const multi    = !isNaN(numVal) && numVal > 0 ? targetToMultiplier(numVal) : null;
+              const isCycle  = row.key === "cashCycle";
+              const formula  = multi != null
+                ? (isCycle
+                  ? (numVal === 0 ? "100 − Ciclo (dias)" : `100 − (Ciclo − ${numVal}) dias`)
+                  : `${row.label.split(" ")[0]} × ${multi.toFixed(2)}`)
+                : "—";
+              const isInvalid = isNaN(numVal) || numVal < row.min;
+              return (
+                <tr key={row.key} className={`border-b border-white/5 ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                  <td className="py-3 pr-4">
+                    <p className={`font-semibold ${row.color}`}>{row.label}</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">{row.unit}</p>
+                  </td>
+                  <td className="py-2 text-center">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={row.min}
+                          step={row.step}
+                          value={vals[row.key]}
+                          onChange={(e) => set(row.key, e.target.value)}
+                          className={`w-24 rounded-lg border bg-white/5 px-2 py-1.5 text-center text-sm font-bold text-white focus:outline-none ${isInvalid ? "border-rose-400/50 focus:border-rose-400" : "border-white/10 focus:border-cyan-400/50"}`}
+                        />
+                        {!isCycle && <span className="text-slate-500 text-xs">{row.unit.replace("(", "").replace(")", "")}</span>}
+                        {isCycle && <span className="text-slate-500 text-xs">dias</span>}
+                      </div>
+                      {isInvalid && (
+                        <span className="text-[10px] text-rose-400">valor inválido</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-3 text-center">
+                    <code className="rounded bg-slate-800 px-2 py-1 text-xs text-cyan-400 whitespace-nowrap">
+                      {formula}
+                    </code>
+                  </td>
+                  <td className="py-3 text-center text-xs text-slate-500 hidden sm:table-cell">
+                    {row.key === "cashCycle"
+                      ? `${DEFAULT_SCORE_TARGETS[row.key]} dias`
+                      : row.unit.includes("%")
+                        ? `${DEFAULT_SCORE_TARGETS[row.key]}%`
+                        : DEFAULT_SCORE_TARGETS[row.key]}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {errorMsg && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-rose-400/20 bg-rose-500/10 p-3 text-sm text-rose-300">
+          <AlertTriangle className="h-4 w-4 shrink-0" />
+          {errorMsg}
+        </div>
+      )}
+      {savedMsg && (
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-emerald-400/20 bg-emerald-500/10 p-3 text-sm text-emerald-300">
+          <CheckCircle2 className="h-4 w-4 shrink-0" />
+          {savedMsg}
+        </div>
+      )}
+
+      <div className="mt-5 flex flex-wrap gap-3">
+        <Button onClick={save} loading={saving} disabled={!allValid}>
+          <CheckCircle2 className="h-4 w-4" />
+          Salvar Metas
         </Button>
         <Button variant="ghost" size="sm" onClick={restore} disabled={saving}>
           <RefreshCw className="h-4 w-4" />
@@ -1975,6 +2225,7 @@ export default function ConfiguracoesPage() {
           </div>
         </Link>
         <ScoreWeightsPanel classData={classData} onSave={loadClass} />
+        <ScoreTargetsPanel classData={classData} onSave={loadClass} />
       </section>
 
       {/* ── CONFIGURAÇÕES POR RODADA ───────────────────────────────────── */}

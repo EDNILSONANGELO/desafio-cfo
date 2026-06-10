@@ -9,9 +9,11 @@ import {
   buildGradeScale,
   DEFAULT_GRADE_SCALE,
   DEFAULT_WEIGHTS,
-  SCORE_MULTIPLIERS,
+  DEFAULT_SCORE_TARGETS,
+  buildMultipliers,
   type GradeLevel,
   type ScoreWeights,
+  type ScoreTargets,
 } from "@/lib/simulation/scoring";
 import type { StoredResult, RankedResult, SessionPayload, GradeAdjustment } from "@/types";
 
@@ -23,6 +25,7 @@ interface Props {
   adjustments: GradeAdjustment[];
   gradeScaleRaw?: unknown[];
   scoreWeightsRaw?: unknown;
+  scoreTargetsRaw?: unknown;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -36,108 +39,125 @@ const BG_MAP: Record<string, string> = {
   "text-rose-400":    "bg-rose-500/10 border-rose-500/30",
 };
 
-/** Limiares de pontuação máxima por indicador (derivados de SCORE_MULTIPLIERS) */
-const SCORE_THRESHOLDS = [
-  {
-    label:      "Liquidez Corrente",
-    formula:    `LC × ${SCORE_MULTIPLIERS.currentRatio}`,
-    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.currentRatio).toFixed(1).replace(".", ",")}`,
-    example:    `LC = 2,0 → 2,0 × ${SCORE_MULTIPLIERS.currentRatio} = 100 pts`,
-    tip:        `LC = 1,0 = 50 pts · LC = 1,5 = 75 pts · LC < 0 = 0 pts`,
-  },
-  {
-    label:      "Liquidez Seca",
-    formula:    `LS × ${SCORE_MULTIPLIERS.quickRatio}`,
-    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.quickRatio).toFixed(1).replace(".", ",")}`,
-    example:    `LS = 2,0 → 2,0 × ${SCORE_MULTIPLIERS.quickRatio} = 100 pts`,
-    tip:        `LS = 1,0 = 50 pts · LS = 1,5 = 75 pts`,
-  },
-  {
-    label:      "Liquidez Imediata",
-    formula:    `LI × ${SCORE_MULTIPLIERS.immediateRatio}`,
-    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.immediateRatio).toFixed(1).replace(".", ",")}`,
-    example:    `LI = 2,0 → 2,0 × ${SCORE_MULTIPLIERS.immediateRatio} = 100 pts`,
-    tip:        `LI = 1,0 = 50 pts · LI negativa = 0 pts`,
-  },
-  {
-    label:      "ROA",
-    formula:    `ROA × ${SCORE_MULTIPLIERS.roa}`,
-    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.roa).toFixed(0)}%`,
-    example:    `ROA = 20% → 20 × ${SCORE_MULTIPLIERS.roa} = 100 pts`,
-    tip:        `ROA negativo = 0 pts. ROA 10% = 50 pts`,
-  },
-  {
-    label:      "Margem Líquida",
-    formula:    `ML × ${SCORE_MULTIPLIERS.netMargin}`,
-    threshold:  `≥ ${(100 / SCORE_MULTIPLIERS.netMargin).toFixed(1).replace(".", ",")}%`,
-    example:    `ML = 33,3% → 33,3 × ${SCORE_MULTIPLIERS.netMargin} = 100 pts`,
-    tip:        `Margem negativa = 0 pts. ML 20% = 60 pts`,
-  },
-  {
-    label:      "Ciclo Financeiro",
-    formula:    "100 − Ciclo (dias)",
-    threshold:  "≤ 0 dias",
-    example:    "Ciclo = 0 → 100 pts · Ciclo = −10 → 100 pts",
-    tip:        "Ciclo positivo reduz 1 pt por dia (ex: 30 dias = 70 pts). Ciclo ≤ 0 = sempre 100 pts",
-  },
-] as const;
+// ── Builders dinâmicos (dependem das metas configuradas pelo professor) ────────
 
-/** Definição de cada critério do score (multipliers vêm de SCORE_MULTIPLIERS) */
-const SCORE_CRITERIA = [
-  {
-    key:       "currentRatio" as keyof ScoreWeights,
-    label:     "Liquidez Corrente",
-    desc:      "Capacidade de pagar dívidas de curto prazo com ativos circulantes",
-    unit:      "× (índice)",
-    toPoints:  (v: number) => Math.min(v * SCORE_MULTIPLIERS.currentRatio, 100),
-    formatVal: (v: number) => number(v, 2),
-  },
-  {
-    key:       "quickRatio" as keyof ScoreWeights,
-    label:     "Liquidez Seca",
-    desc:      "Liquidez excluindo estoques (ativos mais líquidos)",
-    unit:      "× (índice)",
-    toPoints:  (v: number) => Math.min(v * SCORE_MULTIPLIERS.quickRatio, 100),
-    formatVal: (v: number) => number(v, 2),
-  },
-  {
-    key:       "immediateRatio" as keyof ScoreWeights,
-    label:     "Liquidez Imediata",
-    desc:      "Capacidade de pagamento imediato com caixa e equivalentes",
-    unit:      "× (índice)",
-    toPoints:  (v: number) => Math.min(Math.max(v, 0) * SCORE_MULTIPLIERS.immediateRatio, 100),
-    formatVal: (v: number) => number(v, 2),
-  },
-  {
-    key:       "roa" as keyof ScoreWeights,
-    label:     "ROA — Retorno sobre Ativos",
-    desc:      "Eficiência da empresa em gerar lucro com seus ativos",
-    unit:      "% ao período",
-    toPoints:  (v: number) => Math.min(Math.max(v, 0) * SCORE_MULTIPLIERS.roa, 100),
-    formatVal: (v: number) => `${number(v, 1)}%`,
-  },
-  {
-    key:       "netMargin" as keyof ScoreWeights,
-    label:     "Margem Líquida",
-    desc:      "Percentual de lucro sobre a receita líquida de vendas",
-    unit:      "% sobre receita",
-    toPoints:  (v: number) => Math.min(Math.max(v, 0) * SCORE_MULTIPLIERS.netMargin, 100),
-    formatVal: (v: number) => `${number(v, 1)}%`,
-  },
-  {
-    key:       "cashCycle" as keyof ScoreWeights,
-    label:     "Ciclo Financeiro",
-    desc:      "Dias entre pagar fornecedores e receber de clientes (menor = melhor)",
-    unit:      "dias",
-    toPoints:  (v: number) => Math.max(0, 100 - Math.max(0, v)),
-    formatVal: (v: number) => `${number(v, 0)} dias`,
-  },
-] as const;
+type ScoreCriterion = {
+  key:       keyof ScoreWeights;
+  label:     string;
+  desc:      string;
+  unit:      string;
+  toPoints:  (v: number) => number;
+  formatVal: (v: number) => string;
+};
+
+/** Gera os limiares de pontuação máxima por indicador com base nas metas ativas */
+function buildScoreThresholds(m: ReturnType<typeof buildMultipliers>, t: ScoreTargets) {
+  const fmt = (n: number, dec = 1) => n.toFixed(dec).replace(".", ",");
+  return [
+    {
+      label:     "Liquidez Corrente",
+      formula:   `LC × ${fmt(m.currentRatio, 2)}`,
+      threshold: `≥ ${fmt(t.currentRatio)}`,
+      example:   `LC = ${fmt(t.currentRatio)} → ${fmt(t.currentRatio)} × ${fmt(m.currentRatio, 2)} = 100 pts`,
+      tip:       `LC = ${fmt(t.currentRatio / 2)} = 50 pts · LC < 0 = 0 pts`,
+    },
+    {
+      label:     "Liquidez Seca",
+      formula:   `LS × ${fmt(m.quickRatio, 2)}`,
+      threshold: `≥ ${fmt(t.quickRatio)}`,
+      example:   `LS = ${fmt(t.quickRatio)} → ${fmt(t.quickRatio)} × ${fmt(m.quickRatio, 2)} = 100 pts`,
+      tip:       `LS = ${fmt(t.quickRatio / 2)} = 50 pts`,
+    },
+    {
+      label:     "Liquidez Imediata",
+      formula:   `LI × ${fmt(m.immediateRatio, 2)}`,
+      threshold: `≥ ${fmt(t.immediateRatio)}`,
+      example:   `LI = ${fmt(t.immediateRatio)} → ${fmt(t.immediateRatio)} × ${fmt(m.immediateRatio, 2)} = 100 pts`,
+      tip:       `LI negativa = 0 pts`,
+    },
+    {
+      label:     "ROA",
+      formula:   `ROA × ${fmt(m.roa, 2)}`,
+      threshold: `≥ ${fmt(t.roa, 0)}%`,
+      example:   `ROA = ${fmt(t.roa, 0)}% → ${fmt(t.roa, 0)} × ${fmt(m.roa, 2)} = 100 pts`,
+      tip:       `ROA negativo = 0 pts. ROA ${fmt(t.roa / 2, 0)}% = 50 pts`,
+    },
+    {
+      label:     "Margem Líquida",
+      formula:   `ML × ${fmt(m.netMargin, 2)}`,
+      threshold: `≥ ${fmt(t.netMargin)}%`,
+      example:   `ML = ${fmt(t.netMargin)}% → ${fmt(t.netMargin)} × ${fmt(m.netMargin, 2)} = 100 pts`,
+      tip:       `Margem negativa = 0 pts`,
+    },
+    {
+      label:     "Ciclo Financeiro",
+      formula:   t.cashCycle === 0 ? "100 − Ciclo (dias)" : `100 − (Ciclo − ${fmt(t.cashCycle, 0)}) dias`,
+      threshold: t.cashCycle === 0 ? "≤ 0 dias" : `≤ ${fmt(t.cashCycle, 0)} dias`,
+      example:   `Ciclo = ${fmt(t.cashCycle, 0)} d → 100 pts · Ciclo = ${fmt(t.cashCycle + 30, 0)} d = 70 pts`,
+      tip:       `Cada dia acima de ${fmt(t.cashCycle, 0)} reduz 1 pt (mín 0)`,
+    },
+  ];
+}
+
+/** Gera os critérios de score com lambdas dinâmicas baseadas nos multiplicadores ativos */
+function buildScoreCriteria(m: ReturnType<typeof buildMultipliers>, t: ScoreTargets): ScoreCriterion[] {
+  return [
+    {
+      key:       "currentRatio",
+      label:     "Liquidez Corrente",
+      desc:      "Capacidade de pagar dívidas de curto prazo com ativos circulantes",
+      unit:      "× (índice)",
+      toPoints:  (v) => Math.min(v * m.currentRatio, 100),
+      formatVal: (v) => number(v, 2),
+    },
+    {
+      key:       "quickRatio",
+      label:     "Liquidez Seca",
+      desc:      "Liquidez excluindo estoques (ativos mais líquidos)",
+      unit:      "× (índice)",
+      toPoints:  (v) => Math.min(v * m.quickRatio, 100),
+      formatVal: (v) => number(v, 2),
+    },
+    {
+      key:       "immediateRatio",
+      label:     "Liquidez Imediata",
+      desc:      "Capacidade de pagamento imediato com caixa e equivalentes",
+      unit:      "× (índice)",
+      toPoints:  (v) => Math.min(Math.max(v, 0) * m.immediateRatio, 100),
+      formatVal: (v) => number(v, 2),
+    },
+    {
+      key:       "roa",
+      label:     "ROA — Retorno sobre Ativos",
+      desc:      "Eficiência da empresa em gerar lucro com seus ativos",
+      unit:      "% ao período",
+      toPoints:  (v) => Math.min(Math.max(v, 0) * m.roa, 100),
+      formatVal: (v) => `${number(v, 1)}%`,
+    },
+    {
+      key:       "netMargin",
+      label:     "Margem Líquida",
+      desc:      "Percentual de lucro sobre a receita líquida de vendas",
+      unit:      "% sobre receita",
+      toPoints:  (v) => Math.min(Math.max(v, 0) * m.netMargin, 100),
+      formatVal: (v) => `${number(v, 1)}%`,
+    },
+    {
+      key:       "cashCycle",
+      label:     "Ciclo Financeiro",
+      desc:      "Dias entre pagar fornecedores e receber de clientes (menor = melhor)",
+      unit:      "dias",
+      toPoints:  (v) => Math.max(0, 100 - Math.max(0, v - t.cashCycle)),
+      formatVal: (v) => `${number(v, 0)} dias`,
+    },
+  ];
+}
 
 /** Calcula o detalhamento do score por critério */
 function computeScoreBreakdown(
   result: RankedResult,
-  weights: ScoreWeights
+  weights: ScoreWeights,
+  criteria: ScoreCriterion[]
 ): {
   criteria: Array<{
     label: string;
@@ -153,7 +173,7 @@ function computeScoreBreakdown(
   marketShareBonus: number;
   total: number;
 } {
-  const criteria = SCORE_CRITERIA.map((c) => {
+  const criteriaRows = criteria.map((c) => {
     const rawValue   = (result as unknown as Record<string, number>)[c.key] ?? 0;
     const points     = c.toPoints(rawValue);
     const weight     = weights[c.key];
@@ -170,11 +190,11 @@ function computeScoreBreakdown(
     };
   });
 
-  const subtotal           = criteria.reduce((s, c) => s + c.contribution, 0);
+  const subtotal           = criteriaRows.reduce((s, c) => s + c.contribution, 0);
   const marketShareBonus   = (result.marketShare ?? 0) * 0.05;
   const total              = subtotal + marketShareBonus;
 
-  return { criteria, subtotal, marketShareBonus, total };
+  return { criteria: criteriaRows, subtotal, marketShareBonus, total };
 }
 
 // ── Componente principal ─────────────────────────────────────────────────────
@@ -185,6 +205,7 @@ export default function NotasAlunoClient({
   adjustments,
   gradeScaleRaw,
   scoreWeightsRaw,
+  scoreTargetsRaw,
 }: Props) {
   // Escala de notas
   const gradeScale: GradeLevel[] =
@@ -197,6 +218,17 @@ export default function NotasAlunoClient({
     ...DEFAULT_WEIGHTS,
     ...((scoreWeightsRaw && typeof scoreWeightsRaw === "object") ? scoreWeightsRaw as Partial<ScoreWeights> : {}),
   };
+
+  // Metas dos indicadores (usa padrão se não configurado)
+  const targets: ScoreTargets = {
+    ...DEFAULT_SCORE_TARGETS,
+    ...((scoreTargetsRaw && typeof scoreTargetsRaw === "object") ? scoreTargetsRaw as Partial<ScoreTargets> : {}),
+  };
+
+  // Multiplicadores e critérios dinâmicos derivados das metas
+  const multipliers  = buildMultipliers(targets);
+  const scoreCriteria = buildScoreCriteria(multipliers, targets);
+  const scoreThresholds = buildScoreThresholds(multipliers, targets);
 
   // ── Estado vazio ─────────────────────────────────────────────────────────
   if (!groupResults.length) {
@@ -221,7 +253,7 @@ export default function NotasAlunoClient({
   const lastAdjustment = adjustments.find((a) => a.round_id === lastRound?.round_id);
 
   // Breakdown do score
-  const breakdown = lastResult ? computeScoreBreakdown(lastResult, weights) : null;
+  const breakdown = lastResult ? computeScoreBreakdown(lastResult, weights, scoreCriteria) : null;
 
   // Nota final do aluno (ajustada individualmente se houver)
   const notaFinal = lastAdjustment?.adjusted_nota ?? lastGrade?.nota ?? null;
@@ -539,7 +571,8 @@ export default function NotasAlunoClient({
               <p className="font-bold text-white text-sm">Cada indicador recebe uma pontuação (0–100)</p>
               <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
                 O valor bruto de cada indicador é convertido em uma pontuação de 0 a 100 usando fórmulas específicas.
-                Por exemplo: Liquidez Corrente de 1,5 → pontuação = min(1,5 × 20, 100) = 30 pts.
+                Por exemplo: Liquidez Corrente de {targets.currentRatio.toFixed(1).replace(".", ",")} (meta) → pontuação = min({targets.currentRatio.toFixed(1).replace(".", ",")} × {multipliers.currentRatio.toFixed(2)}, 100) = 100 pts.
+                A meta de cada indicador é configurada pelo professor e define quando se atinge 100 pts.
               </p>
             </div>
           </div>
@@ -593,12 +626,12 @@ export default function NotasAlunoClient({
             </div>
           </div>
 
-          {/* ── Tabela de limiares ─────────────────────────────────────── */}
+          {/* ── Tabela de metas e desempenho atual ──────────────────────── */}
           <div className="rounded-xl border border-white/10 bg-white/5 overflow-hidden">
             <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-2.5">
               <BarChart3 className="h-3.5 w-3.5 text-cyan-400" />
               <p className="text-xs font-black uppercase tracking-widest text-slate-400">
-                Quando cada indicador atinge 100 pontos
+                Metas e desempenho atual por indicador
               </p>
             </div>
             <div className="overflow-x-auto">
@@ -607,25 +640,68 @@ export default function NotasAlunoClient({
                   <tr className="border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-slate-600">
                     <th className="px-3 py-2 text-left">Indicador</th>
                     <th className="px-3 py-2 text-center">Fórmula</th>
-                    <th className="px-3 py-2 text-center">Valor mínimo para 100 pts</th>
-                    <th className="px-3 py-2 text-left hidden sm:table-cell">Exemplo</th>
+                    <th className="px-3 py-2 text-center">Meta (100 pts)</th>
+                    {lastResult && <th className="px-3 py-2 text-center">Seu valor</th>}
+                    {lastResult && <th className="px-3 py-2 text-center">Sua pontuação</th>}
+                    {lastResult && <th className="px-3 py-2 text-center hidden sm:table-cell">Falta para 100</th>}
                     <th className="px-3 py-2 text-left hidden lg:table-cell">Dica</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {SCORE_THRESHOLDS.map((t, i) => (
-                    <tr key={t.label} className={`border-b border-white/5 hover:bg-white/5 ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
-                      <td className="px-3 py-2.5 font-semibold text-white whitespace-nowrap">{t.label}</td>
-                      <td className="px-3 py-2.5 text-center font-mono text-cyan-400 whitespace-nowrap">{t.formula}</td>
-                      <td className="px-3 py-2.5 text-center">
-                        <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 font-black text-emerald-400 whitespace-nowrap">
-                          {t.threshold}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 text-slate-400 hidden sm:table-cell whitespace-nowrap">{t.example}</td>
-                      <td className="px-3 py-2.5 text-slate-500 hidden lg:table-cell leading-snug">{t.tip}</td>
-                    </tr>
-                  ))}
+                  {scoreThresholds.map((th, i) => {
+                    const criterion = scoreCriteria[i];
+                    const rawVal = lastResult
+                      ? (lastResult as unknown as Record<string, number>)[criterion.key] ?? 0
+                      : null;
+                    const pts   = rawVal != null ? criterion.toPoints(rawVal) : null;
+                    const gap   = pts != null ? Math.max(0, 100 - pts) : null;
+                    const ptColor = pts == null ? "" : pts >= 80 ? "text-emerald-400" : pts >= 50 ? "text-amber-400" : "text-rose-400";
+                    return (
+                      <tr key={th.label} className={`border-b border-white/5 hover:bg-white/5 ${i % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                        <td className="px-3 py-2.5 font-semibold text-white whitespace-nowrap">{th.label}</td>
+                        <td className="px-3 py-2.5 text-center font-mono text-cyan-400 whitespace-nowrap">{th.formula}</td>
+                        <td className="px-3 py-2.5 text-center">
+                          <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-0.5 font-black text-emerald-400 whitespace-nowrap">
+                            {th.threshold}
+                          </span>
+                        </td>
+                        {lastResult && (
+                          <td className="px-3 py-2.5 text-center font-bold text-slate-200 whitespace-nowrap">
+                            {rawVal != null ? criterion.formatVal(rawVal) : "—"}
+                          </td>
+                        )}
+                        {lastResult && (
+                          <td className="px-3 py-2.5 text-center">
+                            {pts != null ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className={`font-black ${ptColor}`}>{number(pts, 1)}</span>
+                                <div className="h-1 w-16 rounded-full bg-white/10 overflow-hidden">
+                                  <div
+                                    className={`h-full rounded-full transition-all ${pts >= 80 ? "bg-emerald-400" : pts >= 50 ? "bg-amber-400" : "bg-rose-400"}`}
+                                    style={{ width: `${Math.min(pts, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ) : "—"}
+                          </td>
+                        )}
+                        {lastResult && (
+                          <td className="px-3 py-2.5 text-center hidden sm:table-cell">
+                            {gap != null && gap > 0 ? (
+                              <span className="rounded-full bg-rose-500/15 border border-rose-500/30 px-2 py-0.5 font-bold text-rose-400 whitespace-nowrap">
+                                −{number(gap, 1)} pts
+                              </span>
+                            ) : gap === 0 ? (
+                              <span className="rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 font-bold text-emerald-400 whitespace-nowrap">
+                                ✓ Meta atingida
+                              </span>
+                            ) : "—"}
+                          </td>
+                        )}
+                        <td className="px-3 py-2.5 text-slate-500 hidden lg:table-cell leading-snug">{th.tip}</td>
+                      </tr>
+                    );
+                  })}
                   <tr className="border-b border-white/5 bg-violet-500/5">
                     <td className="px-3 py-2.5 font-semibold text-slate-300">Market Share Bônus</td>
                     <td className="px-3 py-2.5 text-center font-mono text-violet-400 whitespace-nowrap">MS% × 5%</td>
@@ -634,7 +710,19 @@ export default function NotasAlunoClient({
                         Sem teto
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-slate-400 hidden sm:table-cell">MS = 18,7% → +0,94 pts</td>
+                    {lastResult && (
+                      <td className="px-3 py-2.5 text-center font-bold text-slate-200">
+                        {number(lastResult.marketShare ?? 0, 1)}%
+                      </td>
+                    )}
+                    {lastResult && (
+                      <td className="px-3 py-2.5 text-center font-bold text-violet-400">
+                        +{number((lastResult.marketShare ?? 0) * 0.05, 2)}
+                      </td>
+                    )}
+                    {lastResult && (
+                      <td className="px-3 py-2.5 text-center text-slate-500 hidden sm:table-cell">—</td>
+                    )}
                     <td className="px-3 py-2.5 text-slate-500 hidden lg:table-cell">
                       Único indicador sem limite máximo — por isso o score pode ultrapassar 100
                     </td>
@@ -643,7 +731,7 @@ export default function NotasAlunoClient({
               </table>
             </div>
             <div className="border-t border-white/5 bg-amber-500/5 px-4 py-2.5 text-[11px] text-amber-300">
-              <strong>Atenção:</strong> indicadores abaixo do limiar recebem pontuação proporcional (ex: Liquidez Corrente = 2,5 → 50 pts em vez de 100 pts).
+              <strong>Atenção:</strong> indicadores abaixo da meta recebem pontuação proporcional.
               Valores negativos em ROA, Margem Líquida e Liquidez Imediata resultam em 0 pts naquele critério.
             </div>
           </div>

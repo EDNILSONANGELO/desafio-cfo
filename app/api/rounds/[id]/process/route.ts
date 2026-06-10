@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/server";
 import { simulateCompany, DEFAULT_DECISION, resultToOpeningBalance, BASE_PRODUCTION_CAPACITY } from "@/lib/simulation/engine";
-import { rankResults, DEFAULT_WEIGHTS, ScoreWeights } from "@/lib/simulation/scoring";
+import { rankResults, DEFAULT_WEIGHTS, ScoreWeights, ScoreTargets } from "@/lib/simulation/scoring";
 import { assignMedals } from "@/lib/simulation/medals";
 import { computeCompetitiveDistribution, hasRegionalSales } from "@/lib/simulation/competitive";
 import type { Group, Decision, EconomicEvent, SimulationResult, InitialBalance, RoundConfig } from "@/types";
@@ -215,24 +215,29 @@ export async function POST(
     return result;
   });
 
-  // Carregar pesos customizados da turma (se existir a coluna score_weights)
+  // Carregar pesos e metas customizados da turma
   let customWeights: Partial<ScoreWeights> | undefined;
+  let customTargets: Partial<ScoreTargets> | undefined;
   try {
     const { data: classData } = await supabase
       .from("classes")
-      .select("score_weights")
+      .select("score_weights, score_targets")
       .eq("id", round.class_id)
       .maybeSingle();
     if (classData?.score_weights) {
       customWeights = classData.score_weights as Partial<ScoreWeights>;
     }
+    if (classData?.score_targets) {
+      customTargets = classData.score_targets as Partial<ScoreTargets>;
+    }
   } catch {
-    // coluna não existe → usa pesos padrão
+    // colunas não existem → usa padrões
     customWeights = undefined;
+    customTargets = undefined;
   }
 
-  // Rank results (com pesos customizados ou padrão)
-  const ranked = rankResults(simResults, customWeights ?? DEFAULT_WEIGHTS);
+  // Rank results (com pesos e metas customizados ou padrão)
+  const ranked = rankResults(simResults, customWeights ?? DEFAULT_WEIGHTS, customTargets);
 
   // Save results to DB (upsert)
   const resultRows = ranked.map((r) => ({

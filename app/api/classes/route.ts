@@ -37,7 +37,7 @@ export async function GET() {
   // Tenta buscar com colunas de despesas, score_weights e grade_scale
   const { data, error } = await supabase
     .from("classes")
-    .select("id, name, fixed_expenses, transport, maintenance, score_weights, grade_scale")
+    .select("id, name, fixed_expenses, transport, maintenance, score_weights, grade_scale, score_targets")
     .eq("id", classId)
     .maybeSingle();
 
@@ -51,7 +51,7 @@ export async function GET() {
 
     return NextResponse.json({
       class: basic
-        ? { ...basic, fixed_expenses: null, transport: null, maintenance: null, score_weights: null, grade_scale: null }
+        ? { ...basic, fixed_expenses: null, transport: null, maintenance: null, score_weights: null, grade_scale: null, score_targets: null }
         : null,
       migration_needed: true,
     });
@@ -186,6 +186,9 @@ export async function PATCH(req: NextRequest) {
   if ("grade_scale" in body) {
     allUpdates["grade_scale"] = body.grade_scale ?? null;
   }
+  if ("score_targets" in body) {
+    allUpdates["score_targets"] = body.score_targets ?? null;
+  }
 
   // Renomear turma
   if ("name" in body) {
@@ -200,7 +203,7 @@ export async function PATCH(req: NextRequest) {
     .from("classes")
     .update(allUpdates)
     .eq("id", classId)
-    .select("id, name, fixed_expenses, transport, maintenance, score_weights, grade_scale")
+    .select("id, name, fixed_expenses, transport, maintenance, score_weights, grade_scale, score_targets")
     .single();
 
   if (error) {
@@ -212,7 +215,8 @@ export async function PATCH(req: NextRequest) {
           "ALTER TABLE classes ADD COLUMN IF NOT EXISTS transport DECIMAL;\n" +
           "ALTER TABLE classes ADD COLUMN IF NOT EXISTS maintenance DECIMAL;\n" +
           "ALTER TABLE classes ADD COLUMN IF NOT EXISTS score_weights JSONB;\n" +
-          "ALTER TABLE classes ADD COLUMN IF NOT EXISTS grade_scale JSONB;\n\n" +
+          "ALTER TABLE classes ADD COLUMN IF NOT EXISTS grade_scale JSONB;\n" +
+          "ALTER TABLE classes ADD COLUMN IF NOT EXISTS score_targets JSONB;\n\n" +
           "Detalhe: " + error.message,
       },
       { status: 500 }

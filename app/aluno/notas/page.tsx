@@ -25,7 +25,7 @@ export default async function NotasAlunoPage() {
   // Busca a escala de notas da turma
   const { data: classData } = await supabase
     .from("classes")
-    .select("grade_scale, score_weights")
+    .select("grade_scale, score_weights, score_targets")
     .eq("id", session.classId || "")
     .maybeSingle();
 
@@ -36,6 +36,7 @@ export default async function NotasAlunoPage() {
       adjustments={adjustments || []}
       gradeScaleRaw={classData?.grade_scale || []}
       scoreWeightsRaw={classData?.score_weights || null}
+      scoreTargetsRaw={classData?.score_targets || null}
     />
   );
 }

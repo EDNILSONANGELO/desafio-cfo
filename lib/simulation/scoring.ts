@@ -12,38 +12,84 @@ export const DEFAULT_WEIGHTS = {
 
 export type ScoreWeights = typeof DEFAULT_WEIGHTS;
 
-// ─── Limiares de pontuação máxima (100 pts) por indicador ────────────────────
-// Liquidez Corrente  ≥ 2,0  → 100 pts  (multiplicador: 50)
-// Liquidez Seca      ≥ 2,0  → 100 pts  (multiplicador: 50)
-// Liquidez Imediata  ≥ 2,0  → 100 pts  (multiplicador: 50)
-// ROA                ≥ 20%  → 100 pts  (multiplicador: 5)
-// Margem Líquida     ≥ 33%  → 100 pts  (multiplicador: 3)
-// Ciclo Financeiro   ≤ 0d   → 100 pts  (100 − ciclo, mín 0)
+// ─── Metas configuráveis dos indicadores ─────────────────────────────────────
+// Cada meta define o valor mínimo para atingir 100 pontos naquele indicador.
+// O multiplicador é calculado automaticamente: multiplicador = 100 ÷ meta.
+export interface ScoreTargets {
+  currentRatio:   number;  // LC   ≥ meta → 100 pts  (padrão: 1,5)
+  quickRatio:     number;  // LS   ≥ meta → 100 pts  (padrão: 1,5)
+  immediateRatio: number;  // LI   ≥ meta → 100 pts  (padrão: 1,5)
+  roa:            number;  // ROA  ≥ meta → 100 pts  (padrão: 20%)
+  netMargin:      number;  // ML   ≥ meta → 100 pts  (padrão: 33,33%)
+  cashCycle:      number;  // Ciclo ≤ meta → 100 pts (padrão: 0 dias)
+}
+
+export const DEFAULT_SCORE_TARGETS: ScoreTargets = {
+  currentRatio:   1.5,
+  quickRatio:     1.5,
+  immediateRatio: 1.5,
+  roa:            20,
+  netMargin:      33.33,
+  cashCycle:      0,
+};
+
+/**
+ * Converte uma meta em multiplicador linear.
+ * Fórmula: multiplicador = 100 ÷ meta
+ * Exemplo: meta 1,5 → multiplicador 66,67
+ */
+export function targetToMultiplier(target: number): number {
+  return target > 0 ? 100 / target : 100;
+}
+
+/**
+ * Retorna os multiplicadores para todos os indicadores lineares
+ * a partir das metas configuradas.
+ */
+export function buildMultipliers(targets: ScoreTargets) {
+  return {
+    currentRatio:   targetToMultiplier(targets.currentRatio),
+    quickRatio:     targetToMultiplier(targets.quickRatio),
+    immediateRatio: targetToMultiplier(targets.immediateRatio),
+    roa:            targetToMultiplier(targets.roa),
+    netMargin:      targetToMultiplier(targets.netMargin),
+  };
+}
+
+// ─── Multiplicadores estáticos derivados dos DEFAULT_SCORE_TARGETS ───────────
+// Mantidos para compatibilidade com componentes que não recebem targets.
+// LC / LS / LI: 100 ÷ 1,5 = 66,67
+// ROA:          100 ÷ 20  = 5
+// ML:           100 ÷ 33,33 = 3
 export const SCORE_MULTIPLIERS = {
-  currentRatio:   50,  // LC   ≥ 2,0 → 100 pts
-  quickRatio:     50,  // LS   ≥ 2,0 → 100 pts
-  immediateRatio: 50,  // LI   ≥ 2,0 → 100 pts
-  roa:             5,  // ROA  ≥ 20% → 100 pts
-  netMargin:       3,  // ML   ≥ 33% → 100 pts
+  currentRatio:   parseFloat((100 / DEFAULT_SCORE_TARGETS.currentRatio).toFixed(4)),
+  quickRatio:     parseFloat((100 / DEFAULT_SCORE_TARGETS.quickRatio).toFixed(4)),
+  immediateRatio: parseFloat((100 / DEFAULT_SCORE_TARGETS.immediateRatio).toFixed(4)),
+  roa:            parseFloat((100 / DEFAULT_SCORE_TARGETS.roa).toFixed(4)),
+  netMargin:      parseFloat((100 / DEFAULT_SCORE_TARGETS.netMargin).toFixed(4)),
 } as const;
 
 // ─── Cálculo do score de uma empresa ─────────────────────────────────────────
 export function scoreResult(
   result: SimulationResult,
   maxRevenue: number,
-  weights: ScoreWeights = DEFAULT_WEIGHTS
+  weights: ScoreWeights = DEFAULT_WEIGHTS,
+  targets?: Partial<ScoreTargets>
 ): number {
-  // Ciclo Financeiro: ≤ 0 dias = 100 pts; cada dia positivo reduz 1 pt (mín 0)
-  const normalizedCycle = Math.max(0, 100 - Math.max(0, result.cashCycle));
+  const t: ScoreTargets = { ...DEFAULT_SCORE_TARGETS, ...(targets ?? {}) };
+  const m = buildMultipliers(t);
+
+  // Ciclo Financeiro: ≤ meta = 100 pts; cada dia acima da meta reduz 1 pt (mín 0)
+  const normalizedCycle = Math.max(0, 100 - Math.max(0, result.cashCycle - t.cashCycle));
   const marketShare = maxRevenue ? (result.netRevenue / maxRevenue) * 100 : 0;
 
   return (
-    Math.min(result.currentRatio                    * SCORE_MULTIPLIERS.currentRatio,   100) * weights.currentRatio +
-    Math.min(result.quickRatio                      * SCORE_MULTIPLIERS.quickRatio,     100) * weights.quickRatio +
-    Math.min(Math.max(result.immediateRatio, 0)     * SCORE_MULTIPLIERS.immediateRatio, 100) * weights.immediateRatio +
-    Math.min(Math.max(result.roa, 0)                * SCORE_MULTIPLIERS.roa,            100) * weights.roa +
-    Math.min(Math.max(result.netMargin, 0)          * SCORE_MULTIPLIERS.netMargin,      100) * weights.netMargin +
-    normalizedCycle                                                                           * weights.cashCycle +
+    Math.min(result.currentRatio                * m.currentRatio,   100) * weights.currentRatio +
+    Math.min(result.quickRatio                  * m.quickRatio,     100) * weights.quickRatio +
+    Math.min(Math.max(result.immediateRatio, 0) * m.immediateRatio, 100) * weights.immediateRatio +
+    Math.min(Math.max(result.roa, 0)            * m.roa,            100) * weights.roa +
+    Math.min(Math.max(result.netMargin, 0)      * m.netMargin,      100) * weights.netMargin +
+    normalizedCycle                                                       * weights.cashCycle +
     marketShare * 0.05   // bônus de market share (fixo, não entra nos 100%)
   );
 }
@@ -51,7 +97,8 @@ export function scoreResult(
 // ─── Ranking de empresas ──────────────────────────────────────────────────────
 export function rankResults(
   results: SimulationResult[],
-  weights?: Partial<ScoreWeights>
+  weights?: Partial<ScoreWeights>,
+  targets?: Partial<ScoreTargets>
 ): RankedResult[] {
   if (!results.length) return [];
 
@@ -62,7 +109,7 @@ export function rankResults(
     .map((r) => ({
       ...r,
       marketShare: (r.netRevenue / maxRevenue) * 100,
-      score: scoreResult(r, maxRevenue, w),
+      score: scoreResult(r, maxRevenue, w, targets),
     }))
     .sort((a, b) => b.score - a.score)
     .map((r, i) => ({ ...r, position: i + 1 }));

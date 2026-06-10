@@ -246,19 +246,23 @@ Indicadores Financeiros → Pontuação (0-100) → Score ponderado → Grau →
 
 ### Passo 1: Pontuação por indicador (0 a 100)
 
-Cada indicador é convertido usando a fórmula e **teto de 100 pontos**:
+Cada indicador é convertido usando a fórmula e **teto de 100 pontos**. O multiplicador é calculado automaticamente: `multiplicador = 100 ÷ meta`.
 
-| Indicador | Fórmula | Para 100 pts | Exemplo |
-|-----------|---------|-------------|---------|
-| Liquidez Corrente | `LC × 50` | LC ≥ **2,0** | LC = 1,5 → 75 pts |
-| Liquidez Seca | `LS × 50` | LS ≥ **2,0** | LS = 1,0 → 50 pts |
-| Liquidez Imediata | `LI × 50` | LI ≥ **2,0** | LI = 0,5 → 25 pts |
-| ROA | `ROA × 5` | ROA ≥ **20%** | ROA = 10% → 50 pts |
-| Margem Líquida | `ML × 3` | ML ≥ **33,3%** | ML = 20% → 60 pts |
-| Ciclo Financeiro | `100 − Ciclo` | Ciclo ≤ **0 dias** | Ciclo 30d → 70 pts |
+**Metas e multiplicadores padrão:**
+
+| Indicador | Fórmula padrão | Meta padrão | Multiplicador | Exemplo |
+|-----------|---------------|-------------|---------------|---------|
+| Liquidez Corrente | `min(LC × 66,67, 100)` | LC ≥ **1,5** | 66,67 | LC = 1,5 → 100 pts |
+| Liquidez Seca | `min(LS × 66,67, 100)` | LS ≥ **1,5** | 66,67 | LS = 1,0 → 66,7 pts |
+| Liquidez Imediata | `min(LI × 66,67, 100)` | LI ≥ **1,5** | 66,67 | LI = 0,75 → 50 pts |
+| ROA | `min(ROA × 5, 100)` | ROA ≥ **20%** | 5,00 | ROA = 10% → 50 pts |
+| Margem Líquida | `min(ML × 3, 100)` | ML ≥ **33,3%** | 3,00 | ML = 20% → 60 pts |
+| Ciclo Financeiro | `max(0, 100 − max(0, ciclo))` | Ciclo ≤ **0 dias** | — | Ciclo 30d → 70 pts |
 
 > **Regra:** indicadores negativos resultam em **0 pontos** naquele critério.
 > **Ciclo Financeiro ≤ 0** sempre vale 100 pts. Para cada dia positivo, desconta-se 1 pt.
+
+> **Metas configuráveis:** você pode personalizar as metas em **Configurações → Metas dos Indicadores**. O multiplicador é recalculado automaticamente. Após salvar, reprocesse as rodadas.
 
 ### Passo 2: Ponderação pelos pesos
 
@@ -294,16 +298,33 @@ Este bônus **não tem teto** — scores acima de 100 pts são possíveis.
 | ≥ 15 | C | 4,0 | Fraco |
 | ≥ 0 | D | 2,0 | Crítico |
 
-### Personalizar a escala de notas
+### Personalizar a escala de notas e pesos
 
 1. Vá em **Notas → Metodologia de Pontuação**.
 2. Ajuste **Score mínimo** e **Nota** para cada conceito.
 3. Ajuste os **pesos** de cada indicador — a soma deve ser **100%**.
 4. Clique em **Salvar**.
 
-> **Após salvar novos pesos ou escala, reprocesse as rodadas** para que os novos parâmetros sejam aplicados retroativamente.
+### Personalizar as metas dos indicadores
 
-> **Atenção:** os pesos e a escala configurados são exibidos para os alunos no menu **Notas** deles — isso é intencional para fins pedagógicos.
+1. Vá em **Configurações → Metas dos Indicadores**.
+2. Ajuste a **meta para 100 pontos** de cada indicador.
+3. O sistema calcula o multiplicador automaticamente: `multiplicador = 100 ÷ meta`.
+4. A fórmula gerada é exibida em tempo real na tabela.
+5. Clique em **Salvar Metas**.
+
+| Indicador | Meta padrão | Multiplicador padrão |
+|-----------|------------|----------------------|
+| Liquidez Corrente | 1,5 | 66,67 |
+| Liquidez Seca | 1,5 | 66,67 |
+| Liquidez Imediata | 1,5 | 66,67 |
+| ROA | 20% | 5,00 |
+| Margem Líquida | 33,33% | 3,00 |
+| Ciclo Financeiro | 0 dias | — |
+
+> **Após salvar novos pesos, metas ou escala, reprocesse as rodadas** para que os novos parâmetros sejam aplicados retroativamente.
+
+> **Atenção:** as metas, os pesos e a escala configurados são exibidos para os alunos no menu **Notas** deles — isso é intencional para fins pedagógicos.
 
 ### Ajuste individual de nota
 
@@ -563,26 +584,29 @@ O sistema calcula automaticamente **13 indicadores** para cada empresa:
 
 ```
 Pontuação = min(valor × multiplicador, 100)
+Multiplicador = 100 ÷ meta
 ```
 
-| Indicador | Multiplicador | Limiar para 100 pts |
-|-----------|--------------|---------------------|
-| Liquidez Corrente | **× 50** | LC ≥ **2,0** |
-| Liquidez Seca | **× 50** | LS ≥ **2,0** |
-| Liquidez Imediata | **× 50** | LI ≥ **2,0** |
-| ROA | **× 5** | ROA ≥ **20%** |
-| Margem Líquida | **× 3** | ML ≥ **33,3%** |
-| Ciclo Financeiro | `100 − Ciclo` | Ciclo ≤ **0 dias** |
+**Valores padrão (configuráveis em Configurações → Metas dos Indicadores):**
+
+| Indicador | Meta padrão | Multiplicador padrão | Limiar para 100 pts |
+|-----------|------------|---------------------|---------------------|
+| Liquidez Corrente | 1,5 | **66,67** | LC ≥ **1,5** |
+| Liquidez Seca | 1,5 | **66,67** | LS ≥ **1,5** |
+| Liquidez Imediata | 1,5 | **66,67** | LI ≥ **1,5** |
+| ROA | 20% | **5,00** | ROA ≥ **20%** |
+| Margem Líquida | 33,33% | **3,00** | ML ≥ **33,3%** |
+| Ciclo Financeiro | 0 dias | — | Ciclo ≤ **0 dias** |
 
 ### Pontuação proporcional
 
-Para valores abaixo do limiar, a pontuação é proporcional:
+Para valores abaixo da meta, a pontuação é proporcional:
 
-| Exemplo | Cálculo | Pontos |
-|---------|---------|--------|
-| LC = 1,0 | 1,0 × 50 = 50 | **50 pts** |
-| LC = 1,5 | 1,5 × 50 = 75 | **75 pts** |
-| LC = 2,0 | 2,0 × 50 = 100 → teto | **100 pts** |
+| Exemplo | Cálculo (meta padrão 1,5) | Pontos |
+|---------|--------------------------|--------|
+| LC = 0,75 | 0,75 × 66,67 = 50 | **50 pts** |
+| LC = 1,0 | 1,0 × 66,67 = 66,7 | **66,7 pts** |
+| LC = 1,5 | 1,5 × 66,67 = 100 → meta | **100 pts** |
 | ROA = 10% | 10 × 5 = 50 | **50 pts** |
 | Ciclo = 30d | 100 − 30 = 70 | **70 pts** |
 | Ciclo = −10d | max(0, 100 − max(0, −10)) = 100 | **100 pts** |
@@ -599,14 +623,14 @@ Score = LC_pts × 0,20
       + (Receita_empresa ÷ Maior_receita) × 100 × 0,05  ← bônus sem teto
 ```
 
-> **Os pesos são os padrões e podem ser personalizados nas Configurações.**
+> **Os pesos e as metas são os padrões e podem ser personalizados em Configurações → Pesos do Score e Metas dos Indicadores.**
 
 ### Exemplo de cálculo completo
 
 | Indicador | Valor | Pontuação | Peso | Contribuição |
 |-----------|-------|-----------|------|-------------|
-| LC | 2,5 | 100 pts | 20% | 20,00 |
-| LS | 2,0 | 100 pts | 15% | 15,00 |
+| LC | 2,0 | min(2,0 × 66,67, 100) = 100 pts | 20% | 20,00 |
+| LS | 1,5 | min(1,5 × 66,67, 100) = 100 pts | 15% | 15,00 |
 | LI | 1,0 | 50 pts | 15% | 7,50 |
 | ROA | 15% | 75 pts | 25% | 18,75 |
 | ML | 25% | 75 pts | 15% | 11,25 |
