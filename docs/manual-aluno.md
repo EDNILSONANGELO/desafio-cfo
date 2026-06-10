@@ -1,7 +1,7 @@
 # Manual do Aluno
 ## Arena Contábil — Business Accounting Simulator
 
-**Versão:** 2.0 | **Plataforma:** https://desafio-cfo-gjpn.vercel.app
+**Versão:** 3.1 | **Plataforma:** https://desafio-cfo-gjpn.vercel.app
 
 ---
 
@@ -11,22 +11,29 @@
 2. [Acesso e Primeiro Login](#2-acesso-e-primeiro-login)
 3. [Painel do Aluno (Dashboard)](#3-painel-do-aluno-dashboard)
 4. [Formulário de Decisões](#4-formulário-de-decisões)
-   - 4.1 [Produção](#41-produção)
-   - 4.2 [Matéria-Prima](#42-matéria-prima)
-   - 4.3 [Vendas Regionais](#43-vendas-regionais)
-   - 4.4 [Seção Financeira](#44-seção-financeira)
-   - 4.5 [Despesas](#45-despesas)
+   - 4.1 [Produção e Capacidade](#41-produção-e-capacidade)
+   - 4.2 [Compra de Máquinas](#42-compra-de-máquinas)
+   - 4.3 [Matéria-Prima](#43-matéria-prima)
+   - 4.4 [Vendas Regionais](#44-vendas-regionais)
+   - 4.5 [Marketing](#45-marketing)
    - 4.6 [Funcionários e RH](#46-funcionários-e-rh)
-   - 4.7 [Marketing](#47-marketing)
+   - 4.7 [Gestão Financeira](#47-gestão-financeira)
+   - 4.8 [Despesas Operacionais](#48-despesas-operacionais)
 5. [Salvar e Enviar a Decisão](#5-salvar-e-enviar-a-decisão)
 6. [Prévia dos Indicadores](#6-prévia-dos-indicadores)
 7. [Tela de Resultados](#7-tela-de-resultados)
 8. [Análise de Mercado](#8-análise-de-mercado)
 9. [Indicadores Financeiros Explicados](#9-indicadores-financeiros-explicados)
-10. [Sistema de Notas](#10-sistema-de-notas)
-11. [Dicas Estratégicas](#11-dicas-estratégicas)
-12. [Regras do Jogo](#12-regras-do-jogo)
-13. [Perguntas Frequentes](#13-perguntas-frequentes)
+10. [Como sua Nota é Calculada](#10-como-sua-nota-é-calculada)
+    - 10.1 [Passo a passo do cálculo](#101-passo-a-passo-do-cálculo)
+    - 10.2 [Exemplo completo](#102-exemplo-completo)
+    - 10.3 [Tabela de metas para 100 pontos](#103-tabela-de-metas-para-100-pontos)
+    - 10.4 [Conversão em nota](#104-conversão-em-nota)
+    - 10.5 [Ajuste individual pelo professor](#105-ajuste-individual-pelo-professor)
+11. [Menu Notas](#11-menu-notas)
+12. [Dicas Estratégicas](#12-dicas-estratégicas)
+13. [Regras do Jogo](#13-regras-do-jogo)
+14. [Perguntas Frequentes](#14-perguntas-frequentes)
 
 ---
 
@@ -38,16 +45,15 @@ Você é o **CFO (Chief Financial Officer)** — o diretor financeiro da sua emp
 
 - Quanto produzir de garrafas sustentáveis?
 - Que materiais comprar e de quais fornecedores?
-- Em quais regiões vender e a que preço?
+- Em quais regiões vender, a que preço e com quanto marketing?
 - Contratar ou demitir funcionários?
 - Investir em novas máquinas?
-- Quanto gastar em marketing?
 
 Ao final de cada rodada, o professor processa os resultados e o sistema gera automaticamente os **demonstrativos financeiros** da sua empresa: DRE, Balanço Patrimonial e Fluxo de Caixa. Você descobre sua **posição no ranking** e recebe sua **nota acadêmica**.
 
 ### Como você é avaliado?
 
-A sua nota é calculada a partir dos seus **indicadores financeiros** — os mesmos usados por analistas de mercado e auditores no mundo real. Quanto melhor sua gestão, maiores os indicadores, maior o score e melhor a nota.
+A sua nota é calculada a partir dos seus **indicadores financeiros** — os mesmos usados por analistas de mercado e auditores no mundo real. Quanto melhor sua gestão, maiores os indicadores, maior o score e melhor a nota. Veja a seção 10 para o detalhamento completo do cálculo.
 
 ---
 
@@ -61,61 +67,31 @@ A sua nota é calculada a partir dos seus **indicadores financeiros** — os mes
 
 1. Acesse o endereço acima pelo computador, tablet ou celular.
 2. Na tela de login, clique na aba **"Aluno (RA)"**.
-3. Digite seu **RA** (Registro Acadêmico) — o número de matrícula fornecido pelo professor.
+3. Digite seu **RA** (Registro Acadêmico) — número de matrícula fornecido pelo professor.
 4. Digite sua **senha** (inicial fornecida pelo professor).
 5. Clique em **Entrar na plataforma**.
 
 ### Primeiro acesso — troca de senha obrigatória
 
-Na primeira vez que você entrar, o sistema redirecionará automaticamente para a tela de **troca de senha**:
+Na primeira vez que entrar, o sistema redireciona automaticamente para a tela de **troca de senha**:
 
 1. Digite a senha provisória que o professor lhe forneceu.
 2. Digite uma nova senha de sua escolha (mínimo 6 caracteres).
 3. Confirme a nova senha.
 4. Clique em **Salvar nova senha**.
-5. Você será direcionado ao seu painel de aluno.
 
 > **Guarde sua senha!** Se esquecê-la, somente o professor pode resetá-la.
-
-### Se esquecer a senha
-
-Entre em contato com o professor. Ele gerará uma senha temporária para você.
 
 ---
 
 ## 3. Painel do Aluno (Dashboard)
 
-Ao fazer login, você verá seu painel pessoal com as seguintes informações:
+Ao fazer login, você verá seu painel pessoal com:
 
-### Seu perfil
-
-- **Nome** e **RA**
-- **Turma** em que está matriculado
-- **Empresa** que você gerencia (nome da empresa do grupo)
-- **Região** de atuação da sua empresa
-- **Grupo** ao qual pertence
-
-### Card da rodada ativa
-
-Se houver uma rodada em andamento, você verá um card destacado com:
-- Nome da rodada e evento econômico ativo
-- Status: "Aberta" (você pode enviar) ou "Encerrada" (prazo expirado)
-- Botão **"Preencher Formulário"** — acesso direto ao formulário de decisões
-
-Se você já enviou sua decisão, o card mostrará:
-- ✅ **"Decisão enviada"** com data e horário
-- Nome e RA de quem enviou a decisão pelo grupo
-
-### Resultado mais recente
-
-Card com o resultado da última rodada processada:
-- Score obtido e nota acadêmica
-- Posição no ranking
-- Principais indicadores financeiros
-
-### Histórico de rodadas
-
-Lista de todas as rodadas anteriores com status e link para ver os resultados detalhados.
+- **Seu perfil:** nome, RA, turma, empresa, região e grupo
+- **Card da rodada ativa:** status, evento econômico e botão "Preencher Formulário"
+- **Resultado mais recente:** score, nota e posição no ranking
+- **Histórico de rodadas:** todas as rodadas anteriores com link para resultados
 
 ---
 
@@ -123,26 +99,30 @@ Lista de todas as rodadas anteriores com status e link para ver os resultados de
 
 O formulário é dividido em seções. Preencha todas antes de enviar.
 
-> **Dica:** Você pode salvar um rascunho quantas vezes quiser e voltar para editar. O envio definitivo só acontece quando você clicar em "ENVIAR RODADA".
+> **Dica:** Salve rascunhos quantas vezes quiser. O envio definitivo só acontece ao clicar em "ENVIAR RODADA".
 
 ---
 
-### 4.1 Produção
+### 4.1 Produção e Capacidade
 
 **Capacidade produtiva total**
-Exibe automaticamente a capacidade da sua fábrica: a capacidade base (2.000 unidades) somada à capacidade de todas as máquinas que você comprou em rodadas anteriores.
+Exibida automaticamente: capacidade base da fábrica + capacidade acumulada de todas as máquinas compradas em rodadas anteriores.
 
 **Quantidade a produzir**
-- Digite quantas garrafas deseja produzir nesta rodada.
-- **Não pode ultrapassar a capacidade total** da fábrica.
-- Produzir menos do que a capacidade é permitido (fábrica ociosa).
-- Produzir menos do que vai vender causa falta de estoque.
+- Informe quantas garrafas deseja produzir nesta rodada.
+- Não pode ultrapassar a capacidade total.
+- Estoque da rodada anterior está incluído no total disponível para venda.
 
-> **Dica estratégica:** Produza um pouco mais do que planeja vender para ter margem de segurança. Mas evite excesso — estoque gera custo.
+> **Fórmula do estoque final:**
+> `Estoque Final = Estoque Inicial + Produção − Vendas Realizadas`
+>
+> Se produção = vendas e estoque inicial = 0, então estoque final = 0.
 
-**Compra de máquinas (investimento)**
+---
 
-Para aumentar sua capacidade de produção, você pode comprar máquinas:
+### 4.2 Compra de Máquinas
+
+Para aumentar sua capacidade de produção, compre máquinas:
 
 | Máquina | Capacidade adicional | Preço |
 |---------|---------------------|-------|
@@ -150,19 +130,28 @@ Para aumentar sua capacidade de produção, você pode comprar máquinas:
 | 🏭 Média | +20.000 unidades/rodada | R$ 40.000 |
 | 🏗️ Grande | +60.000 unidades/rodada | R$ 80.000 |
 
-**Forma de pagamento:**
-- **À vista** — débito imediato do caixa
-- **A prazo** — parcelamento com juros de 2% ao mês
+**Regras importantes:**
+- **Máximo de 1 máquina por rodada.** Ao selecionar uma, os botões das outras ficam bloqueados.
+- A máquina entra em operação **nesta mesma rodada** — a capacidade é imediata.
 
-> A máquina comprada entra em operação na próxima rodada.
+**Formas de pagamento:**
+
+| Opção | Como funciona |
+|-------|--------------|
+| **À vista** | 100% pago nesta rodada |
+| **A prazo (3×)** | 33,33% nesta rodada · 33,33% na próxima · restante na seguinte |
+
+> O parcelamento tem incidência de juros (2% a.m.) sobre as 2 parcelas diferidas.
+
+**Exemplo — Máquina R$ 90.000:**
+- À vista: R$ 90.000 sai do caixa agora.
+- A prazo: R$ 30.000 + R$ 30.000 (próx. rodada) + R$ 30.000 (rodada seguinte).
 
 ---
 
-### 4.2 Matéria-Prima
+### 4.3 Matéria-Prima
 
 Informe quanto de cada material deseja comprar para a produção desta rodada.
-
-**Materiais necessários por garrafa:**
 
 | Material | Unidade |
 |----------|---------|
@@ -171,135 +160,103 @@ Informe quanto de cada material deseja comprar para a produção desta rodada.
 | Embalagem | unidade |
 | Rótulo | unidade |
 
-**Campos a preencher por material:**
-- **Quantidade** a comprar
-- **Preço unitário** pago ao fornecedor (se não estiver travado pelo professor)
-- **Prazo de pagamento** ao fornecedor:
-  - **15 dias** → você paga 100% do valor na rodada atual.
-  - **30 dias** → você paga 50% na rodada atual e 50% na próxima rodada.
-  - **60 dias** → você paga 50% na próxima rodada e 50% na rodada posterior (nenhuma saída na rodada atual).
+**Prazo de pagamento ao fornecedor:**
 
-> **Estoque carregado:** Se sobrou matéria-prima da rodada anterior, o saldo aparece como "estoque atual". Isso já está disponível para produção.
+| Prazo | Efeito no caixa |
+|-------|----------------|
+| **15 dias** | 100% pago nesta rodada |
+| **30 dias** | 50% nesta rodada · 50% na próxima |
+| **60 dias** | 0% nesta rodada · 50% na próxima · 50% na seguinte |
 
-> **Dica:** Prazos de pagamento mais longos melhoram o Prazo Médio de Pagamento (PMP) e reduzem o Ciclo Financeiro.
+> Prazos mais longos melhoram o PMP e reduzem o Ciclo Financeiro, mas cuidado: com 60 dias não há saída de caixa imediata, mas a dívida existirá.
 
 ---
 
-### 4.3 Vendas Regionais
+### 4.4 Vendas Regionais
 
-Informe onde e quanto você pretende vender.
-
-**O que preencher por região:**
+Informe em quais regiões vender, quanto e a que preço.
 
 | Campo | Descrição |
 |-------|-----------|
-| **Ativar a região** | Marque a caixinha para vender naquela região |
-| **Quantidade a vender** | Quantas garrafas planeja vender nessa região |
-| **Preço de venda (R$)** | Quanto cobrará por garrafa nessa região |
+| **Ativar a região** | Marque para vender naquela região |
+| **Quantidade a vender** | Unidades planejadas para esta região |
+| **Preço de venda (R$)** | Preço por garrafa nesta região |
+| **Inserções de marketing** | 0 a 8 ações publicitárias nesta região |
 
-**Custo de transporte**
+**Competitividade regional:**
+O sistema distribui a demanda de cada região proporcionalmente ao score competitivo de cada grupo que vende nela:
 
-- Vender na **sua própria região** de origem: sem custo adicional de transporte.
-- Vender em **outra região**: **R$ 3,00 por unidade** de custo de transporte.
+| Fator | Peso | Como funciona |
+|-------|------|--------------|
+| **Preço** | 50% | Preço menor = maior chance de venda |
+| **Marketing** | 35% | Mais inserções = maior demanda |
+| **Região de origem** | 15% | Vender na sua própria região dá vantagem |
 
-**Como o preço afeta as vendas:**
-- **Preço abaixo da média de mercado** → sua demanda aumenta (mais clientes).
-- **Preço acima da média de mercado** → sua demanda cai (menos clientes).
-- O sistema ajusta automaticamente as vendas reais com base nesse diferencial.
+**Custo inter-regional:**
+Vender fora da sua região de origem gera custo adicional por unidade (valor definido pelo professor, padrão R$ 3,00/unidade).
 
 **Prazo de recebimento dos clientes:**
-- **15 dias (à vista)** → você recebe 100% do valor na rodada atual.
-- **30 dias** → você recebe 50% na rodada atual e 50% na próxima rodada.
-- **60 dias** → você recebe 50% na próxima rodada e 50% na rodada posterior (nenhuma entrada na rodada atual).
 
-> **Dica:** Prazos mais curtos de recebimento melhoram o PMR e o fluxo de caixa. Tenha cuidado com o prazo de 60 dias: não haverá receita em caixa na rodada atual, o que pode gerar déficit de caixa.
+| Prazo | Efeito no caixa |
+|-------|----------------|
+| **15 dias (à vista)** | 100% recebido nesta rodada |
+| **30 dias** | 50% nesta rodada · 50% na próxima |
+| **60 dias** | 0% nesta rodada · 50% na próxima · 50% na seguinte |
 
----
-
-### 4.4 Seção Financeira
-
-**Empréstimos**
-- Informe o valor de novos empréstimos que deseja contrair (opcional).
-- Empréstimos entram no caixa imediatamente, mas geram obrigação de pagamento futura com juros.
-
-**Amortizações**
-- Informe o valor que deseja pagar de empréstimos já existentes.
-- Reduza dívidas para melhorar o Balanço Patrimonial e os indicadores de liquidez.
-
-**Aplicações financeiras**
-- Informe quanto deseja aplicar do caixa disponível.
-- As aplicações rendem juros e aparecem no ativo circulante.
-- Informe também quanto deseja resgatar de aplicações anteriores.
+> Cuidado com prazo de 60 dias: sem receita em caixa nesta rodada, pode gerar déficit.
 
 ---
 
-### 4.5 Despesas
+### 4.5 Marketing
 
-**Despesas fixas (R$/rodada)**
-- Salários administrativos, aluguel de escritório, energia elétrica, etc.
-- Se o professor travou este valor, ele será exibido sem possibilidade de alteração.
+**Inserções de marketing** representam ações publicitárias por região.
 
-**Transporte (R$/rodada)**
-- Custo logístico fixo da empresa (além do custo variável por unidade vendida fora da região).
-- Se travado pelo professor, não pode ser alterado.
+- **Custo padrão:** R$ 1.500 por inserção (pode ser diferente se o professor personalizou).
+- **Efeito:** cada inserção adiciona **+6% de demanda** para o grupo naquela região.
+- **Limite:** máximo de 8 inserções.
 
-**Manutenção (R$/rodada)**
-- Custo de manutenção dos equipamentos e instalações.
-- Se travado pelo professor, não pode ser alterado.
-
-> **Atenção:** Campos marcados com **"Fixo"** e borda âmbar foram definidos pelo professor e valem igual para todas as empresas.
+| Inserções | Boost de demanda |
+|-----------|-----------------|
+| 1–2 | +6% a +12% |
+| 3–5 | +18% a +30% |
+| 6–8 | +36% a +48% |
 
 ---
 
 ### 4.6 Funcionários e RH
 
-Gerencie o quadro de pessoal da sua empresa.
+**Funcionários atuais:** carregado da rodada anterior (rodada 1: começa com 6).
 
-**Funcionários atuais**
-- Exibe quantos funcionários sua empresa tem no início desta rodada (carregado da rodada anterior; na Rodada 1, começa com 6).
-
-**Funcionários necessários**
-- O sistema calcula automaticamente quantos funcionários são necessários para a produção que você planejou.
-- Fórmula: `Funcionários necessários = Quantidade produzida ÷ 333 unid./funcionário`
-
-**Contratar funcionários**
-- Informe quantos novos funcionários deseja contratar.
-- **Custo de contratação:** 1,5× o salário mensal por funcionário (encargos + treinamento).
-
-**Demitir funcionários**
-- Informe quantos funcionários deseja demitir.
-- **Custo de demissão:** 1,2× o salário mensal por funcionário (aviso prévio + multa FGTS).
-
-**Salário médio mensal**
-- Informe o valor médio de salário pago por funcionário.
-- Impacta diretamente os custos com pessoal na DRE.
+**Contratar / Demitir:**
+- **Contratação:** custo = 1,5× salário médio por funcionário (encargos + treinamento).
+- **Demissão:** custo = 1,2× salário médio por funcionário (aviso prévio + multa FGTS).
 
 **Alertas do sistema:**
 
 | Situação | Alerta | Efeito na produção |
 |----------|--------|--------------------|
-| Funcionários < 65% do necessário | 🔴 Greve | Produção cai 30% |
-| Funcionários < 85% do necessário | 🟡 Alerta | Produção cai 10% |
-| Funcionários > 35% ociosos | 🟡 Alerta | Custo alto, desmotivação |
-| Funcionários > 60% ociosos | 🔴 Greve | Greve por insatisfação |
-
-> **Dica:** Mantenha o número de funcionários próximo ao necessário para sua produção. Funcionários demais custam caro. Funcionários de menos prejudicam a produção.
+| < 65% dos necessários | 🔴 Greve | Produção cai 30% |
+| < 85% dos necessários | 🟡 Alerta | Produção cai 10% |
+| > 60% ociosos | 🔴 Greve | Greve por insatisfação |
+| > 35% ociosos | 🟡 Alerta | Custo alto |
 
 ---
 
-### 4.7 Marketing
+### 4.7 Gestão Financeira
 
-Invista em marketing para aumentar a demanda pelos seus produtos.
+**Empréstimos**
+- Informe o valor de novos empréstimos (opcional).
+- O professor pode configurar um **limite máximo** de empréstimo por rodada — o sistema mostrará esse limite abaixo do campo.
+- Se o professor configurou uma **taxa de juros fixa**, ela aparece trancada no campo "Taxa de juros %".
 
-**Inserções de marketing**
-- Cada **inserção** de marketing representa uma ação publicitária (anúncio, campanha, etc.).
-- **Custo padrão:** R$ 1.500 por inserção (pode ser diferente se o professor personalizou).
-- **Efeito:** Cada inserção adiciona **+6% de demanda** para sua empresa.
-- O efeito é acumulativo: 2 inserções = +12%, 3 inserções = +18%, etc.
+> **Mensagem de alerta:** Se informar um valor acima do limite, aparecerá: *"Valor solicitado acima do limite permitido. Limite definido pelo professor: R$ X.XXX,XX"*
 
-> **Exemplo:** Se sua demanda base esperada é 1.000 unidades e você fizer 2 inserções de marketing, a demanda pode chegar a 1.120 unidades (1.000 × 1,12).
+---
 
-> **Dica:** Marketing é especialmente útil quando o evento econômico da rodada deprime a demanda (ex: Crise econômica, Baixa temporada) ou quando você quer ganhar market share de concorrentes.
+### 4.8 Despesas Operacionais
+
+- **Despesas Fixas, Transporte, Manutenção:** se o professor travou um valor, aparece com badge "Fixo" (âmbar) e não pode ser alterado.
+- **Salário médio:** valor pago por funcionário por rodada.
 
 ---
 
@@ -307,380 +264,406 @@ Invista em marketing para aumentar a demanda pelos seus produtos.
 
 ### Salvar rascunho
 
-- Clique em **"Salvar Rascunho"** a qualquer momento para gravar o progresso.
-- Você pode fechar o formulário e voltar depois sem perder nada.
-- O rascunho pode ser editado quantas vezes quiser **enquanto a rodada estiver aberta**.
+- Clique em **"Salvar Rascunho"** a qualquer momento.
+- Pode fechar e voltar depois sem perder nada.
+- Editável enquanto a rodada estiver aberta e você não tiver enviado.
 
 ### Enviar a decisão (definitivo)
 
-1. Verifique se todos os campos estão preenchidos corretamente.
-2. Confira a **Prévia dos Indicadores** no painel lateral (ver seção 6).
+1. Verifique todos os campos.
+2. Confira a **Prévia dos Indicadores**.
 3. Clique em **"ENVIAR RODADA"**.
-4. Um modal de confirmação aparecerá — revise os dados.
-5. Clique em **"Confirmar Envio"**.
+4. Confirme no modal de confirmação.
 
-> **⚠️ Atenção:** Após confirmar o envio, sua decisão fica **bloqueada para edição**. O envio só pode ser desfeito pelo professor.
-
-### Após o envio
-
-Você verá:
-- Mensagem de confirmação com data, hora e nome/RA de quem enviou.
-- O formulário passa a ser exibido em modo **somente leitura**.
-- Seu grupo aparece como "Enviado" no tracker do professor.
+> **⚠️ Atenção:** Após confirmar o envio, a decisão fica **bloqueada para edição**. Somente o professor pode desfazer.
 
 ---
 
 ## 6. Prévia dos Indicadores
 
-Enquanto você preenche o formulário, um painel lateral exibe uma **prévia em tempo real** dos seus resultados estimados.
+Enquanto você preenche o formulário, um painel exibe uma **prévia em tempo real** dos resultados estimados.
 
-> Esta é uma estimativa baseada nas suas decisões atuais, com as condições de mercado ainda não conhecidas (preço médio dos concorrentes, efeito real do evento).
+**DRE Estimada:** Receita → CMV → Lucro Bruto → Despesas → EBIT → Resultado Financeiro → Lucro Líquido
 
-### O que aparece na prévia
+**Indicadores principais:** Liquidez Corrente/Seca/Imediata, Margens, ROA, ROE, Ciclo Financeiro
 
-**DRE Estimada (Demonstração do Resultado):**
-- Receita Bruta
-- Deduções (impostos)
-- Receita Líquida
-- Custo dos Produtos Vendidos (CMV)
-- Lucro Bruto
-- Despesas Operacionais
-- EBIT (Lucro Operacional)
-- Resultado Financeiro
-- Lucro Líquido
-
-**Indicadores principais:**
-- Liquidez Corrente, Seca e Imediata
-- Margens (Bruta, Operacional, Líquida)
-- ROA e ROE
-- Ciclo Financeiro (PME + PMR − PMP)
-
-**Fluxo de Caixa projetado:**
-- Entradas: recebimentos de clientes + resgates + empréstimos
-- Saídas: pagamentos a fornecedores + despesas + amortizações + investimentos
-- Saldo final estimado
-
-> **Use a prévia para ajustar suas decisões antes de enviar!** Se o lucro estimado for negativo, revise preços, custos e volume de vendas.
+> Esta é uma estimativa baseada nas suas decisões. O resultado real depende também das decisões dos outros grupos (que afetam o preço médio de mercado).
 
 ---
 
 ## 7. Tela de Resultados
 
-Acesse pelo menu lateral: **Resultados**.
+Acesse pelo menu lateral: **Resultados** (disponível após o professor processar a rodada).
 
-Disponível após o professor processar a rodada.
-
-### Seletor de rodada
-
-Escolha qual rodada analisar no seletor no topo da página.
-
-### Dados da empresa (sua empresa)
-
-**DRE — Demonstração do Resultado do Exercício**
+### DRE — Demonstração do Resultado do Exercício
 
 | Linha | Descrição |
 |-------|-----------|
-| Receita Bruta | Total de vendas × preço praticado |
-| (−) Deduções | Impostos sobre vendas |
-| = Receita Líquida | Receita após impostos |
-| (−) CMV | Custo dos Materiais e Produção Vendida |
-| = Lucro Bruto | Quanto sobrou após a produção |
-| (−) Despesas Operacionais | Despesas fixas + pessoal + marketing + transporte |
-| = EBIT | Lucro antes de juros (resultado operacional) |
-| (±) Resultado Financeiro | Juros pagos/recebidos e rendimentos |
-| = Lucro Líquido | Resultado final da empresa na rodada |
+| Receita Líquida | Total de vendas × preço, após deduções |
+| (−) CMV | Custo dos Materiais + Depreciação |
+| = Lucro Bruto | Receita − CMV |
+| (−) Despesas Operacionais | Fixas + Pessoal + Marketing + Armazenagem |
+| = EBIT | Lucro Operacional |
+| (±) Resultado Financeiro | Juros pagos/recebidos |
+| = LAIR | Lucro Antes do IR |
+| (−) IR + CSLL (24%) | 15% IR + 9% CSLL sobre LAIR positivo |
+| = Lucro Líquido | Resultado final |
 
-**Balanço Patrimonial**
+### Balanço Patrimonial
 
-| Ativo Circulante | Passivo Circulante |
-|------------------|--------------------|
-| Caixa | Fornecedores |
-| Bancos | Empréstimos curto prazo |
-| Aplicações financeiras | Outras obrigações |
-| Clientes (a receber) | |
-| Estoques | **Patrimônio Líquido** |
-| **Ativo Não Circulante** | Capital Social |
-| Imobilizado (máquinas) | Lucros Acumulados |
+**Ativo Circulante:** Caixa · Clientes a Receber · Estoques  
+**Ativo Não Circulante:**
+- Imobilizado (custo histórico)
+- (−) Depreciação Acumulada
+- = Imobilizado Líquido
 
-**Fluxo de Caixa**
-- Atividades Operacionais
-- Atividades de Investimento (compra de máquinas)
-- Atividades de Financiamento (empréstimos/amortizações)
-- Variação total do caixa
+**Passivo Circulante:** Fornecedores · Empréstimos CP · Parcelas de Máquinas  
+**Passivo Não Circulante:** Empréstimos LP  
+**Patrimônio Líquido:** Capital Social + Resultado do Período
 
-### Indicadores (13 KPIs)
+### Relatório de Produção e Estoque
 
-Exibidos com comparação ao benchmark da turma (melhor, média e sua empresa).
+| Coluna | Descrição |
+|--------|-----------|
+| Produção Efetiva | Unidades efetivamente produzidas |
+| Qtd. Vendida | Unidades vendidas de fato |
+| Não Vendidas | Unidades que foram para estoque |
+| Estoque Final (R$) | `Unidades não vendidas × Custo unitário` |
 
-### Ranking e Score
+> Se produção = vendas, Estoque Final = R$ 0,00.
 
-- Sua posição no ranking desta rodada
-- Score obtido (pontos)
-- Nota acadêmica correspondente
+### Fluxo de Caixa
 
-### Evolução histórica
-
-Gráficos de linha mostrando a evolução do score, liquidez, margem e ROA ao longo de todas as rodadas.
+**FCO** (Atividades Operacionais): recebimentos de clientes − pagamentos a fornecedores − mão de obra − despesas − IR/CSLL  
+**FCI** (Investimentos): compra de máquinas + parcelas automáticas de máquinas anteriores  
+**FCF** (Financiamento): empréstimos captados
 
 ---
 
 ## 8. Análise de Mercado
 
-Acesse pelo menu lateral: **Mercado**.
+Acesse pelo menu lateral: **Mercado** (disponível após o professor processar a rodada).
 
-Disponível após o professor processar a rodada.
+### Tabela comparativa — Perfil por Região
 
-### O que você encontra aqui
+Mostra **todos os grupos** ordenados por **Score** (do maior para o menor) com todos os indicadores.
 
-- **Tabela comparativa** de todas as empresas da turma com todos os indicadores
-- Você pode comparar o desempenho da sua empresa com o dos concorrentes
-- **Gráficos comparativos** de score, receita, lucratividade
-- **Evolução histórica** de todas as empresas ao longo das rodadas
+A coluna **Score ★** aparece logo após o `#` — essa é a pontuação que determina sua nota.
 
-> **Use esta tela para aprender com os concorrentes.** Se outra empresa tem margem líquida muito maior, analise o que pode estar fazendo de diferente (preço, custos, volume).
+### Inteligência de Mercado Regional
+
+Se o professor usa vendas por região, aparece a seção **"Meu Desempenho Regional"** com:
+- Quantidade ofertada vs. vendida em cada região
+- Preço praticado e inserções de marketing
+- **Score Competitivo** (0–100%): quanto mais alto, mais competitivo você foi naquela região
+- Market Share por região
+
+**Como o Score Competitivo é calculado:**
+
+| Fator | Peso |
+|-------|------|
+| Preço (menor = melhor) | 50% |
+| Inserções de marketing | 35% |
+| Vender na própria região | 15% |
 
 ---
 
 ## 9. Indicadores Financeiros Explicados
 
-### Indicadores de Liquidez
+### Liquidez
 
-**Liquidez Corrente (LC)**
-```
-LC = Ativo Circulante ÷ Passivo Circulante
-```
-Mede se a empresa consegue pagar todas as dívidas de curto prazo usando os ativos circulantes.
-- LC > 2,0 → Excelente
-- LC entre 1,5 e 2,0 → Bom
-- LC entre 1,0 e 1,5 → Aceitável
-- LC < 1,0 → Risco de insolvência
+| Indicador | Fórmula | Meta |
+|-----------|---------|------|
+| **Liquidez Corrente (LC)** | Ativo Circulante ÷ Passivo Circulante | ≥ 2,0 |
+| **Liquidez Seca (LS)** | (AC − Estoques) ÷ Passivo Circulante | ≥ 2,0 |
+| **Liquidez Imediata (LI)** | Caixa ÷ Passivo Circulante | ≥ 2,0 |
 
-**Liquidez Seca (LS)**
-```
-LS = (Ativo Circulante − Estoques) ÷ Passivo Circulante
-```
-Igual à liquidez corrente, mas excluindo os estoques (que podem não ser convertidos em dinheiro rapidamente).
+### Rentabilidade
 
-**Liquidez Imediata (LI)**
-```
-LI = (Caixa + Bancos + Aplicações) ÷ Passivo Circulante
-```
-Capacidade de pagamento usando apenas os recursos disponíveis imediatamente.
+| Indicador | Fórmula |
+|-----------|---------|
+| **Margem Bruta** | Lucro Bruto ÷ Receita Líquida × 100 |
+| **Margem Líquida** | Lucro Líquido ÷ Receita Líquida × 100 |
+| **ROA** | Lucro Líquido ÷ Total do Ativo × 100 |
+| **ROE** | Lucro Líquido ÷ Patrimônio Líquido × 100 |
 
----
+### Ciclo Operacional
 
-### Indicadores de Rentabilidade
-
-**Margem Bruta**
-```
-Margem Bruta = Lucro Bruto ÷ Receita Líquida × 100
-```
-Percentual da receita que sobra após pagar o custo de produção.
-
-**Margem Líquida**
-```
-Margem Líquida = Lucro Líquido ÷ Receita Líquida × 100
-```
-Percentual da receita convertido em lucro real. Quanto maior, melhor.
-
-**ROA (Retorno sobre Ativos)**
-```
-ROA = Lucro Líquido ÷ Total do Ativo × 100
-```
-Mede a eficiência da empresa em gerar lucro com todos os seus ativos. Muito usado por investidores.
-
-**ROE (Retorno sobre Patrimônio Líquido)**
-```
-ROE = Lucro Líquido ÷ Patrimônio Líquido × 100
-```
-Retorno gerado para os sócios (acionistas) da empresa.
+| Indicador | Fórmula | Meta |
+|-----------|---------|------|
+| **PME** (Prazo Médio Estoque) | Estoque ÷ CMV × 30 | Menor = melhor |
+| **PMR** (Prazo Médio Recebimento) | Clientes ÷ Receita × 30 | Menor = melhor |
+| **PMP** (Prazo Médio Pagamento) | Fornecedores ÷ Compras × 30 | Maior = melhor |
+| **Ciclo Financeiro** | PME + PMR − PMP | Negativo = ótimo |
 
 ---
 
-### Indicadores de Prazo Médio (Ciclo Operacional)
+## 10. Como sua Nota é Calculada
 
-**PME — Prazo Médio de Estoques**
-```
-PME = Estoque Médio ÷ CMV × 360
-```
-Em quantos dias, em média, os estoques giram (são vendidos).
+A nota da Arena Contábil é 100% baseada nos **indicadores financeiros** da sua empresa — os mesmos utilizados por analistas de mercado e auditores no mundo real. Não há subjetividade: quanto melhor sua gestão financeira, maior o score e melhor a nota.
 
-**PMR — Prazo Médio de Recebimento**
 ```
-PMR = Clientes ÷ Receita Bruta × 360
+Indicadores Financeiros → Pontuação (0–100) → Score ponderado → Grau → Nota (0–10)
 ```
-Em quantos dias, em média, os clientes pagam.
-
-**PMP — Prazo Médio de Pagamento**
-```
-PMP = Fornecedores ÷ Compras × 360
-```
-Em quantos dias, em média, a empresa paga seus fornecedores.
-
-**Ciclo Financeiro**
-```
-Ciclo Financeiro = PME + PMR − PMP
-```
-Quantos dias a empresa precisa "financiar" seu próprio ciclo operacional com capital próprio.
-
-| Resultado | Interpretação |
-|-----------|---------------|
-| Ciclo negativo | Ótimo — empresa recebe antes de pagar |
-| 0 a 30 dias | Bom |
-| 31 a 60 dias | Aceitável |
-| Acima de 60 dias | Alto — empresa precisa de muito capital de giro |
 
 ---
 
-## 10. Sistema de Notas
+### 10.1 Passo a passo do cálculo
 
-### Como sua nota é calculada
+#### Passo 1 — O sistema calcula seus indicadores financeiros
 
-1. O sistema calcula seus indicadores financeiros.
-2. Cada indicador é normalizado para uma escala de 0 a 100.
-3. Os indicadores são ponderados pelos pesos definidos pelo professor.
-4. O resultado é seu **Score** (pontuação de 0 a ~100).
-5. O score é convertido em **nota acadêmica** conforme a tabela abaixo.
+Ao processar a rodada, o sistema gera automaticamente **6 indicadores** que serão usados na avaliação:
 
-### Escala de notas padrão
-
-| Score | Conceito | Nota (0–10) | Significado |
-|-------|---------|-------------|-------------|
-| ≥ 75 | AAA | 10,0 | Excelente — gestão exemplar |
-| ≥ 60 | AA | 8,5 | Muito Bom — empresa saudável |
-| ≥ 45 | A | 7,0 | Bom — desempenho satisfatório |
-| ≥ 30 | B | 5,5 | Regular — pode melhorar |
-| ≥ 15 | C | 4,0 | Fraco — atenção às finanças |
-| ≥ 0 | D | 2,0 | Crítico — empresa em dificuldades |
-
-> Essa escala pode ser personalizada pelo professor. Consulte o professor caso tenha dúvidas sobre a escala usada na sua turma.
-
-### O que mais pesa na nota?
-
-| Indicador | Peso padrão | Como melhorar |
-|-----------|-------------|---------------|
-| ROA | 25% | Gere mais lucro com menos ativos |
-| Liquidez Corrente | 20% | Mantenha bom nível de caixa e recebíveis |
-| Liquidez Seca | 15% | Evite excesso de estoques |
-| Liquidez Imediata | 15% | Tenha caixa disponível |
-| Margem Líquida | 15% | Controle custos e maximize o preço |
-| Ciclo Financeiro | 10% | Reduza prazos de recebimento; aumente prazo de pagamento |
+- Liquidez Corrente (LC)
+- Liquidez Seca (LS)
+- Liquidez Imediata (LI)
+- ROA (Retorno sobre o Ativo)
+- Margem Líquida (ML)
+- Ciclo Financeiro (em dias)
 
 ---
 
-## 11. Dicas Estratégicas
+#### Passo 2 — Cada indicador é convertido em pontuação (0 a 100)
+
+Cada indicador tem uma **fórmula de conversão** e um **teto de 100 pontos**. Indicadores negativos valem 0 pontos.
+
+| Indicador | Fórmula | Teto (100 pts) |
+|-----------|---------|----------------|
+| **Liquidez Corrente** | `LC × 50` | LC ≥ **2,0** |
+| **Liquidez Seca** | `LS × 50` | LS ≥ **2,0** |
+| **Liquidez Imediata** | `max(LI, 0) × 50` | LI ≥ **2,0** |
+| **ROA** | `max(ROA, 0) × 5` | ROA ≥ **20%** |
+| **Margem Líquida** | `max(ML, 0) × 3` | ML ≥ **33,3%** |
+| **Ciclo Financeiro** | `max(0 ; 100 − max(0 ; ciclo))` | Ciclo ≤ **0 dias** |
+
+**Exemplos rápidos:**
+
+| Situação | Cálculo | Pontos |
+|----------|---------|--------|
+| LC = 1,5 | 1,5 × 50 = 75 | **75 pts** |
+| LC = 2,0 ou mais | 2,0 × 50 = 100 → teto | **100 pts** |
+| ROA = 8% | 8 × 5 = 40 | **40 pts** |
+| ML = 25% | 25 × 3 = 75 | **75 pts** |
+| Ciclo = 30 dias | 100 − 30 = 70 | **70 pts** |
+| Ciclo = −5 dias | 100 − max(0,−5) = 100 | **100 pts** |
+| ROA negativo | max(0, neg.) = 0 | **0 pts** |
+
+---
+
+#### Passo 3 — Cada pontuação é multiplicada pelo peso do critério
+
+Os pesos determinam a importância relativa de cada indicador no score final:
+
+| Indicador | Peso padrão | Fórmula da contribuição |
+|-----------|-------------|------------------------|
+| ROA | **25%** | Pontuação × 0,25 |
+| Liquidez Corrente | **20%** | Pontuação × 0,20 |
+| Liquidez Seca | **15%** | Pontuação × 0,15 |
+| Liquidez Imediata | **15%** | Pontuação × 0,15 |
+| Margem Líquida | **15%** | Pontuação × 0,15 |
+| Ciclo Financeiro | **10%** | Pontuação × 0,10 |
+
+> O professor pode personalizar os pesos para cada turma — os pesos vigentes são exibidos no menu **Notas**.
+
+---
+
+#### Passo 4 — Soma das contribuições + bônus de Market Share
+
+```
+Score Final = Σ(Pontuação × Peso) + Bônus Market Share
+```
+
+**Bônus de Market Share** (sem teto — scores acima de 100 são possíveis):
+
+```
+Bônus = (Receita da sua empresa ÷ Maior receita da rodada) × 100 × 5%
+```
+
+> Exemplo: sua receita corresponde a 60% da maior receita da rodada → Bônus = 60 × 5% = **3,0 pts**
+
+---
+
+### 10.2 Exemplo completo
+
+Empresa com os seguintes resultados após uma rodada:
+
+| Indicador | Valor apurado | Cálculo da pontuação | Pontuação | Peso | Contribuição |
+|-----------|---------------|----------------------|-----------|------|-------------|
+| Liquidez Corrente | 2,5 | min(2,5 × 50, 100) | **100** | 20% | **20,00** |
+| Liquidez Seca | 2,0 | min(2,0 × 50, 100) | **100** | 15% | **15,00** |
+| Liquidez Imediata | 1,0 | min(1,0 × 50, 100) | **50** | 15% | **7,50** |
+| ROA | 15% | min(15 × 5, 100) | **75** | 25% | **18,75** |
+| Margem Líquida | 25% | min(25 × 3, 100) | **75** | 15% | **11,25** |
+| Ciclo Financeiro | 20 dias | max(0, 100 − 20) | **80** | 10% | **8,00** |
+| **Subtotal** | | | | | **80,50** |
+| Bônus Market Share | 30% da maior receita | 30 × 5% | — | — | **+1,50** |
+| **SCORE FINAL** | | | | | **82,00 pts** |
+
+Score **82,00** → Grau **AA** → **Nota 8,5**
+
+---
+
+### 10.3 Tabela de metas para 100 pontos
+
+| Indicador | Meta para 100 pts | O que representa |
+|-----------|-------------------|-----------------|
+| Liquidez Corrente | LC ≥ **2,0** | Ativo Circulante = 2× o Passivo Circulante |
+| Liquidez Seca | LS ≥ **2,0** | Mesma lógica, sem contar estoques |
+| Liquidez Imediata | LI ≥ **2,0** | Só o caixa já cobre 2× o Passivo Circulante |
+| ROA | ROA ≥ **20%** | Lucro = 20% do total de ativos |
+| Margem Líquida | ML ≥ **33,3%** | 1 em cada 3 reais de receita vira lucro |
+| Ciclo Financeiro | **≤ 0 dias** | Você recebe antes de precisar pagar |
+
+---
+
+### 10.4 Conversão em nota (escala padrão)
+
+| Score | Grau | Nota (0–10) | Conceito |
+|-------|------|-------------|----------|
+| ≥ 75 pts | **AAA** | **10,0** | Excelente |
+| ≥ 60 pts | **AA** | **8,5** | Muito Bom |
+| ≥ 45 pts | **A** | **7,0** | Bom |
+| ≥ 30 pts | **B** | **5,5** | Regular |
+| ≥ 15 pts | **C** | **4,0** | Fraco |
+| ≥ 0 pts | **D** | **2,0** | Crítico |
+
+> A escala pode ser personalizada pelo professor. Os limiares vigentes são sempre exibidos no menu **Notas**.
+
+---
+
+### 10.5 Ajuste individual pelo professor
+
+O professor pode ajustar sua nota individualmente (participação, pontualidade, qualidade das entregas). Quando isso ocorre:
+- Sua nota individual aparece destacada em violeta no menu Notas
+- A justificativa do ajuste é exibida para você
+
+---
+
+## 11. Menu Notas
+
+Acesse pelo menu lateral: **Notas**.
+
+### Cards exibidos
+
+| Card | O que mostra |
+|------|-------------|
+| **Minha Nota Atual** | Nota mais recente (ajustada se houver ajuste individual) |
+| **Posição no Ranking** | Sua posição e score na última rodada |
+| **Score Médio** | Média de todas as rodadas |
+| **Melhor Score** | Seu melhor desempenho |
+
+### Formação da Nota do Grupo
+
+Exibe a **tabela completa** de como o score foi calculado:
+- Valor de cada indicador
+- Pontuação obtida (0–100) com barra colorida
+- Peso e contribuição de cada critério
+- Fórmula de cálculo detalhada
+- Pesos configurados pelo professor
+
+### Como sua Nota é Calculada
+
+Painel explicativo com 6 passos didáticos + **tabela de limiares** mostrando quando cada indicador atinge 100 pontos.
+
+### Histórico por Rodada
+
+Evolução completa com posição, score, grau, nota e lucro líquido em cada rodada.
+
+> **Privacidade:** você visualiza **apenas sua nota e a nota do seu grupo**. As notas dos outros grupos não são exibidas.
+
+---
+
+## 12. Dicas Estratégicas
 
 ### Gestão de produção
 
-- **Não produza mais do que pode vender.** Estoque parado gera custo e piora os indicadores de prazo médio.
-- **Não produza menos do que planejou vender.** Falta de produto = venda perdida.
-- **Calibre o volume** com base na demanda esperada, considerando o evento econômico da rodada.
+- Produza próximo da demanda esperada — estoque gera custo (5% do valor).
+- Se produção = vendas e estoque inicial = 0, o estoque final será **R$ 0,00**.
+- Considere o evento econômico da rodada ao definir o volume.
 
-### Política de preços
+### Política de preços e competitividade
 
-- **Preço muito alto** → perde clientes para os concorrentes.
-- **Preço muito baixo** → atrai clientes, mas pode destruir a margem de lucro.
-- **Equilibre:** busque o preço que maximize a receita total (quantidade × preço).
-- **Compare com o mercado** na tela de Análise de Mercado após cada rodada.
+- **Preço muito alto** → perde clientes para os concorrentes (50% do score competitivo).
+- **Preço muito baixo** → atrai clientes mas pode destruir a margem de lucro.
+- Combine preço competitivo com inserções de marketing para maximizar vendas.
 
 ### Gestão de prazos
 
-- **Receber mais rápido dos clientes** (PMR menor) melhora o fluxo de caixa.
-- **Pagar mais devagar aos fornecedores** (PMP maior) libera caixa.
-- **Girar estoques mais rápido** (PME menor) melhora a liquidez.
-- **Ciclo financeiro menor = melhor.** Ciclo negativo é excelente.
+- **Receber mais rápido** (PMR menor) → melhora o fluxo de caixa.
+- **Pagar mais devagar** (PMP maior) → libera capital de giro.
+- **Ciclo Financeiro ≤ 0 dias** → pontuação máxima (100 pts) neste critério.
 
-### Funcionários
+### Para maximizar o score
 
-- Contrate apenas o necessário para produzir o volume planejado.
-- Demitir custa dinheiro (1,2× salário). Só demita se a ociosidade for persistente.
-- Falta de funcionários prejudica a produção mais do que qualquer outra variável.
-
-### Marketing
-
-- Use marketing quando o mercado estiver desfavorável ou quando quiser crescer market share.
-- 1 inserção (+6%) já pode ser suficiente para superar concorrentes em demanda.
-- Não gaste mais do que a receita adicional que o marketing vai gerar.
+| Indicador | Meta para 100 pts | Estratégia |
+|-----------|-------------------|------------|
+| Liquidez Corrente | LC ≥ **2,0** | Mantenha caixa e recebíveis altos; evite passivos desnecessários |
+| Liquidez Seca | LS ≥ **2,0** | Produza próximo da demanda — estoque excessivo prejudica a LS |
+| Liquidez Imediata | LI ≥ **2,0** | Prefira receber em 15 ou 30 dias para manter caixa alto |
+| ROA | ROA ≥ **20%** | Gere lucro com ativos enxutos — evite máquinas desnecessárias |
+| Margem Líquida | ML ≥ **33,3%** | Controle custos fixos e operacionais; ajuste o preço de venda |
+| Ciclo Financeiro | ≤ **0 dias** | PMR curto (receber rápido) + PMP longo (pagar devagar) |
 
 ### Investimento em máquinas
 
-- Só compre máquinas se planeja produzir volumes que justifiquem o investimento.
-- Máquinas compradas a prazo geram juros — calcule se o aumento de receita compensa.
-- O efeito da máquina aparece na capacidade da próxima rodada.
-
-### Gestão de caixa
-
-- Mantenha sempre reserva de caixa (pelo menos 20-30% do passivo circulante).
-- Se o caixa estiver baixo, considere tomar empréstimos ou resgatar aplicações.
-- Aplicações financeiras rendem juros — aplique o excesso de caixa que não precisará no curto prazo.
-
-### Sequência de rodadas
-
-- **Rodada 1:** Foque em entender o formulário e não dar prejuízo.
-- **Rodadas 2-3:** Ajuste a estratégia com base nos resultados e no desempenho dos concorrentes.
-- **Rodadas finais:** Maximize liquidez e rentabilidade — são os indicadores que mais pesam no score.
+- Máquina entra em operação **imediatamente** nesta rodada.
+- Máximo **1 máquina por rodada**.
+- Calcule se o aumento de produção/receita compensa o custo.
+- Parcelamento gera juros nas 2 últimas parcelas.
 
 ---
 
-## 12. Regras do Jogo
-
-### Regras fundamentais
+## 13. Regras do Jogo
 
 1. **Cada grupo envia apenas uma decisão por rodada.** Qualquer membro do grupo pode preencher e enviar.
-2. **O envio é irreversível** — só o professor pode cancelar. Confirme antes de enviar.
-3. **Uma vez encerrada a rodada**, não é mais possível enviar novas decisões.
-4. **Grupos que não enviam** recebem automaticamente a decisão padrão do sistema (conservadora, sem investimentos).
-5. **O resultado é calculado sobre as decisões reais** — não há possibilidade de contestação após o processamento.
-
-### Sobre trabalho em equipe
-
-- **Decidam juntos** como grupo — o formulário representa a decisão coletiva da empresa.
-- Qualquer integrante com acesso pode preencher e enviar — organizem-se para evitar conflitos.
-- Uma boa prática é um membro preencher o rascunho e outro revisar antes de enviar.
-
-### Sobre integridade acadêmica
-
-- Os dados inseridos no formulário devem refletir a decisão real do grupo.
-- Manipulação de dados ou cooperação indevida entre grupos competidores pode ser identificada pelo professor na análise dos resultados.
+2. **O envio é irreversível** — só o professor pode cancelar.
+3. **Uma vez encerrada a rodada**, não é mais possível enviar.
+4. **Grupos que não enviam** recebem automaticamente a decisão padrão (conservadora, nota baixa).
+5. **Máximo 1 máquina por rodada** — o sistema bloqueia automaticamente.
+6. **Empréstimo máximo por rodada** pode ser limitado pelo professor.
+7. **Privacidade das notas:** você vê apenas sua nota e a do seu grupo.
 
 ---
 
-## 13. Perguntas Frequentes
+## 14. Perguntas Frequentes
 
 **P: Esqueci minha senha. O que faço?**
-R: Fale com o professor. Ele pode gerar uma nova senha temporária para você.
+R: Fale com o professor. Ele pode gerar uma nova senha temporária.
 
 **P: Posso editar o formulário depois de salvar o rascunho?**
 R: Sim, enquanto a rodada estiver aberta e você não tiver enviado definitivamente.
 
 **P: Posso editar depois de enviar?**
-R: Não. O envio definitivo bloqueia a edição. Somente o professor pode cancelar o envio.
+R: Não. Somente o professor pode cancelar o envio.
 
 **P: O que acontece se meu grupo não enviar?**
-R: O sistema usa automaticamente a decisão padrão (produção mínima, sem investimentos). Isso geralmente resulta em desempenho fraco e nota baixa.
-
-**P: Posso ver o formulário dos outros grupos?**
-R: Não. Você só tem acesso ao formulário do seu grupo. Os resultados dos concorrentes aparecem na tela de Mercado após o processamento.
+R: O sistema usa a decisão padrão automaticamente. Geralmente resulta em nota baixa.
 
 **P: A prévia dos indicadores é exata?**
-R: É uma estimativa. O resultado real depende das decisões de todos os grupos (que afetam o preço médio de mercado) e do efeito do evento econômico.
+R: É uma estimativa. O resultado real depende das decisões de todos os grupos e do evento econômico.
 
-**P: O que é "decisão padrão" mencionada no formulário?**
-R: São os valores sugeridos pelo sistema como ponto de partida. Você deve ajustá-los conforme sua estratégia.
+**P: Por que meu estoque final mostra R$ 0,00 se produzi e vendi igual?**
+R: Correto! `Estoque Final = Produção − Vendas`. Se vendeu tudo, o estoque é zero.
+
+**P: Por que meu score passou de 100?**
+R: O bônus de Market Share não tem teto. Scores acima de 100 são possíveis e representam excelência total.
+
+**P: Como vejo a formação da minha nota?**
+R: Acesse o menu **Notas** → seção "Formação da Nota do Grupo". Lá você vê cada indicador, pontuação, peso e contribuição detalhados.
 
 **P: Posso vender em mais de uma região?**
-R: Sim! Ative múltiplas regiões na seção de Vendas Regionais. Lembre-se que vender fora da sua região de origem tem custo de transporte de R$ 3,00/unidade.
+R: Sim! Ative múltiplas regiões na seção de Vendas Regionais. Vender fora da sua região de origem tem custo adicional definido pelo professor.
+
+**P: O que é o Score Competitivo na análise de mercado?**
+R: É uma pontuação de 0 a 100% que mostra o quanto você foi competitivo numa região comparado aos concorrentes. É baseado em preço (50%), marketing (35%) e proximidade regional (15%).
 
 **P: Minha empresa pode ter prejuízo?**
-R: Sim. Se o lucro líquido for negativo, sua empresa teve prejuízo naquela rodada. Isso reduz o Patrimônio Líquido e afeta negativamente os indicadores. Use a prévia para evitar isso antes de enviar.
+R: Sim. Lucro negativo reduz o Patrimônio Líquido e afeta os indicadores negativamente. Use a prévia para evitar isso.
 
 **P: O que acontece ao caixa entre rodadas?**
-R: O saldo final do caixa de uma rodada torna-se o saldo inicial da próxima. O mesmo vale para estoques, clientes a receber, fornecedores a pagar e capacidade de máquinas.
-
-**P: Como melhoro meu ROA?**
-R: ROA = Lucro Líquido ÷ Total de Ativos. Para melhorar, aumente o lucro (preços maiores, custos menores) ou reduza ativos desnecessários (estoques altos, excesso de caixa sem aplicação).
+R: O saldo final vira saldo inicial da próxima rodada. O mesmo vale para estoques, clientes a receber, fornecedores a pagar, capacidade de máquinas e funcionários.
 
 ---
 
-*Manual do Aluno — Arena Contábil v2.0*
-*Atualizado em maio de 2026*
+*Manual do Aluno — Arena Contábil v3.1*
+*Atualizado em junho de 2026*
