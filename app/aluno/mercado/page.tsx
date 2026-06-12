@@ -686,6 +686,149 @@ export default function MercadoPage() {
         </div>
       )}
 
+      {/* ── Média de Preço Praticado ─────────────────────────────────── */}
+      {(() => {
+        const breakdown   = myResult?.data?.regionalBreakdown;
+        const allRegions  = myResult?.data?.allRegionsCompetition;
+        const myRegions   = (breakdown ?? []).filter(r => r.soldQty > 0 && r.price > 0);
+        if (!myRegions.length) return null;
+
+        // Média de mercado por região (a partir do allRegionsCompetition)
+        const mktMap: Record<string, { avg: number; min: number; max: number }> = {};
+        (allRegions ?? []).forEach(region => {
+          const valid = region.competitors.filter(c => c.soldQty > 0 && c.price > 0);
+          if (valid.length > 0) {
+            const prices = valid.map(c => c.price);
+            mktMap[region.region_name] = {
+              avg: prices.reduce((s, p) => s + p, 0) / prices.length,
+              min: Math.min(...prices),
+              max: Math.max(...prices),
+            };
+          }
+        });
+
+        const myOverallAvg   = myRegions.reduce((s, r) => s + r.price, 0) / myRegions.length;
+        const mktVals        = Object.values(mktMap);
+        const mktOverallAvg  = mktVals.length ? mktVals.reduce((s, v) => s + v.avg, 0) / mktVals.length : 0;
+        const globalDiff     = mktOverallAvg > 0 ? ((myOverallAvg - mktOverallAvg) / mktOverallAvg) * 100 : 0;
+        const overallColor   = globalDiff > 2 ? "text-rose-400" : globalDiff < -2 ? "text-emerald-400" : "text-amber-400";
+        const overallBg      = globalDiff > 2 ? "border-rose-400/20 bg-rose-500/5" : globalDiff < -2 ? "border-emerald-400/20 bg-emerald-500/5" : "border-amber-400/20 bg-amber-500/5";
+        const overallLabel   = globalDiff > 2 ? "Acima da média" : globalDiff < -2 ? "Abaixo da média" : "Alinhado à média";
+
+        return (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <SectionTitle>
+              <DollarSign className="mr-2 inline h-4 w-4" />
+              Média de Preço Praticado
+            </SectionTitle>
+            <p className="mb-5 text-xs text-slate-500">
+              Comparativo entre o preço praticado pelo seu grupo e a média do mercado por região nesta rodada.
+              Apenas regiões com vendas efetivas são consideradas.
+            </p>
+
+            {/* KPI summary */}
+            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Seu preço médio</p>
+                <p className="text-xl font-black text-white">{currency(myOverallAvg)}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">{myRegions.length} região{myRegions.length > 1 ? "ões" : ""}</p>
+              </div>
+              {mktOverallAvg > 0 && (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Média do mercado</p>
+                  <p className="text-xl font-black text-cyan-400">{currency(mktOverallAvg)}</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">todas as regiões</p>
+                </div>
+              )}
+              {mktOverallAvg > 0 && (
+                <div className={`rounded-xl border p-3 text-center ${overallBg}`}>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Vs. mercado</p>
+                  <p className={`text-xl font-black ${overallColor}`}>
+                    {globalDiff > 0 ? "+" : ""}{number(globalDiff, 1)}%
+                  </p>
+                  <p className={`text-[10px] mt-0.5 ${overallColor}`}>{overallLabel}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Tabela por região */}
+            <div className="overflow-x-auto rounded-xl border border-white/10">
+              <table className="min-w-full text-xs">
+                <thead>
+                  <tr className="border-b border-white/10 bg-slate-900/80 sticky top-0 z-10">
+                    <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Região</th>
+                    <th className="whitespace-nowrap px-3 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">Seu Preço</th>
+                    <th className="whitespace-nowrap px-3 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">Média do Mercado</th>
+                    <th className="whitespace-nowrap px-3 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">Diferença</th>
+                    <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Posicionamento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myRegions.map((row, ri) => {
+                    const mkt       = mktMap[row.region_name];
+                    const priceDiff = mkt ? ((row.price - mkt.avg) / mkt.avg) * 100 : 0;
+                    const isAbove   = priceDiff > 2;
+                    const isBelow   = priceDiff < -2;
+                    const diffColor = isAbove ? "text-rose-400" : isBelow ? "text-emerald-400" : "text-amber-400";
+                    const badge     = isAbove
+                      ? { text: "Acima da média",   cls: "bg-rose-500/15 border-rose-500/30 text-rose-400" }
+                      : isBelow
+                      ? { text: "Abaixo da média",  cls: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" }
+                      : { text: "Alinhado à média", cls: "bg-amber-500/15 border-amber-500/30 text-amber-400" };
+                    return (
+                      <tr key={row.region_name} className={`border-b border-white/5 hover:bg-white/[0.04] ${ri % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                        <td className="px-3 py-3 min-w-[130px]">
+                          <div className="flex items-center gap-1.5">
+                            {row.isHomeRegion && <span title="Região sede">🏠</span>}
+                            <span className="font-semibold text-white">{row.region_name}</span>
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span className="font-mono font-bold text-white">{currency(row.price)}</span>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          {mkt
+                            ? <span className="font-mono text-cyan-400">{currency(mkt.avg)}</span>
+                            : <span className="text-slate-600">—</span>}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          {mkt
+                            ? <span className={`font-mono font-bold ${diffColor}`}>{priceDiff > 0 ? "+" : ""}{number(priceDiff, 1)}%</span>
+                            : <span className="text-slate-600">—</span>}
+                        </td>
+                        <td className="px-3 py-3 hidden sm:table-cell">
+                          {mkt && (
+                            <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${badge.cls}`}>
+                              {badge.text}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                {myRegions.length > 1 && (
+                  <tfoot>
+                    <tr className="border-t border-white/10 bg-white/5">
+                      <td className="px-3 py-2.5 text-xs font-bold text-slate-400">Média Geral</td>
+                      <td className="px-3 py-2.5 text-center font-mono font-black text-white">{currency(myOverallAvg)}</td>
+                      <td className="px-3 py-2.5 text-center font-mono text-cyan-400">
+                        {mktOverallAvg > 0 ? currency(mktOverallAvg) : "—"}
+                      </td>
+                      <td colSpan={2} />
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+
+            <p className="mt-3 text-[10px] text-slate-600 italic">
+              * Apenas as médias de mercado são exibidas. Preços individuais de outros grupos não são divulgados nesta visualização.
+            </p>
+          </div>
+        );
+      })()}
+
       {/* Strategic tips */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <SectionTitle>

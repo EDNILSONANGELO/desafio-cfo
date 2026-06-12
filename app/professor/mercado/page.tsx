@@ -542,6 +542,224 @@ export default function MercadoProfessorPage() {
         </div>
       )}
 
+      {/* ── Análise de Preços por Região ─────────────────────────────── */}
+      {(() => {
+        const allRegions = results[0]?.data?.allRegionsCompetition;
+        if (!allRegions?.length) return null;
+
+        // Estrutura de estatísticas por região
+        const regionStats = allRegions.map(region => {
+          const valid = region.competitors.filter(c => c.soldQty > 0 && c.price > 0);
+          if (!valid.length) return null;
+          const prices = valid.map(c => c.price);
+          const avg    = prices.reduce((s, p) => s + p, 0) / prices.length;
+          const min    = Math.min(...prices);
+          const max    = Math.max(...prices);
+          // Ordena por preço (crescente)
+          const sorted = [...valid].sort((a, b) => a.price - b.price);
+          return { region_name: region.region_name, avg, min, max, competitors: sorted };
+        }).filter(Boolean) as Array<{ region_name: string; avg: number; min: number; max: number; competitors: { groupId: number; company: string; price: number; soldQty: number; offeredQty: number; marketShare: number }[] }>;
+
+        if (!regionStats.length) return null;
+
+        // Média geral entre todas as regiões
+        const allPrices = regionStats.flatMap(r => r.competitors.map(c => c.price));
+        const overallAvg = allPrices.length ? allPrices.reduce((s, p) => s + p, 0) / allPrices.length : 0;
+
+        // Estatísticas por grupo (média pesada entre todas as regiões onde vendeu)
+        const groupPriceMap: Record<number, { company: string; prices: number[] }> = {};
+        regionStats.forEach(region => {
+          region.competitors.forEach(c => {
+            if (!groupPriceMap[c.groupId]) groupPriceMap[c.groupId] = { company: c.company, prices: [] };
+            groupPriceMap[c.groupId].prices.push(c.price);
+          });
+        });
+        const groupAverages = Object.entries(groupPriceMap)
+          .map(([gid, v]) => ({
+            groupId: Number(gid),
+            company: v.company,
+            avg: v.prices.reduce((s, p) => s + p, 0) / v.prices.length,
+          }))
+          .sort((a, b) => a.avg - b.avg);
+
+        return (
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+            <SectionTitle>
+              <DollarSign className="mr-2 inline h-4 w-4" />
+              Análise de Preços por Região
+            </SectionTitle>
+            <p className="mb-5 text-xs text-slate-500">
+              Comparativo de preços praticados por grupo e região. Apenas rodadas com vendas efetivas são consideradas.
+            </p>
+
+            {/* KPIs resumo */}
+            <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Média geral</p>
+                <p className="text-xl font-black text-cyan-400">{currency(overallAvg)}</p>
+                <p className="text-[10px] text-slate-500 mt-0.5">todas as regiões</p>
+              </div>
+              <div className="rounded-xl border border-emerald-400/20 bg-emerald-500/5 p-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Menor preço</p>
+                <p className="text-xl font-black text-emerald-400">
+                  {currency(Math.min(...regionStats.map(r => r.min)))}
+                </p>
+                <p className="text-[10px] text-emerald-400/60 mt-0.5">mais competitivo</p>
+              </div>
+              <div className="rounded-xl border border-rose-400/20 bg-rose-500/5 p-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Maior preço</p>
+                <p className="text-xl font-black text-rose-400">
+                  {currency(Math.max(...regionStats.map(r => r.max)))}
+                </p>
+                <p className="text-[10px] text-rose-400/60 mt-0.5">maior margem potencial</p>
+              </div>
+              <div className="rounded-xl border border-amber-400/20 bg-amber-500/5 p-3 text-center">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">Spread</p>
+                <p className="text-xl font-black text-amber-400">
+                  {currency(Math.max(...regionStats.map(r => r.max)) - Math.min(...regionStats.map(r => r.min)))}
+                </p>
+                <p className="text-[10px] text-amber-400/60 mt-0.5">max − min</p>
+              </div>
+            </div>
+
+            {/* Ranking de preço médio por grupo */}
+            <div className="mb-5 rounded-xl border border-white/10 bg-white/5 overflow-hidden">
+              <div className="flex items-center gap-2 border-b border-white/10 bg-white/5 px-4 py-2.5">
+                <BarChart3 className="h-3.5 w-3.5 text-violet-400" />
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400">Preço médio por grupo (todas as regiões)</p>
+              </div>
+              <div className="divide-y divide-white/5">
+                {groupAverages.map((g, gi) => {
+                  const isMin = gi === 0;
+                  const isMax = gi === groupAverages.length - 1;
+                  const barPct = overallAvg > 0 ? Math.min((g.avg / (Math.max(...groupAverages.map(x => x.avg)) || 1)) * 100, 100) : 0;
+                  const diff   = overallAvg > 0 ? ((g.avg - overallAvg) / overallAvg) * 100 : 0;
+                  const diffCl = diff > 2 ? "text-rose-400" : diff < -2 ? "text-emerald-400" : "text-amber-400";
+                  return (
+                    <div key={g.groupId} className="flex flex-wrap items-center gap-3 px-4 py-3 hover:bg-white/[0.03]">
+                      <div className="flex items-center gap-2 min-w-[140px]">
+                        {isMin && <span title="Menor preço" className="text-sm">🏷️</span>}
+                        {isMax && <span title="Maior preço" className="text-sm">💎</span>}
+                        {!isMin && !isMax && <span className="w-5" />}
+                        <span className="text-sm font-semibold text-white">{g.company}</span>
+                      </div>
+                      <div className="flex flex-1 items-center gap-3 min-w-[160px]">
+                        <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                          <div className="h-full rounded-full bg-cyan-500 transition-all" style={{ width: `${barPct}%` }} />
+                        </div>
+                        <span className="font-mono font-bold text-white w-20 text-right">{currency(g.avg)}</span>
+                      </div>
+                      <span className={`font-mono text-xs font-bold w-16 text-right ${diffCl}`}>
+                        {diff > 0 ? "+" : ""}{number(diff, 1)}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="border-t border-white/10 bg-white/5 px-4 py-2.5 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400">Média do mercado</span>
+                <span className="font-mono font-black text-cyan-400">{currency(overallAvg)}</span>
+              </div>
+            </div>
+
+            {/* Detalhamento por região */}
+            <div className="space-y-4">
+              {regionStats.map(region => {
+                const spread = region.max - region.min;
+                return (
+                  <div key={region.region_name} className="rounded-xl border border-white/10 bg-slate-900/50 overflow-hidden">
+                    {/* Header da região */}
+                    <div className="flex flex-wrap items-center gap-3 border-b border-white/10 bg-white/5 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-cyan-400 shrink-0" />
+                        <span className="font-bold text-white">{region.region_name}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 ml-auto">
+                        <div className="flex flex-col items-center rounded-lg bg-white/5 px-3 py-1.5 border border-white/10">
+                          <span className="text-xs font-black text-cyan-400">{currency(region.avg)}</span>
+                          <span className="text-[10px] text-slate-500">Média</span>
+                        </div>
+                        <div className="flex flex-col items-center rounded-lg bg-emerald-500/10 px-3 py-1.5 border border-emerald-500/20">
+                          <span className="text-xs font-black text-emerald-400">{currency(region.min)}</span>
+                          <span className="text-[10px] text-slate-500">Menor</span>
+                        </div>
+                        <div className="flex flex-col items-center rounded-lg bg-rose-500/10 px-3 py-1.5 border border-rose-500/20">
+                          <span className="text-xs font-black text-rose-400">{currency(region.max)}</span>
+                          <span className="text-[10px] text-slate-500">Maior</span>
+                        </div>
+                        <div className="flex flex-col items-center rounded-lg bg-amber-500/10 px-3 py-1.5 border border-amber-500/20">
+                          <span className="text-xs font-black text-amber-400">{currency(spread)}</span>
+                          <span className="text-[10px] text-slate-500">Spread</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* Tabela de grupos */}
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-white/10 bg-slate-900/60">
+                            <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Empresa</th>
+                            <th className="whitespace-nowrap px-3 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">Preço Praticado</th>
+                            <th className="whitespace-nowrap px-3 py-2.5 text-center text-[10px] font-bold uppercase tracking-wider text-slate-500">Vs. Média da Região</th>
+                            <th className="whitespace-nowrap px-3 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500 hidden sm:table-cell">Posicionamento</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {region.competitors.map((comp, ci) => {
+                            const diff    = ((comp.price - region.avg) / region.avg) * 100;
+                            const isMin   = comp.price === region.min;
+                            const isMax   = comp.price === region.max;
+                            const isAbove = diff > 2;
+                            const isBelow = diff < -2;
+                            const diffCl  = isAbove ? "text-rose-400" : isBelow ? "text-emerald-400" : "text-amber-400";
+                            const badge   = isAbove
+                              ? { text: "Acima da média",   cls: "bg-rose-500/15 border-rose-500/30 text-rose-400" }
+                              : isBelow
+                              ? { text: "Abaixo da média",  cls: "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" }
+                              : { text: "Alinhado à média", cls: "bg-amber-500/15 border-amber-500/30 text-amber-400" };
+                            return (
+                              <tr key={comp.groupId} className={`border-b border-white/5 hover:bg-white/[0.04] ${ci % 2 === 0 ? "" : "bg-white/[0.02]"}`}>
+                                <td className="px-3 py-2.5 min-w-[150px]">
+                                  <div className="flex items-center gap-1.5">
+                                    {isMin && <span title="Menor preço da região">🏷️</span>}
+                                    {isMax && <span title="Maior preço da região">💎</span>}
+                                    <span className="font-semibold text-white">{comp.company}</span>
+                                  </div>
+                                </td>
+                                <td className="px-3 py-2.5 text-center">
+                                  <span className="font-mono font-bold text-white">{currency(comp.price)}</span>
+                                </td>
+                                <td className="px-3 py-2.5 text-center">
+                                  <span className={`font-mono font-bold ${diffCl}`}>
+                                    {diff > 0 ? "+" : ""}{number(diff, 1)}%
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2.5 hidden sm:table-cell">
+                                  <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold whitespace-nowrap ${badge.cls}`}>
+                                    {badge.text}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot>
+                          <tr className="border-t border-white/10 bg-white/5">
+                            <td className="px-3 py-2 text-xs font-bold text-slate-400">Média da Região</td>
+                            <td className="px-3 py-2 text-center font-mono font-black text-cyan-400">{currency(region.avg)}</td>
+                            <td colSpan={2} />
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Professor tips */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <SectionTitle>
